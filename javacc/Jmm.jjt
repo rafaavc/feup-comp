@@ -149,9 +149,8 @@ void MethodBody(): {}
 
 void Type(): {}
 {
-    <INT> <OPEN_BRACKET> <CLOSE_BRACKET>
+    <INT> (<OPEN_BRACKET> <CLOSE_BRACKET>)?
     | <BOOLEAN>
-    | <INT>
     | <IDENTIFIER>
 }
 
@@ -161,11 +160,11 @@ void Type(): {}
 
 void Statement(): {}
 {
-	BlockStatement() |
-	IfElseStatement() |
-	WhileStatement() |
-    Expression() <SEMICOLON> |
-	IdentifierStatement()
+	BlockStatement()
+	| IfElseStatement()
+	| WhileStatement()
+	| IdentifierStatement()   // --> Generating error in LL(1)
+    | Expression() <SEMICOLON>
 }
 
 void BlockStatement(): {}
@@ -199,41 +198,45 @@ void ArrayAccess(): {}
 
 void Expression(): {}
 {
-
-    (
-        <INTEGERLITERAL>
-    	| <TRUE>
-        | <FALSE>
-        | <IDENTIFIER>
-        | <THIS>
-        | <NEW> NewInstance() 
-        | Not()
-		| <OPEN_PAR> Expression() <CLOSE_PAR>
-    ) Expression1()
+	And()
 }
 
-void Expression1(): {}
+void And(): {}
 {
-    (<SUM> | <SUB> | <MUL> | <DIV> | <AND> | <LT> ) Expression()
-    | ArrayAccess()
-    | ObjectProperty()
-    | <EMPTY>
+	LessThan() (<AND> LessThan())*
 }
 
-void Not(): {}
+void LessThan(): {}
 {
-	<NOT> Expression()
+	SumSub() (<LT> SumSub())*
+}
+
+void SumSub(): {}
+{
+	MulDiv() ((<SUM> | <SUB>) MulDiv())*
+}
+
+void MulDiv(): {}
+{
+	Not() ((<MUL> | <DIV>) Not())*
+}
+
+void Not(): {} // java accepts multiple '!'
+{
+	(<NOT> Not()) | ExpressionExtension()
+}
+
+void ExpressionExtension(): {}
+{
+	ExpressionTerminalSymbols() (ArrayAccess() | ObjectProperty())
 }
 
 void ObjectProperty(): {}
 {
-	<DOT> ObjectPropertyCall()
-}
-
-void ObjectPropertyCall(): {}
-{
-	<LENGTH>
-	| <IDENTIFIER> <OPEN_PAR> ArgumentList() <CLOSE_PAR>
+	<DOT> (
+		<LENGTH>
+		| <IDENTIFIER> <OPEN_PAR> ArgumentList() <CLOSE_PAR>
+	)
 }
 
 void ArgumentList(): {}
@@ -241,8 +244,19 @@ void ArgumentList(): {}
 	(Expression() (<COMMA>Expression())*)?
 }
 
+void ExpressionTerminalSymbols(): {}
+{
+	<INTEGERLITERAL>
+	| <TRUE>
+	| <FALSE>
+	| <IDENTIFIER>
+	| <THIS>
+	| <NEW> NewInstance()
+	| <OPEN_PAR> Expression() <CLOSE_PAR>
+}
+
 void NewInstance(): {}
 {
-	(<INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>) |
-                (<IDENTIFIER> <OPEN_PAR> <CLOSE_PAR>)
+	(<INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
+	| (<IDENTIFIER> <OPEN_PAR> <CLOSE_PAR>)
 }
