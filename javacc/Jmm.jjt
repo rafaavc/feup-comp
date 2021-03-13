@@ -1,12 +1,12 @@
 options {
     LOOKAHEAD = 1;
+    FORCE_LA_CHECK = true;
 }
 
 PARSER_BEGIN(Jmm)
 public class Jmm
 {
     public static void main(String[] args) throws ParseException {
-      	System.out.println("Write an arithmetic expression:");
 		Jmm grammar = new Jmm(System.in);
 		SimpleNode root = grammar.Program(); // returns reference to root node
 
@@ -25,59 +25,57 @@ SKIP :
 
 TOKEN:
 {
-    < LF: "\n" > |
+    < LF: "\n" >
 
     // operators
-    < LOGICAL: ("&&" | "<")> |
-    < ARITHMETIC: ("+" | "-" | "*" | "/") > |
-    < SUM: "+" > |
-    < SUB: "-" > |
-    < MUL: "*" > |
-    < DIV: "/" > |
-    < AND: "&&" > |
-    < LT: "<" > |
+    | < SUM: "+" >
+    | < SUB: "-" >
+    | < MUL: "*" >
+    | < DIV: "/" >
+    | < AND: "&&" >
+    | < LT: "<" >
 
     // symbols
-    < OPEN_BRACKET: "[" > |
-    < CLOSE_BRACKET: "]" > |
-    < OPEN_PAR: "(" > |
-    < CLOSE_PAR: ")" > |
-    < OPEN_BRACES: "{" > |
-    < CLOSE_BRACES: "}" > |
-    < DOT: "."> |
-    < COMMA: ","> |
-    < SEMICOLON: ";" > |
-    < NOT: "!" > |
-    < EQ: "=" > |
+    | < OPEN_BRACKET: "[" >
+    | < CLOSE_BRACKET: "]" >
+    | < OPEN_PAR: "(" >
+    | < CLOSE_PAR: ")" >
+    | < OPEN_BRACES: "{" >
+    | < CLOSE_BRACES: "}" >
+    | < DOT: ".">
+    | < COMMA: ",">
+    | < SEMICOLON: ";" >
+    | < NOT: "!" >
+    | < EQ: "=" >
 
     // keywords
-    < TRUE: "true" > |
-    < FALSE: "false"> |
-    < THIS: "this"> |
-    < NEW: "new"> |
-    < LENGTH: "length"> |
-    < EMPTY: ""> |
-    < IMPORT: "import" > |
-    < CLASS: "class" > |
-    < EXTENDS: "extends" > |
-    < PUBLIC: "public" > |
-    < STATIC: "static" > |
-    < MAIN: "main" > |
-    < RETURN: "return" > |
-    < WHILE: "while" > |
-    < IF: "if" > |
-    < ELSE: "else" > |
+    | < TRUE: "true" >
+    | < FALSE: "false">
+    | < THIS: "this">
+    | < NEW: "new">
+    | < LENGTH: "length">
+    | < EMPTY: "">
+    | < IMPORT: "import" >
+    | < CLASS: "class" >
+    | < EXTENDS: "extends" >
+    | < PUBLIC: "public" >
+    | < STATIC: "static" >
+    | < MAIN: "main" >
+    | < RETURN: "return" >
+    | < WHILE: "while" >
+    | < IF: "if" >
+    | < ELSE: "else" >
 
     // variable types
-    < BOOLEAN: "boolean" > |
-    < INT: "int"> |
-    < VOID: "void" > |
-    < STRING: "String" > |
+    | < BOOLEAN: "boolean" >
+    | < INT: "int">
+    | < VOID: "void" >
+    | < STRING: "String" >
 
     // regex
-    < INTEGER: (["0"-"9"])+ > |
-    < IDENTIFIER: ["A"-"Z","a"-"z","$","_"](["0"-"9","A"-"Z","a"-"z","_","$"])* > |
-    < INTEGERLITERAL: (((["+","-"])?(["0"-"9"])+)|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
+    | < INTEGER: (["0"-"9"])+ >
+    | < IDENTIFIER: ["A"-"Z","a"-"z","$","_"](["0"-"9","A"-"Z","a"-"z","_","$"])* >
+    | < INTEGERLITERAL: (((["+","-"])?(["0"-"9"])+)|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
 }
 
 SimpleNode Program(): {}
@@ -87,12 +85,27 @@ SimpleNode Program(): {}
 
 void ImportDeclaration(): {}
 {
-    (<IMPORT> <IDENTIFIER> (<DOT> <IDENTIFIER> )* <SEMICOLON> )*
+    (<IMPORT> Package() <SEMICOLON>)*
+}
+
+void Package(): {}
+{
+	<IDENTIFIER> (<DOT> <IDENTIFIER>)*
 }
 
 void ClassDeclaration(): {}
 {
-    <CLASS> <IDENTIFIER> (<EXTENDS> <IDENTIFIER>)? <OPEN_BRACES> (VarDeclaration())* (MethodDeclaration())* <CLOSE_BRACES>
+	ClassHeader() ClassBody()
+}
+
+void ClassHeader(): {}
+{
+	<CLASS> <IDENTIFIER> (<EXTENDS> <IDENTIFIER>)?
+}
+
+void ClassBody(): {}
+{
+	<OPEN_BRACES> (VarDeclaration())* (ClassMethodDeclaration())* <CLOSE_BRACES>
 }
 
 void VarDeclaration(): {}
@@ -100,12 +113,38 @@ void VarDeclaration(): {}
     Type() <IDENTIFIER> <SEMICOLON>
 }
 
+// -------------
+// ---Methods---
+// -------------
+
+void ClassMethodDeclaration(): {}
+{
+    <PUBLIC> ( MethodDeclaration() | MainMethodDeclaration())
+}
+
 void MethodDeclaration(): {}
 {
-    <PUBLIC> (Type() <IDENTIFIER> <OPEN_PAR> (Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*)? <CLOSE_PAR>
-    <OPEN_BRACES> (VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES>
-    | <STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR>
-    <OPEN_BRACES> (VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES> )
+	MethodHeader() MethodBody()
+}
+
+void MainMethodDeclaration(): {}
+{
+	MainMethodHeader() MethodBody()
+}
+
+void MethodHeader(): {}
+{
+	Type() <IDENTIFIER> <OPEN_PAR> (Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*)? <CLOSE_PAR>
+}
+
+void MainMethodHeader(): {}
+{
+	<STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR>
+}
+
+void MethodBody(): {}
+{
+	<OPEN_BRACES> (VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES>
 }
 
 void Type(): {}
@@ -116,39 +155,94 @@ void Type(): {}
     | <IDENTIFIER>
 }
 
+// --------------
+// --Statements--
+// --------------
+
 void Statement(): {}
 {
-    <OPEN_BRACES> (Statement())* <CLOSE_BRACES>
-    | <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
-    | <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
-    | Expression() <SEMICOLON>
-    | <IDENTIFIER> <EQ> Expression() <SEMICOLON>
-    | <IDENTIFIER> <OPEN_BRACKET> Expression() <CLOSE_BRACKET> <EQ> Expression() <SEMICOLON>
+	BlockStatement() |
+	IfElseStatement() |
+	WhileStatement() |
+    Expression() <SEMICOLON> |
+	IdentifierStatement()
 }
+
+void BlockStatement(): {}
+{
+	<OPEN_BRACES> (Statement())* <CLOSE_BRACES>
+}
+
+void IfElseStatement(): {}
+{
+	<IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
+}
+
+void WhileStatement(): {}
+{
+	<WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
+}
+
+void IdentifierStatement(): {}
+{
+	<IDENTIFIER> (ArrayAccess())? <EQ> Expression() <SEMICOLON>
+}
+
+void ArrayAccess(): {}
+{
+	<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+}
+
+// ---------------
+// --Expressions--
+// ---------------
 
 void Expression(): {}
 {
 
-    (<INTEGERLITERAL>
-    | <TRUE>
-    | <FALSE>
-    | <IDENTIFIER>
-    | <THIS>
-    | <NEW> (
-        <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
-        | <IDENTIFIER> <OPEN_PAR> <CLOSE_PAR>
-    )
-    | <NOT> Expression()
-    | <OPEN_PAR> Expression() <CLOSE_PAR>) Expression1()
+    (
+        <INTEGERLITERAL>
+    	| <TRUE>
+        | <FALSE>
+        | <IDENTIFIER>
+        | <THIS>
+        | <NEW> NewInstance() 
+        | Not()
+		| <OPEN_PAR> Expression() <CLOSE_PAR>
+    ) Expression1()
 }
 
 void Expression1(): {}
 {
-    (<LOGICAL> | <ARITHMETIC>) Expression()
-    | <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
-    | <DOT> (
-        <LENGTH>
-        | <IDENTIFIER> <OPEN_PAR> (Expression() (<COMMA>Expression())*)? <CLOSE_PAR>
-    )|
-    <EMPTY>
+    (<SUM> | <SUB> | <MUL> | <DIV> | <AND> | <LT> ) Expression()
+    | ArrayAccess()
+    | ObjectProperty()
+    | <EMPTY>
+}
+
+void Not(): {}
+{
+	<NOT> Expression()
+}
+
+void ObjectProperty(): {}
+{
+	<DOT> ObjectPropertyCall()
+}
+
+void ObjectPropertyCall(): {}
+{
+	<LENGTH>
+	| <IDENTIFIER> <OPEN_PAR> ArgumentList() <CLOSE_PAR>
+}
+
+void ArgumentList(): {}
+{
+	(Expression() (<COMMA>Expression())*)?
+}
+
+void NewInstance(): {}
+{
+	(<INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>) |
+                (<IDENTIFIER> <OPEN_PAR> <CLOSE_PAR>)
 }
