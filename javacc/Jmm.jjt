@@ -1,0 +1,154 @@
+options {
+    LOOKAHEAD = 1;
+}
+
+PARSER_BEGIN(Jmm)
+public class Jmm
+{
+    public static void main(String[] args) throws ParseException {
+      	System.out.println("Write an arithmetic expression:");
+		Jmm grammar = new Jmm(System.in);
+		SimpleNode root = grammar.Program(); // returns reference to root node
+
+		root.dump(""); // prints the tree on the screen
+
+		//System.out.println("Expression value: "+ grammar.eval(root));
+    }
+
+}
+PARSER_END(Jmm)
+
+SKIP :
+{
+	" " | "\r" | "\t"
+}
+
+TOKEN:
+{
+    < LF: "\n" > |
+
+    // operators
+    < LOGICAL: ("&&" | "<")> |
+    < ARITHMETIC: ("+" | "-" | "*" | "/") > |
+    < SUM: "+" > |
+    < SUB: "-" > |
+    < MUL: "*" > |
+    < DIV: "/" > |
+    < AND: "&&" > |
+    < LT: "<" > |
+
+    // symbols
+    < OPEN_BRACKET: "[" > |
+    < CLOSE_BRACKET: "]" > |
+    < OPEN_PAR: "(" > |
+    < CLOSE_PAR: ")" > |
+    < OPEN_BRACES: "{" > |
+    < CLOSE_BRACES: "}" > |
+    < DOT: "."> |
+    < COMMA: ","> |
+    < SEMICOLON: ";" > |
+    < NOT: "!" > |
+    < EQ: "=" > |
+
+    // keywords
+    < TRUE: "true" > |
+    < FALSE: "false"> |
+    < THIS: "this"> |
+    < NEW: "new"> |
+    < LENGTH: "length"> |
+    < EMPTY: ""> |
+    < IMPORT: "import" > |
+    < CLASS: "class" > |
+    < EXTENDS: "extends" > |
+    < PUBLIC: "public" > |
+    < STATIC: "static" > |
+    < MAIN: "main" > |
+    < RETURN: "return" > |
+    < WHILE: "while" > |
+    < IF: "if" > |
+    < ELSE: "else" > |
+
+    // variable types
+    < BOOLEAN: "boolean" > |
+    < INT: "int"> |
+    < VOID: "void" > |
+    < STRING: "String" > |
+
+    // regex
+    < INTEGER: (["0"-"9"])+ > |
+    < IDENTIFIER: ["A"-"Z","a"-"z","$","_"](["0"-"9","A"-"Z","a"-"z","_","$"])* > |
+    < INTEGERLITERAL: (((["+","-"])?(["0"-"9"])+)|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
+}
+
+SimpleNode Program(): {}
+{
+   ImportDeclaration() ClassDeclaration() <EOF>  {return jjtThis;} // Java code inside brackets
+}
+
+void ImportDeclaration(): {}
+{
+    (<IMPORT> <IDENTIFIER> (<DOT> <IDENTIFIER> )* <SEMICOLON> )*
+}
+
+void ClassDeclaration(): {}
+{
+    <CLASS> <IDENTIFIER> (<EXTENDS> <IDENTIFIER>)? <OPEN_BRACES> (VarDeclaration())* (MethodDeclaration())* <CLOSE_BRACES>
+}
+
+void VarDeclaration(): {}
+{
+    Type() <IDENTIFIER> <SEMICOLON>
+}
+
+void MethodDeclaration(): {}
+{
+    <PUBLIC> (Type() <IDENTIFIER> <OPEN_PAR> (Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*)? <CLOSE_PAR>
+    <OPEN_BRACES> (VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES>
+    | <STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR>
+    <OPEN_BRACES> (VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES> )
+}
+
+void Type(): {}
+{
+    <INT> <OPEN_BRACKET> <CLOSE_BRACKET>
+    | <BOOLEAN>
+    | <INT>
+    | <IDENTIFIER>
+}
+
+void Statement(): {}
+{
+    <OPEN_BRACES> (Statement())* <CLOSE_BRACES>
+    | <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
+    | <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
+    | Expression() <SEMICOLON>
+    | <IDENTIFIER> <EQ> Expression() <SEMICOLON>
+    | <IDENTIFIER> <OPEN_BRACKET> Expression() <CLOSE_BRACKET> <EQ> Expression() <SEMICOLON>
+}
+
+void Expression(): {}
+{
+
+    (<INTEGERLITERAL>
+    | <TRUE>
+    | <FALSE>
+    | <IDENTIFIER>
+    | <THIS>
+    | <NEW> (
+        <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+        | <IDENTIFIER> <OPEN_PAR> <CLOSE_PAR>
+    )
+    | <NOT> Expression()
+    | <OPEN_PAR> Expression() <CLOSE_PAR>) Expression1()
+}
+
+void Expression1(): {}
+{
+    (<LOGICAL> | <ARITHMETIC>) Expression()
+    | <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+    | <DOT> (
+        <LENGTH>
+        | <IDENTIFIER> <OPEN_PAR> (Expression() (<COMMA>Expression())*)? <CLOSE_PAR>
+    )|
+    <EMPTY>
+}

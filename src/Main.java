@@ -13,6 +13,7 @@ public class Main implements JmmParser {
 	public JmmParserResult parse(String jmmCode) {
 		
 		try {
+			// Replace with parser class
 		    Calculator myCalc = new Calculator(new StringReader(jmmCode));
     		SimpleNode root = myCalc.Expression(); // returns reference to root node
             	
