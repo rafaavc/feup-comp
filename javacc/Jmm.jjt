@@ -18,15 +18,13 @@ PARSER_END(Jmm)
 
 SKIP :
 {
-	" " | "\r" | "\t"
+	" " | "\r" | "\t" | "\n"
 }
 
 TOKEN:
 {
-    < LF: "\n" >
-
     // operators
-    | < SUM: "+" >
+    < SUM: "+" >
     | < SUB: "-" >
     | < MUL: "*" >
     | < DIV: "/" >
@@ -157,10 +155,10 @@ void Type(): {}
 
 void Statement(): {}
 {
-	BlockStatement()
+	IdentifierStatement()
+	| BlockStatement()
 	| IfElseStatement()
-	| WhileStatement()
-	| IdentifierStatement()   // --> Generating warning in LL(1) (Expression can also start with <IDENTIFIER> "[")
+	| WhileStatement()   // --> Generating warning in LL(1) (Expression can also start with <IDENTIFIER> "[")
     | Expression() <SEMICOLON>
 }
 
