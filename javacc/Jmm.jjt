@@ -11,8 +11,6 @@ public class Jmm
 		SimpleNode root = grammar.Program(); // returns reference to root node
 
 		root.dump(""); // prints the tree on the screen
-
-		//System.out.println("Expression value: "+ grammar.eval(root));
     }
 
 }
@@ -54,7 +52,6 @@ TOKEN:
     | < THIS: "this">
     | < NEW: "new">
     | < LENGTH: "length">
-    | < EMPTY: "">
     | < IMPORT: "import" >
     | < CLASS: "class" >
     | < EXTENDS: "extends" >
@@ -151,7 +148,7 @@ void Type(): {}
 {
     <INT> (<OPEN_BRACKET> <CLOSE_BRACKET>)?
     | <BOOLEAN>
-    | <IDENTIFIER>
+    | <IDENTIFIER> // --> Generating warning in LL(1)
 }
 
 // --------------
@@ -163,7 +160,7 @@ void Statement(): {}
 	BlockStatement()
 	| IfElseStatement()
 	| WhileStatement()
-	| IdentifierStatement()   // --> Generating error in LL(1)
+	| IdentifierStatement()   // --> Generating warning in LL(1) (Expression can also start with <IDENTIFIER> "[")
     | Expression() <SEMICOLON>
 }
 
@@ -221,7 +218,7 @@ void MulDiv(): {}
 	Not() ((<MUL> | <DIV>) Not())*
 }
 
-void Not(): {} // java accepts multiple '!'
+void Not(): {}
 {
 	(<NOT> Not()) | ExpressionExtension()
 }
