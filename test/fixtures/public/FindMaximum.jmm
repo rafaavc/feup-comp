@@ -45,4 +45,6 @@ class FindMaximum {
 		max = fm.find_maximum(fm.get_array());
 		ioPlus.printResult(max);
 	}
+
+	/*Test*/
 }

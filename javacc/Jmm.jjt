@@ -1,0 +1,269 @@
+options {
+    LOOKAHEAD = 1;
+    FORCE_LA_CHECK = false;
+    DEBUG_PARSER = true;
+}
+
+PARSER_BEGIN(Jmm)
+public class Jmm
+{
+    public static void main(String[] args) throws ParseException {
+		Jmm grammar = new Jmm(System.in);
+		SimpleNode root = grammar.Program(); // returns reference to root node
+
+		root.dump(""); // prints the tree on the screen
+    }
+
+}
+PARSER_END(Jmm)
+
+SKIP :
+{
+	" " | "\r" | "\t" | "\n"
+	| < "//" (~["\r", "\n"])* ["\r", "\n"] >
+	| "/*"  : MULTILINE_STATE
+}
+
+<MULTILINE_STATE> SKIP :
+{
+	"*/" : DEFAULT |
+	< ~[] >
+}
+
+TOKEN:
+{
+    // operators
+    < SUM: "+" >
+    | < SUB: "-" >
+    | < MUL: "*" >
+    | < DIV: "/" >
+    | < AND: "&&" >
+    | < LT: "<" >
+
+    // symbols
+    | < OPEN_BRACKET: "[" >
+    | < CLOSE_BRACKET: "]" >
+    | < OPEN_PAR: "(" >
+    | < CLOSE_PAR: ")" >
+    | < OPEN_BRACES: "{" >
+    | < CLOSE_BRACES: "}" >
+    | < DOT: ".">
+    | < COMMA: ",">
+    | < SEMICOLON: ";" >
+    | < NOT: "!" >
+    | < EQ: "=" >
+
+    // keywords
+    | < TRUE: "true" >
+    | < FALSE: "false">
+    | < THIS: "this">
+    | < NEW: "new">
+    | < LENGTH: "length">
+    | < IMPORT: "import" >
+    | < CLASS: "class" >
+    | < EXTENDS: "extends" >
+    | < PUBLIC: "public" >
+    | < STATIC: "static" >
+    | < MAIN: "main" >
+    | < RETURN: "return" >
+    | < WHILE: "while" >
+    | < IF: "if" >
+    | < ELSE: "else" >
+
+    // variable types
+    | < BOOLEAN: "boolean" >
+    | < INT: "int">
+    | < VOID: "void" >
+    | < STRING: "String" >
+
+    // regex
+    | < IDENTIFIER: ["A"-"Z","a"-"z","$","_"](["0"-"9","A"-"Z","a"-"z","_","$"])* >
+    | < INTEGERLITERAL: ((["0"-"9"])+|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
+}
+
+SimpleNode Program(): {}
+{
+   ImportDeclaration() ClassDeclaration() <EOF>  {return jjtThis;} // Java code inside brackets
+}
+
+void ImportDeclaration(): {}
+{
+    (<IMPORT> Package() <SEMICOLON>)*
+}
+
+void Package(): {}
+{
+	<IDENTIFIER> (<DOT> <IDENTIFIER>)*
+}
+
+void ClassDeclaration(): {}
+{
+	ClassHeader() ClassBody()
+}
+
+void ClassHeader(): {}
+{
+	<CLASS> <IDENTIFIER> (<EXTENDS> <IDENTIFIER>)?
+}
+
+void ClassBody(): {}
+{
+	<OPEN_BRACES> (VarDeclaration())* (ClassMethodDeclaration())* <CLOSE_BRACES>
+}
+
+void VarDeclaration(): {}
+{
+    Type() <IDENTIFIER> <SEMICOLON>
+}
+
+// -------------
+// ---Methods---
+// -------------
+
+void ClassMethodDeclaration(): {}
+{
+    <PUBLIC> ( MethodDeclaration() | MainMethodDeclaration())
+}
+
+void MethodDeclaration(): {}
+{
+	MethodHeader() MethodBody()
+}
+
+void MainMethodDeclaration(): {}
+{
+	MainMethodHeader() MainMethodBody()
+}
+
+void MethodHeader(): {}
+{
+	Type() <IDENTIFIER> <OPEN_PAR> (Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*)? <CLOSE_PAR>
+}
+
+void MainMethodHeader(): {}
+{
+	<STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR>
+}
+
+void MainMethodBody(): {}
+{
+	<OPEN_BRACES> (LOOKAHEAD(2) VarDeclaration())* (Statement())* <CLOSE_BRACES>
+}
+
+void MethodBody(): {}
+{
+	<OPEN_BRACES> (LOOKAHEAD(2) VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES>
+}
+
+void Type(): {}
+{
+    <INT> (<OPEN_BRACKET> <CLOSE_BRACKET>)?
+    | <BOOLEAN>
+    | <IDENTIFIER> // --> Generating warning in LL(1)
+}
+
+// --------------
+// --Statements--
+// --------------
+
+void Statement(): {}
+{
+	BlockStatement()
+	| IfElseStatement()
+	| WhileStatement()   // --> Generating warning in LL(1) (Expression can also start with <IDENTIFIER> "[")
+    | Expression() (Assignment())* <SEMICOLON>
+}
+
+void BlockStatement(): {}
+{
+	<OPEN_BRACES> (Statement())* <CLOSE_BRACES>
+}
+
+void IfElseStatement(): {}
+{
+	<IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
+}
+
+void WhileStatement(): {}
+{
+	<WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
+}
+
+void Assignment(): {}
+{
+	<EQ> Expression()
+}
+
+void ArrayAccess(): {}
+{
+	<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+}
+
+// ---------------
+// --Expressions--
+// ---------------
+
+void Expression(): {}
+{
+	And()
+}
+
+void And(): {}
+{
+	LessThan() (<AND> LessThan())*
+}
+
+void LessThan(): {}
+{
+	SumSub() (<LT> SumSub())*
+}
+
+void SumSub(): {}
+{
+	MulDiv() ((<SUM> | <SUB>) MulDiv())*
+}
+
+void MulDiv(): {}
+{
+	Not() ((<MUL> | <DIV>) Not())*
+}
+
+void Not(): {}
+{
+	(<NOT> Not()) | ExpressionExtension()
+}
+
+void ExpressionExtension(): {}
+{
+	ExpressionTerminalSymbols() (ArrayAccess() | ObjectProperty())*
+}
+
+void ObjectProperty(): {}
+{
+	<DOT> (
+		<LENGTH>
+		| <IDENTIFIER> <OPEN_PAR> ArgumentList() <CLOSE_PAR>
+	)
+}
+
+void ArgumentList(): {}
+{
+	(Expression() (<COMMA>Expression())*)?
+}
+
+void ExpressionTerminalSymbols(): {}
+{
+	<INTEGERLITERAL>
+	| <TRUE>
+	| <FALSE>
+	| <IDENTIFIER>
+	| <THIS>
+	| <NEW> NewInstance()
+	| <OPEN_PAR> Expression() <CLOSE_PAR>
+}
+
+void NewInstance(): {}
+{
+	(<INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
+	| (<IDENTIFIER> <OPEN_PAR> <CLOSE_PAR>)
+}
