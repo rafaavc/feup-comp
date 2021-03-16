@@ -39,7 +39,7 @@ public class Main implements JmmParser {
 				"\t\tint maximum;\n" +
 				"\t\tint value;\n" +
 				"\n" +
-				"\t\ti[0] = 1;\n" +
+				"\t\ti = 1;\n" +
 				"\t\tmaximum = arr[0];\n" +
 				"\t\twhile (i < arr.length) {\n" +
 				"\t\t\tvalue = arr[i];\n" +

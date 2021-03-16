@@ -1,6 +1,7 @@
 options {
     LOOKAHEAD = 1;
     FORCE_LA_CHECK = true;
+    DEBUG_PARSER = false;
 }
 
 PARSER_BEGIN(Jmm)
@@ -139,7 +140,7 @@ void MainMethodHeader(): {}
 
 void MethodBody(): {}
 {
-	<OPEN_BRACES> (VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES>
+	<OPEN_BRACES> (LOOKAHEAD(2) VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES>
 }
 
 void Type(): {}
@@ -155,11 +156,10 @@ void Type(): {}
 
 void Statement(): {}
 {
-	IdentifierStatement()
-	| BlockStatement()
+	BlockStatement()
 	| IfElseStatement()
 	| WhileStatement()   // --> Generating warning in LL(1) (Expression can also start with <IDENTIFIER> "[")
-    | Expression() <SEMICOLON>
+    | Expression() (Assignment())* <SEMICOLON>
 }
 
 void BlockStatement(): {}
@@ -177,9 +177,9 @@ void WhileStatement(): {}
 	<WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
 }
 
-void IdentifierStatement(): {}
+void Assignment(): {}
 {
-	<IDENTIFIER> (ArrayAccess())? <EQ> Expression() <SEMICOLON>
+	<EQ> Expression()
 }
 
 void ArrayAccess(): {}
@@ -223,7 +223,7 @@ void Not(): {}
 
 void ExpressionExtension(): {}
 {
-	ExpressionTerminalSymbols() (ArrayAccess() | ObjectProperty())
+	ExpressionTerminalSymbols() (ArrayAccess() | ObjectProperty())*
 }
 
 void ObjectProperty(): {}
