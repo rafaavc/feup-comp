@@ -1,7 +1,7 @@
 options {
     LOOKAHEAD = 1;
-    FORCE_LA_CHECK = true;
-    DEBUG_PARSER = false;
+    FORCE_LA_CHECK = false;
+    DEBUG_PARSER = true;
 }
 
 PARSER_BEGIN(Jmm)
@@ -20,6 +20,14 @@ PARSER_END(Jmm)
 SKIP :
 {
 	" " | "\r" | "\t" | "\n"
+	| < "//" (~["\r", "\n"])* ["\r", "\n"] >
+	| "/*"  : MULTILINE_STATE
+}
+
+<MULTILINE_STATE> SKIP :
+{
+	"*/" : DEFAULT |
+	< ~[] >
 }
 
 TOKEN:
@@ -69,9 +77,8 @@ TOKEN:
     | < STRING: "String" >
 
     // regex
-    | < INTEGER: (["0"-"9"])+ >
     | < IDENTIFIER: ["A"-"Z","a"-"z","$","_"](["0"-"9","A"-"Z","a"-"z","_","$"])* >
-    | < INTEGERLITERAL: (((["+","-"])?(["0"-"9"])+)|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
+    | < INTEGERLITERAL: ((["0"-"9"])+|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
 }
 
 SimpleNode Program(): {}
@@ -125,7 +132,7 @@ void MethodDeclaration(): {}
 
 void MainMethodDeclaration(): {}
 {
-	MainMethodHeader() MethodBody()
+	MainMethodHeader() MainMethodBody()
 }
 
 void MethodHeader(): {}
@@ -136,6 +143,11 @@ void MethodHeader(): {}
 void MainMethodHeader(): {}
 {
 	<STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR>
+}
+
+void MainMethodBody(): {}
+{
+	<OPEN_BRACES> (LOOKAHEAD(2) VarDeclaration())* (Statement())* <CLOSE_BRACES>
 }
 
 void MethodBody(): {}

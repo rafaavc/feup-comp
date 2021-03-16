@@ -21,7 +21,7 @@ public class Main implements JmmParser {
             	
     		root.dump(""); // prints the tree on the screen
     	
-    		return new JmmParserResult(root, new ArrayList<Report>());
+    		return new JmmParserResult(root, new ArrayList<>());
 		} catch(ParseException e) {
 			throw new RuntimeException("Error while parsing", e);
 		}
@@ -29,58 +29,8 @@ public class Main implements JmmParser {
 
     public static void main(String[] args) {
         System.out.println("Executing with args: " + Arrays.toString(args));
-
-		String jmmCode = "import ioPlus;\n" +
-				"class FindMaximum {\n" +
-				"\tint[] test_arr;\n" +
-				"\n" +
-				"\tpublic int find_maximum(int[] arr) {\n" +
-				"\t\tint i;\n" +
-				"\t\tint maximum;\n" +
-				"\t\tint value;\n" +
-				"\n" +
-				"\t\ti = 1;\n" +
-				"\t\tmaximum = arr[0];\n" +
-				"\t\twhile (i < arr.length) {\n" +
-				"\t\t\tvalue = arr[i];\n" +
-				"\t\t\tif (maximum < value) {\n" +
-				"\t\t\t\tmaximum = value;\n" +
-				"\t\t\t} else {\n" +
-				"\t\t\t}\n" +
-				"\t\t\ti = i + 1;\n" +
-				"\t\t}\n" +
-				"\n" +
-				"\t\treturn maximum;\n" +
-				"\t}\n" +
-				"\n" +
-				"\tpublic int build_test_arr() {\n" +
-				"\t\ttest_arr = new int[5];\n" +
-				"\t\ttest_arr[0] = 14;\n" +
-				"\t\ttest_arr[1] = 28;\n" +
-				"\t\ttest_arr[2] = 0;\n" +
-				"\t\ttest_arr[3] = 0-5; // No unary minus in Java--\n" +
-				"\t\ttest_arr[4] = 12;\n" +
-				"\n" +
-				"\t\treturn 0;\n" +
-				"\t}\n" +
-				"\n" +
-				"\tpublic int[] get_array() {\n" +
-				"\t\treturn test_arr;\n" +
-				"\t}\n" +
-				"\n" +
-				"\tpublic static void main(String[] args) {\n" +
-				"\t\tFindMaximum fm;\n" +
-				"\t\tint max;\n" +
-				"\t\tfm = new FindMaximum();\n" +
-				"\t\tfm.build_test_arr();\n" +
-				"\n" +
-				"\t\tmax = fm.find_maximum(fm.get_array());\n" +
-				"\t\tioPlus.printResult(max);\n" +
-				"\t}\n" +
-				"}";
+		String jmmCode = SpecsIo.read(args[0]);
 		JmmParser parser = new Main();
 		parser.parse(jmmCode);
     }
-
-
 }
