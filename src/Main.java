@@ -21,7 +21,7 @@ public class Main implements JmmParser {
 		    Jmm parser = new Jmm(new StringReader(jmmCode));
     		SimpleNode root = parser.Program(); // returns reference to root node
             	
-    		root.dump(""); // prints the tree on the screen
+    		//root.dump(""); // prints the tree on the screen
 
     		return new JmmParserResult(root, parser.getReports());
 
@@ -34,12 +34,18 @@ public class Main implements JmmParser {
 
     public static void main(String[] args) {
         System.out.println("Executing with args: " + Arrays.toString(args));
+        if (args.length < 1) {
+			System.err.println("I need at least the path of the file you want to parse. If you want, you can also specify the maximum number of errors you want me to report in the second argument.");
+		}
+
+        int maxErrNo = args.length > 1 ? Integer.parseInt(args[1]) : 15;
 		String jmmCode = SpecsIo.read(args[0]);
+
 		JmmParser parser = new Main();
 		JmmParserResult result = parser.parse(jmmCode);
 
 		List<Report> reports = result.getReports();
-		for (Report report : reports.subList(0, Math.min(reports.size(), 10))) {
+		for (Report report : reports.subList(0, Math.min(reports.size(), maxErrNo))) {
 			System.out.println(report.getMessage());
 		}
     }

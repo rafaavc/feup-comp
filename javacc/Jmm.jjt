@@ -91,6 +91,19 @@ TOKEN:
     | < INTEGERLITERAL: ((["0"-"9"])+|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
 }
 
+JAVACODE
+void whileRecoverySkip() {
+    // if current token is the last CLOSE_PAR or the next token is the OPEN_BRACES
+    if ((getToken(0).kind == CLOSE_PAR && getToken(1).kind != CLOSE_PAR) || getToken(1).kind == OPEN_BRACES) return;
+    Token t, next;
+    do {
+        t = getNextToken();
+        next = getToken(1);
+    }
+    // while the next token is not EOF or OPEN_BRACES and the current token is not the last CLOSE_PAR
+    while (next.kind != 0 && next.kind != OPEN_BRACES && (t.kind != CLOSE_PAR || next.kind == CLOSE_PAR));
+}
+
 SimpleNode Program(): {}
 {
     try {
@@ -185,7 +198,7 @@ void Statement(): {}
 {
 	BlockStatement()
 	| IfElseStatement()
-	| WhileStatement()   // --> Generating warning in LL(1) (Expression can also start with <IDENTIFIER> "[")
+	| WhileStatement()
     | Expression() (Assignment())* <SEMICOLON>
 }
 
@@ -201,7 +214,15 @@ void IfElseStatement(): {}
 
 void WhileStatement(): {}
 {
-	<WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
+	<WHILE> try {
+	    <OPEN_PAR> Expression() <CLOSE_PAR>
+        Statement()
+	} catch (ParseException e) {
+	    reports.add(new Report(ReportType.ERROR, Stage.SYNTATIC, token.beginLine, e.getMessage()));
+
+        whileRecoverySkip();  // skip to open braces
+        Statement();
+    }
 }
 
 void Assignment(): {}
