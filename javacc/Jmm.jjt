@@ -5,8 +5,15 @@ options {
 }
 
 PARSER_BEGIN(Jmm)
+import java.util.ArrayList;
+import java.util.List;
+import pt.up.fe.comp.jmm.report.ReportType;
+import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp.jmm.report.Report;
 public class Jmm
 {
+    List<Report> reports = new ArrayList<Report>();
+
     public static void main(String[] args) throws ParseException {
 		Jmm grammar = new Jmm(System.in);
 		SimpleNode root = grammar.Program(); // returns reference to root node
@@ -14,6 +21,9 @@ public class Jmm
 		root.dump(""); // prints the tree on the screen
     }
 
+    public List<Report> getReports() {
+        return reports;
+    }
 }
 PARSER_END(Jmm)
 
@@ -83,7 +93,12 @@ TOKEN:
 
 SimpleNode Program(): {}
 {
-   ImportDeclaration() ClassDeclaration() <EOF>  {return jjtThis;} // Java code inside brackets
+    try {
+        ImportDeclaration() ClassDeclaration() <EOF>  { return jjtThis; } // Java code inside brackets
+    } catch(ParseException e) {
+        reports.add(new Report(ReportType.ERROR, Stage.SYNTATIC, token.beginLine, e.getMessage()));
+        return jjtThis;
+    }
 }
 
 void ImportDeclaration(): {}
