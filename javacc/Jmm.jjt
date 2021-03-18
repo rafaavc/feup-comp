@@ -287,8 +287,8 @@ void ArgumentList() #void : {}
 void ExpressionTerminalSymbols() #void : {Token t1;}
 {
 	t1 = <INTEGERLITERAL> {jjtThis.put("val", t1.image);} #Integer
-	| <TRUE> {jjtThis.put("name", "true");} #Boolean
-	| <FALSE> {jjtThis.put("name", "false");} #Boolean
+	| <TRUE> {jjtThis.put("val", "true");} #Boolean
+	| <FALSE> {jjtThis.put("val", "false");} #Boolean
 	| t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} #Identifier
 	| <THIS> #This
 	| <NEW> NewInstance()

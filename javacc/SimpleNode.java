@@ -38,7 +38,7 @@ class SimpleNode implements Node, JmmNode {
   }
 
   public List<String> getAttributes() {
-    return new ArrayList<>(attributes.values());
+    return new ArrayList<>(attributes.keySet());
   }
 
   public void put(String attribute, String value) {
@@ -49,7 +49,7 @@ class SimpleNode implements Node, JmmNode {
     return this.attributes.get(attribute);
   }
   public List<JmmNode> getChildren() {
-    return (children == null) ? new ArrayList<>() : Arrays.asList((JmmNode[])children);
+    return JmmNode.convertChildren(children);
   }
   
   public int getNumChildren() {
@@ -103,6 +103,11 @@ class SimpleNode implements Node, JmmNode {
      you need to do. */
 
   public String toString() {
+    return JmmTreeConstants.jjtNodeName[id];
+  }
+  public String toString(String prefix) { return prefix + toString(); }
+
+  private String toDumpString() {
     if (this.attributes.containsKey("name")) {
       return JmmTreeConstants.jjtNodeName[id] + " [" + this.attributes.get("name") + "]";
     } else if (this.attributes.containsKey("val")) {
@@ -110,13 +115,13 @@ class SimpleNode implements Node, JmmNode {
     }
     return JmmTreeConstants.jjtNodeName[id];
   }
-  public String toString(String prefix) { return prefix + toString(); }
+  private String toDumpString(String prefix) { return prefix + toDumpString(); }
 
   /* Override this method if you want to customize how the node dumps
      out its children. */
 
   public void dump(String prefix) {
-    System.out.println(toString(prefix));
+    System.out.println(toDumpString(prefix));
     if (children != null) {
       for (int i = 0; i < children.length; i++) {
         SimpleNode n = (SimpleNode)children[i];

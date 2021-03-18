@@ -24,6 +24,9 @@ public class Main implements JmmParser {
 			System.out.println("\n### DUMPING TREE ###");
     		root.dump(""); // prints the tree on the screen
 
+			System.out.println("\n### JSON TREE ###");
+			System.out.println(root.toJson());
+
     		return new JmmParserResult(root, parser.getReports());
 
 		} catch(Exception e) {  //  Only for the rare case when an exception isn't a ParseException (parse exceptions are caught before)
