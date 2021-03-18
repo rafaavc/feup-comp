@@ -1,7 +1,7 @@
 options {
     LOOKAHEAD = 1;
     FORCE_LA_CHECK = false;
-    DEBUG_PARSER = true;
+    DEBUG_PARSER = false;
 }
 
 PARSER_BEGIN(Jmm)
@@ -89,6 +89,7 @@ TOKEN:
     // regex
     | < IDENTIFIER: ["A"-"Z","a"-"z","$","_"](["0"-"9","A"-"Z","a"-"z","_","$"])* >
     | < INTEGERLITERAL: ((["0"-"9"])+|("0x"(["0"-"9","a"-"f","A"-"F"])+)|("0b"(["0","1"])+)) >
+    
 }
 
 JAVACODE
@@ -107,115 +108,105 @@ void whileRecoverySkip() {
 SimpleNode Program(): {}
 {
     try {
-        ImportDeclaration() ClassDeclaration() <EOF>  { return jjtThis; } // Java code inside brackets
+        (ImportDeclaration())* ClassDeclaration() <EOF>  { return jjtThis; } // Java code inside brackets
     } catch(ParseException e) {
         reports.add(new Report(ReportType.ERROR, Stage.SYNTATIC, token.beginLine, e.getMessage()));
         return jjtThis;
     }
 }
 
-void ImportDeclaration(): {}
+void ImportDeclaration() #void : {}
 {
-    (<IMPORT> Package() <SEMICOLON>)*
+    <IMPORT> Package() <SEMICOLON>
 }
 
-void Package(): {}
+void Package() #Import : {Token t1;}
 {
-	<IDENTIFIER> (<DOT> <IDENTIFIER>)*
+	t1 = <IDENTIFIER> {jjtThis.name = t1.image;} (<DOT> t1 = <IDENTIFIER> {jjtThis.name += "." + t1.image;})*
 }
 
-void ClassDeclaration(): {}
+void ClassDeclaration() #Class : {Token t1;}
 {
-	ClassHeader() ClassBody()
+	<CLASS> t1 = <IDENTIFIER> {jjtThis.name = t1.image;} (<EXTENDS> <IDENTIFIER>)? ClassBody()
 }
 
-void ClassHeader(): {}
-{
-	<CLASS> <IDENTIFIER> (<EXTENDS> <IDENTIFIER>)?
-}
-
-void ClassBody(): {}
+void ClassBody() #void : {}
 {
 	<OPEN_BRACES> (VarDeclaration())* (ClassMethodDeclaration())* <CLOSE_BRACES>
 }
 
-void VarDeclaration(): {}
+void VarDeclaration() #Variable: {Token t2;}
 {
-    Type() <IDENTIFIER> <SEMICOLON>
+    Type() t2 = <IDENTIFIER> {jjtThis.name = t2.image;} <SEMICOLON>
 }
 
 // -------------
 // ---Methods---
 // -------------
 
-void ClassMethodDeclaration(): {}
+void ClassMethodDeclaration() #void : {}
 {
     <PUBLIC> ( MethodDeclaration() | MainMethodDeclaration())
 }
 
-void MethodDeclaration(): {}
+void MethodDeclaration() #Method : {Token t1;}
 {
-	MethodHeader() MethodBody()
+	Type() t1 = <IDENTIFIER> {jjtThis.name = t1.image;} <OPEN_PAR> (Param() (<COMMA> Param())*)? <CLOSE_PAR> MethodBody()
 }
 
-void MainMethodDeclaration(): {}
+void MainMethodDeclaration() #MainMethod : {}
 {
-	MainMethodHeader() MainMethodBody()
+	<STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR> MainMethodBody()
 }
 
-void MethodHeader(): {}
+void Param() #Parameter : {Token t1;}
 {
-	Type() <IDENTIFIER> <OPEN_PAR> (Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*)? <CLOSE_PAR>
+    Type() t1 = <IDENTIFIER> {jjtThis.name = t1.image;}
 }
 
-void MainMethodHeader(): {}
-{
-	<STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR>
-}
-
-void MainMethodBody(): {}
+void MainMethodBody() #MainBody : {}
 {
 	<OPEN_BRACES> (LOOKAHEAD(2) VarDeclaration())* (Statement())* <CLOSE_BRACES>
 }
 
-void MethodBody(): {}
+void MethodBody() #Body : {}
 {
-	<OPEN_BRACES> (LOOKAHEAD(2) VarDeclaration())* (Statement())* <RETURN> Expression() <SEMICOLON> <CLOSE_BRACES>
+	<OPEN_BRACES> (LOOKAHEAD(2) VarDeclaration())* (Statement())* ReturnStatement() <CLOSE_BRACES>
 }
 
-void Type(): {}
+void Type(): {Token t1;}
 {
-    <INT> (<OPEN_BRACKET> <CLOSE_BRACKET>)?
-    | <BOOLEAN>
-    | <IDENTIFIER> // --> Generating warning in LL(1)
+    <INT> {jjtThis.name = "int";} (<OPEN_BRACKET> <CLOSE_BRACKET> {jjtThis.name += " array";})?
+    | <BOOLEAN> {jjtThis.name = "boolean";}
+    | t1 = <IDENTIFIER> {jjtThis.name = t1.image;} // --> Generating warning in LL(1)
 }
 
 // --------------
 // --Statements--
 // --------------
 
-void Statement(): {}
+void Statement() #void : {}
 {
 	BlockStatement()
 	| IfElseStatement()
 	| WhileStatement()
-    | Expression() (Assignment())* <SEMICOLON>
+    | Expression() (<EQ> Expression() #Assignment(2))? <SEMICOLON>
 }
 
-void BlockStatement(): {}
+void BlockStatement() #Block : {}
 {
 	<OPEN_BRACES> (Statement())* <CLOSE_BRACES>
 }
 
-void IfElseStatement(): {}
+void IfElseStatement() #IfElse : {}
 {
-	<IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
+	<IF> Condition() BlockStatement() <ELSE> BlockStatement()
 }
 
-void WhileStatement(): {}
+void WhileStatement() #While : {}
 {
 	<WHILE> try {
-	    <OPEN_PAR> Expression() <CLOSE_PAR>
+	    Condition()
         Statement()
 	} catch (ParseException e) {
 	    reports.add(new Report(ReportType.ERROR, Stage.SYNTATIC, token.beginLine, e.getMessage()));
@@ -225,9 +216,14 @@ void WhileStatement(): {}
     }
 }
 
-void Assignment(): {}
+void ReturnStatement() #Return : {}
 {
-	<EQ> Expression()
+    <RETURN> Expression() <SEMICOLON>
+}
+
+void Condition(): {}
+{
+    <OPEN_PAR> Expression() <CLOSE_PAR>
 }
 
 void ArrayAccess(): {}
@@ -239,67 +235,67 @@ void ArrayAccess(): {}
 // --Expressions--
 // ---------------
 
-void Expression(): {}
+void Expression() #void : {}
 {
 	And()
 }
 
-void And(): {}
+void And() #void : {}
 {
-	LessThan() (<AND> LessThan())*
+	LessThan() (<AND> LessThan() #And(2))*
 }
 
-void LessThan(): {}
+void LessThan() #void : {}
 {
-	SumSub() (<LT> SumSub())*
+	SumSub() (<LT> SumSub() #LessThan(2))*
 }
 
-void SumSub(): {}
+void SumSub() #void : {}
 {
-	MulDiv() ((<SUM> | <SUB>) MulDiv())*
+	MulDiv() ((<SUM> MulDiv() #Sum(2) | <SUB> MulDiv() #Sub(2)))*
 }
 
-void MulDiv(): {}
+void MulDiv() #void : {}
 {
-	Not() ((<MUL> | <DIV>) Not())*
+	Not() ((<MUL> Not() #Mul(2) | <DIV> Not() #Div(2) ))*
 }
 
-void Not(): {}
+void Not() #void : {}
 {
-	(<NOT> Not()) | ExpressionExtension()
+	(<NOT> Not() #Not ) | ExpressionExtension()
 }
 
-void ExpressionExtension(): {}
+void ExpressionExtension() #void : {}
 {
-	ExpressionTerminalSymbols() (ArrayAccess() | ObjectProperty())*
+	ExpressionTerminalSymbols() (ArrayAccess() #AccessArray(2) | ObjectProperty() #ObjectProperty(2))*
 }
 
-void ObjectProperty(): {}
+void ObjectProperty() #void : {Token t1;}
 {
 	<DOT> (
-		<LENGTH>
-		| <IDENTIFIER> <OPEN_PAR> ArgumentList() <CLOSE_PAR>
+		<LENGTH> #Length
+		| t1 = <IDENTIFIER> {jjtThis.name = t1.image;}  #ObjectMethod <OPEN_PAR> ArgumentList() <CLOSE_PAR>
 	)
 }
 
-void ArgumentList(): {}
+void ArgumentList() #void : {}
 {
-	(Expression() (<COMMA>Expression())*)?
+	(Expression() (<COMMA> Expression())*)?
 }
 
-void ExpressionTerminalSymbols(): {}
+void ExpressionTerminalSymbols() #void : {Token t1;}
 {
-	<INTEGERLITERAL>
-	| <TRUE>
-	| <FALSE>
-	| <IDENTIFIER>
-	| <THIS>
+	t1 = <INTEGERLITERAL> {jjtThis.val = Integer.parseInt(t1.image);} #Integer
+	| <TRUE> {jjtThis.name = "true";} #Boolean
+	| <FALSE> {jjtThis.name = "false";} #Boolean
+	| t1 = <IDENTIFIER> {jjtThis.name = t1.image;} #Identifier
+	| <THIS> #This
 	| <NEW> NewInstance()
 	| <OPEN_PAR> Expression() <CLOSE_PAR>
 }
 
-void NewInstance(): {}
+void NewInstance() #New : {Token t1;}
 {
-	(<INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
-	| (<IDENTIFIER> <OPEN_PAR> <CLOSE_PAR>)
+	(<INT> {jjtThis.name = "int";} <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
+	| (t1 = <IDENTIFIER> {jjtThis.name = t1.image;} <OPEN_PAR> <CLOSE_PAR>)
 }
