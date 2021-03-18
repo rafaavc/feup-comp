@@ -122,12 +122,13 @@ void ImportDeclaration() #void : {}
 
 void Package() #Import : {Token t1;}
 {
-	t1 = <IDENTIFIER> {jjtThis.name = t1.image;} (<DOT> t1 = <IDENTIFIER> {jjtThis.name += "." + t1.image;})*
+	t1 = <IDENTIFIER> { StringBuilder name = new StringBuilder(t1.image); } (<DOT> t1 = <IDENTIFIER> { name.append("." + t1.image); })*
+	{ jjtThis.put("name", name.toString()); }
 }
 
 void ClassDeclaration() #Class : {Token t1;}
 {
-	<CLASS> t1 = <IDENTIFIER> {jjtThis.name = t1.image;} (<EXTENDS> <IDENTIFIER>)? ClassBody()
+	<CLASS> t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} (<EXTENDS> <IDENTIFIER>)? ClassBody()
 }
 
 void ClassBody() #void : {}
@@ -137,7 +138,7 @@ void ClassBody() #void : {}
 
 void VarDeclaration() #Variable: {Token t2;}
 {
-    Type() t2 = <IDENTIFIER> {jjtThis.name = t2.image;} <SEMICOLON>
+    Type() t2 = <IDENTIFIER> {jjtThis.put("name", t2.image);} <SEMICOLON>
 }
 
 // -------------
@@ -151,7 +152,7 @@ void ClassMethodDeclaration() #void : {}
 
 void MethodDeclaration() #Method : {Token t1;}
 {
-	Type() t1 = <IDENTIFIER> {jjtThis.name = t1.image;} <OPEN_PAR> (Param() (<COMMA> Param())*)? <CLOSE_PAR> MethodBody()
+	Type() t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} <OPEN_PAR> (Param() (<COMMA> Param())*)? <CLOSE_PAR> MethodBody()
 }
 
 void MainMethodDeclaration() #MainMethod : {}
@@ -161,7 +162,7 @@ void MainMethodDeclaration() #MainMethod : {}
 
 void Param() #Parameter : {Token t1;}
 {
-    Type() t1 = <IDENTIFIER> {jjtThis.name = t1.image;}
+    Type() t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);}
 }
 
 void MainMethodBody() #MainBody : {}
@@ -176,9 +177,9 @@ void MethodBody() #Body : {}
 
 void Type(): {Token t1;}
 {
-    <INT> {jjtThis.name = "int";} (<OPEN_BRACKET> <CLOSE_BRACKET> {jjtThis.name += " array";})?
-    | <BOOLEAN> {jjtThis.name = "boolean";}
-    | t1 = <IDENTIFIER> {jjtThis.name = t1.image;} // --> Generating warning in LL(1)
+    <INT> {StringBuilder name = new StringBuilder("int"); } (<OPEN_BRACKET> <CLOSE_BRACKET> {name.append(" array");})? { jjtThis.put("name", name.toString()); }
+    | <BOOLEAN> {jjtThis.put("name", "boolean");}
+    | t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} // --> Generating warning in LL(1)
 }
 
 // --------------
@@ -200,7 +201,7 @@ void BlockStatement() #Block : {}
 
 void IfElseStatement() #IfElse : {}
 {
-	<IF> Condition() BlockStatement() <ELSE> BlockStatement()
+	<IF> Condition() Statement() <ELSE> Statement()
 }
 
 void WhileStatement() #While : {}
@@ -274,7 +275,7 @@ void ObjectProperty() #void : {Token t1;}
 {
 	<DOT> (
 		<LENGTH> #Length
-		| t1 = <IDENTIFIER> {jjtThis.name = t1.image;}  #ObjectMethod <OPEN_PAR> ArgumentList() <CLOSE_PAR>
+		| t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);}  #ObjectMethod <OPEN_PAR> ArgumentList() <CLOSE_PAR>
 	)
 }
 
@@ -285,10 +286,10 @@ void ArgumentList() #void : {}
 
 void ExpressionTerminalSymbols() #void : {Token t1;}
 {
-	t1 = <INTEGERLITERAL> {jjtThis.val = Integer.parseInt(t1.image);} #Integer
-	| <TRUE> {jjtThis.name = "true";} #Boolean
-	| <FALSE> {jjtThis.name = "false";} #Boolean
-	| t1 = <IDENTIFIER> {jjtThis.name = t1.image;} #Identifier
+	t1 = <INTEGERLITERAL> {jjtThis.put("val", t1.image);} #Integer
+	| <TRUE> {jjtThis.put("name", "true");} #Boolean
+	| <FALSE> {jjtThis.put("name", "false");} #Boolean
+	| t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} #Identifier
 	| <THIS> #This
 	| <NEW> NewInstance()
 	| <OPEN_PAR> Expression() <CLOSE_PAR>
@@ -296,6 +297,6 @@ void ExpressionTerminalSymbols() #void : {Token t1;}
 
 void NewInstance() #New : {Token t1;}
 {
-	(<INT> {jjtThis.name = "int";} <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
-	| (t1 = <IDENTIFIER> {jjtThis.name = t1.image;} <OPEN_PAR> <CLOSE_PAR>)
+	(<INT> {jjtThis.put("name", "int");} <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
+	| (t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} <OPEN_PAR> <CLOSE_PAR>)
 }

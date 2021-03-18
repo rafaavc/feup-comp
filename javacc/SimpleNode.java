@@ -6,6 +6,8 @@ import java.lang.RuntimeException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 
 public
@@ -18,9 +20,8 @@ class SimpleNode implements Node, JmmNode {
   protected Jmm parser;
 
     // added
-    public Integer val = null;
     public Operator op = null;
-    public String name;
+    private Map<String, String> attributes = new HashMap<>();
 
   public SimpleNode(int i) {
     id = i;
@@ -35,19 +36,18 @@ class SimpleNode implements Node, JmmNode {
   public String getKind() {
 	  return toString();
   }
-  
+
   public List<String> getAttributes() {
-	throw new RuntimeException("Not implemented yet");
+    return new ArrayList<>(attributes.values());
   }
 
   public void put(String attribute, String value) {
-	throw new RuntimeException("Not implemented yet");	  
+    this.attributes.put(attribute, value);
   }
 
   public String get(String attribute) {
-	throw new RuntimeException("Not implemented yet");
+    return this.attributes.get(attribute);
   }
-  
   public List<JmmNode> getChildren() {
     return (children == null) ? new ArrayList<>() : Arrays.asList((JmmNode[])children);
   }
@@ -103,10 +103,10 @@ class SimpleNode implements Node, JmmNode {
      you need to do. */
 
   public String toString() {
-    if (this.name != null) {
-      return JmmTreeConstants.jjtNodeName[id] + " " + this.name;
-    } else if (this.val != null) {
-      return JmmTreeConstants.jjtNodeName[id] + " " + this.val;
+    if (this.attributes.containsKey("name")) {
+      return JmmTreeConstants.jjtNodeName[id] + " [" + this.attributes.get("name") + "]";
+    } else if (this.attributes.containsKey("val")) {
+      return JmmTreeConstants.jjtNodeName[id] + " [" + this.attributes.get("val") + "]";
     }
     return JmmTreeConstants.jjtNodeName[id];
   }
