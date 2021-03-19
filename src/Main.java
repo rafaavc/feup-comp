@@ -3,6 +3,7 @@ import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.io.StringReader;
@@ -24,9 +25,6 @@ public class Main implements JmmParser {
 			System.out.println("\n### DUMPING TREE ###");
     		root.dump(""); // prints the tree on the screen
 
-			System.out.println("\n### JSON TREE ###");
-			System.out.println(root.toJson());
-
     		return new JmmParserResult(root, parser.getReports());
 
 		} catch(Exception e) {  //  Only for the rare case when an exception isn't a ParseException (parse exceptions are caught before)
@@ -47,6 +45,9 @@ public class Main implements JmmParser {
 
 		JmmParser parser = new Main();
 		JmmParserResult result = parser.parse(jmmCode);
+
+		File output = new File("tree.json");
+		SpecsIo.write(output, result.toJson());
 
 		List<Report> reports = result.getReports();
 		for (Report report : reports.subList(0, Math.min(reports.size(), maxErrNo))) {
