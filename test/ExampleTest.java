@@ -23,15 +23,15 @@ public class ExampleTest {
   @Test
   public void testNoReports() {
     List<String> files = new ArrayList<>();
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\FindMaximum.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\HelloWorld.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\Lazysort.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\Life.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\MonteCarloPi.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\QuickSort.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\Simple.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\TicTacToe.jmm");
-    files.add("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\WhileAndIf.jmm");
+    files.add("test/fixtures/public/FindMaximum.jmm");
+    files.add("test/fixtures/public/HelloWorld.jmm");
+    files.add("test/fixtures/public/Lazysort.jmm");
+    files.add("test/fixtures/public/Life.jmm");
+    files.add("test/fixtures/public/MonteCarloPi.jmm");
+    files.add("test/fixtures/public/QuickSort.jmm");
+    files.add("test/fixtures/public/Simple.jmm");
+    files.add("test/fixtures/public/TicTacToe.jmm");
+    files.add("test/fixtures/public/WhileAndIf.jmm");
 
 
     String code = "";
@@ -54,7 +54,7 @@ public class ExampleTest {
   @Test
   public void testBlowUp() {
     String code = "";
-    File f = new File("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\fail\\syntactical\\BlowUp.jmm");
+    File f = new File("test/fixtures/public/fail/syntactical/BlowUp.jmm");
     try {
       Scanner scanner = new Scanner(f);
       code = scanner.useDelimiter("\\Z").next();
@@ -69,7 +69,7 @@ public class ExampleTest {
   @Test
   public void testCompleteWhileTest() {
     String code = "";
-    File f = new File("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\fail\\syntactical\\CompleteWhileTest.jmm");
+    File f = new File("test/fixtures/public/fail/syntactical/CompleteWhileTest.jmm");
     try {
       Scanner scanner = new Scanner(f);
       code = scanner.useDelimiter("\\Z").next();
@@ -84,7 +84,7 @@ public class ExampleTest {
   @Test
   public void testLengthError() {
     String code = "";
-    File f = new File("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\fail\\syntactical\\LengthError.jmm");
+    File f = new File("test/fixtures/public/fail/syntactical/LengthError.jmm");
     try {
       Scanner scanner = new Scanner(f);
       code = scanner.useDelimiter("\\Z").next();
@@ -99,7 +99,7 @@ public class ExampleTest {
   @Test
   public void testMissingRightPar() {
     String code = "";
-    File f = new File("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\fail\\syntactical\\MissingRightPar.jmm");
+    File f = new File("test/fixtures/public/fail/syntactical/MissingRightPar.jmm");
     try {
       Scanner scanner = new Scanner(f);
       code = scanner.useDelimiter("\\Z").next();
@@ -114,7 +114,7 @@ public class ExampleTest {
   @Test
   public void testMultipleSequential() {
     String code = "";
-    File f = new File("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\fail\\syntactical\\MultipleSequential.jmm");
+    File f = new File("test/fixtures/public/fail/syntactical/MultipleSequential.jmm");
     try {
       Scanner scanner = new Scanner(f);
       code = scanner.useDelimiter("\\Z").next();
@@ -129,7 +129,7 @@ public class ExampleTest {
   @Test
   public void testNestedLoop() {
     String code = "";
-    File f = new File("C:\\Users\\Daniel\\Desktop\\FEUP\\A3S2\\COMP\\comp2021-3d\\test\\fixtures\\public\\fail\\syntactical\\NestedLoop.jmm");
+    File f = new File("test/fixtures/public/fail/syntactical/NestedLoop.jmm");
     try {
       Scanner scanner = new Scanner(f);
       code = scanner.useDelimiter("\\Z").next();
