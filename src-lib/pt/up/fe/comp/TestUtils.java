@@ -65,7 +65,6 @@ public class TestUtils {
         } catch (Exception e) {
             throw new RuntimeException("Could not parse code", e);
         }
-
     }
 
     public static JmmSemanticsResult analyse(String code) {

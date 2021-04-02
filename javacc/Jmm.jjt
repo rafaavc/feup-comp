@@ -138,7 +138,7 @@ void ClassBody() #void : {}
 
 void VarDeclaration() #Variable: {Token t2;}
 {
-    Type() t2 = <IDENTIFIER> {jjtThis.put("name", t2.image);} <SEMICOLON>
+    Type() t2 = <IDENTIFIER> { jjtThis.put("name", t2.image); jjtThis.put("line", String.valueOf(t2.beginLine)); } <SEMICOLON>
 }
 
 // -------------

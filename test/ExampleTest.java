@@ -9,6 +9,7 @@ import java.io.StringReader;
 
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.JmmParser;
+import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.TestUtils;
@@ -139,5 +140,21 @@ public class ExampleTest {
 
     JmmParserResult result = TestUtils.parse(code);
     assertEquals(2, TestUtils.getNumErrors(result.getReports()));
+  }
+
+  @Test
+  public void testSemanticsAnalyse() {
+    String code = "";
+    File f = new File("test/fixtures/public/Simple.jmm");
+    try {
+      Scanner scanner = new Scanner(f);
+      code = scanner.useDelimiter("\\Z").next();
+    } catch (Exception e) {
+      System.out.println("File not found.");
+    }
+
+    JmmSemanticsResult semanticsResult = TestUtils.analyse(code);
+
+    assertEquals(0, TestUtils.getNumErrors(semanticsResult.getReports()));
   }
 }
