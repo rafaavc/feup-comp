@@ -227,7 +227,7 @@ void Condition(): {}
     <OPEN_PAR> Expression() <CLOSE_PAR>
 }
 
-void ArrayAccess(): {}
+void ArrayAccess() : {}
 {
 	<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
 }
@@ -268,7 +268,7 @@ void Not() #void : {}
 
 void ExpressionExtension() #void : {}
 {
-	ExpressionTerminalSymbols() (ArrayAccess() #AccessArray(2) | ObjectProperty() #ObjectProperty(2))*
+	ExpressionTerminalSymbols() (ArrayAccess() #ArrayAccessResult(2) | ObjectProperty() #ObjectProperty(2))*
 }
 
 void ObjectProperty() #void : {Token t1;}

@@ -1,4 +1,5 @@
 
+import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
@@ -12,6 +13,9 @@ import java.util.List;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.specs.util.SpecsIo;
+import visitor.ArrayAccessVisitor;
+import visitor.AssignmentVisitor;
+import visitor.OperatorsVisitor;
 
 public class Main implements JmmParser {
 
@@ -53,5 +57,11 @@ public class Main implements JmmParser {
 		for (Report report : reports.subList(0, Math.min(reports.size(), maxErrNo))) {
 			System.out.println(report.getMessage());
 		}
+
+		List<Report> semanticReports = new ArrayList<>();
+		JmmNode root = JmmNode.fromJson(result.getRootNode().toJson());
+		var visitor = new AssignmentVisitor();
+		visitor.visit(root, semanticReports);
+		System.out.println("end of visit");
     }
 }
