@@ -49,6 +49,14 @@ class SimpleNode implements Node, JmmNode {
   public String get(String attribute) {
     return this.attributes.get(attribute);
   }
+
+  public Optional<String> getOptional(String attribute) {
+    String attribute = attributes.get(attribute);
+
+    if (attribute == null) return Optional.empty();
+    return Optional.of(attribute);
+  }
+
   public List<JmmNode> getChildren() {
     return JmmNode.convertChildren(children);
   }
@@ -64,7 +72,6 @@ class SimpleNode implements Node, JmmNode {
 	  
 	jjtAddChild((Node) child, index);
   }
-
 
   public void jjtOpen() {
   }

@@ -126,9 +126,9 @@ void Package() #Import : {Token t1;}
 	{ jjtThis.put("name", name.toString()); }
 }
 
-void ClassDeclaration() #Class : {Token t1;}
+void ClassDeclaration() #Class : {Token t1, t2;}
 {
-	<CLASS> t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} (<EXTENDS> <IDENTIFIER>)? ClassBody()
+	<CLASS> t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} (<EXTENDS> t2 = <IDENTIFIER> {jjtThis.put("extends", t2.image);})? ClassBody()
 }
 
 void ClassBody() #void : {}
@@ -177,7 +177,7 @@ void MethodBody() #Body : {}
 
 void Type(): {Token t1;}
 {
-    <INT> {StringBuilder name = new StringBuilder("int"); } (<OPEN_BRACKET> <CLOSE_BRACKET> {name.append(" array");})? { jjtThis.put("name", name.toString()); }
+    <INT> {StringBuilder name = new StringBuilder("int"); } (<OPEN_BRACKET> <CLOSE_BRACKET> {name.append(" array"); jjtThis.put("array", "true");})? { jjtThis.put("name", name.toString()); }
     | <BOOLEAN> {jjtThis.put("name", "boolean");}
     | t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} // --> Generating warning in LL(1)
 }
@@ -227,7 +227,7 @@ void Condition(): {}
     <OPEN_PAR> Expression() <CLOSE_PAR>
 }
 
-void ArrayAccess(): {}
+void ArrayAccess() : {}
 {
 	<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
 }
