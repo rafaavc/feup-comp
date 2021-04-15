@@ -65,3 +65,51 @@ We also included in this project the class ``src-lib/pt/up/fe/comp/jmm/report/Re
 We have included the interface ``src-lib/pt/up/fe/comp/jmm/JmmParser.java``, which you should implement in a class that has a constructor with no parameters (please check ``src/Main.java`` for an example). This class will be used to test your parser. The interface has a single method, ``parse``, which receives a String with the code to parse, and returns a JmmParserResult instance. This instance contains the root node of your AST, as well as a List of Report instances that you collected during parsing.
 
 To configure the name of the class that implements the JmmParser interface, use the file ``parser.properties``.
+
+## Checkpoint 2
+
+### Semantic Analysis
+Todas as verificações feitas na análise semantica pedidas devem reportar erro. Outro tipo de verificações (extra) devem reportar warnings e não erro (ou seja, devem permitir continuar a compilação):
+
+- **Symbol Table**
+	- global: inclui info de imports e a classe declarada
+    - classe-specific: inclui info de extends, fields e methods
+    - method-specific: inclui info dos arguments e local variables
+    - retorno do SemanticsReport
+	    - permite consulta da tabela por parte da análise semantica
+		- permite impressão para fins de debug
+	- small bonus: permitir method overload (i.e. métodos com mesmo nome mas assinatura de parâmetros diferente)
+
+    
+### Expression Analysis
+
+- **Type Verification**
+    - verificar se operações são efetuadas com o mesmo tipo (e.g. int + boolean tem de dar erro)
+	- não é possível utilizar arrays diretamente para operações aritmeticas (e.g. array1 + array2)
+	- verificar se um array access é de facto feito sobre um array (e.g. 1[10] não é permitido)
+	- verificar se o indice do array access é um inteiro (e.g. a[true] não é permitido)
+	- verificar se valor do assignee é igual ao do assigned (a_int = b_boolean não é permitido!)
+	- verificar se operação booleana (&&, < ou !) é efetuada só com booleanos
+	- verificar se conditional expressions (if e while) resulta num booleano
+     
+- **Method Verification**
+    - verificar se o "target" do método existe, e se este contém o método (e.g. a.foo, ver se 'a' existe e se tem um método 'foo')
+	    - caso seja do tipo da classe declarada (e.g. a usar o this), se não existir declaração na própria classe: se não tiver extends retorna erro, se tiver extends assumir que é da classe super.
+	- caso o método não seja da classe declarada, isto é uma classe importada, assumir como existente e assumir tipos esperados. (e.g. a = Foo.b(), se a é um inteiro, e Foo é uma classe importada, assumir que o método b é estático (pois estamos a aceder a uma método diretamente da classe), que não tem argumentos e que retorna um inteiro)
+	- verificar se o número de argumentos na invocação é igual ao número de parâmetros da declaração
+	- verificar se o tipo dos parâmetros coincide com o tipo dos argumentos
+
+### OLLIR Generation
+
+- Conversão da AST completa para OLLIR
+- Ver documento para mais instruções: link TBD
+
+### Jasmin Generation
+
+- estrutura básica de classe (incluindo construtor <init>)
+- estrutura básica de fields
+- estrutura básica de métodos (podem desconsiderar os limites neste checkpoint: limit_stack 99, limit_locals 99)
+- assignments
+- operações aritméticas (com prioridade de operações correta)
+    - neste checkpoint não é necessário a seleção das operações mais eficientes mas isto será considerado no CP3 e versão final
+- invocação de métodos
