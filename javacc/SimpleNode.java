@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 
 public
@@ -49,6 +50,14 @@ class SimpleNode implements Node, JmmNode {
   public String get(String attribute) {
     return this.attributes.get(attribute);
   }
+
+  public Optional<String> getOptional(String attr) {
+    String attribute = attributes.get(attr);
+
+    if (attribute == null) return Optional.empty();
+    return Optional.of(attribute);
+  }
+
   public List<JmmNode> getChildren() {
     return JmmNode.convertChildren(children);
   }
@@ -64,7 +73,6 @@ class SimpleNode implements Node, JmmNode {
 	  
 	jjtAddChild((Node) child, index);
   }
-
 
   public void jjtOpen() {
   }

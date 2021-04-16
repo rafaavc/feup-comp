@@ -13,9 +13,9 @@ import java.util.List;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.specs.util.SpecsIo;
-import visitor.ArrayAccessVisitor;
-import visitor.AssignmentVisitor;
-import visitor.OperatorsVisitor;
+import table.BasicSymbolTable;
+import table.scopes.Scoped;
+import visitor.*;
 
 public class Main implements JmmParser {
 
@@ -59,9 +59,13 @@ public class Main implements JmmParser {
 		}
 
 		List<Report> semanticReports = new ArrayList<>();
+		BasicSymbolTable table = new BasicSymbolTable();
+		Scoped globalScope = table.getGlobalScope();
+
 		JmmNode root = JmmNode.fromJson(result.getRootNode().toJson());
-		var visitor = new AssignmentVisitor();
-		visitor.visit(root, semanticReports);
+		var visitor = new Visitor();
+		visitor.visit(root, new Data(globalScope, semanticReports));
+		table.log();
 		System.out.println("end of visit");
     }
 }
