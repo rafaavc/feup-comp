@@ -157,12 +157,17 @@ void MethodDeclaration() #Method : {Token t1;}
 
 void MainMethodDeclaration() #MainMethod : {}
 {
-	<STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_BRACKET> <CLOSE_BRACKET> <IDENTIFIER> <CLOSE_PAR> MainMethodBody()
+	<STATIC> <VOID> <MAIN> <OPEN_PAR> MainParam() <CLOSE_PAR> MainMethodBody()
 }
 
 void Param() #Parameter : {Token t1;}
 {
     Type() t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);}
+}
+
+void MainParam() #MainParameter : {Token t1;}
+{
+	<STRING> <OPEN_BRACKET> <CLOSE_BRACKET> t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);}
 }
 
 void MainMethodBody() #MainBody : {}
@@ -177,7 +182,7 @@ void MethodBody() #Body : {}
 
 void Type(): {Token t1;}
 {
-    <INT> {StringBuilder name = new StringBuilder("int"); } (<OPEN_BRACKET> <CLOSE_BRACKET> {name.append(" array"); jjtThis.put("array", "true");})? { jjtThis.put("name", name.toString()); }
+    <INT> {jjtThis.put("name", "int");} (<OPEN_BRACKET> <CLOSE_BRACKET> {jjtThis.put("array", "true");})?
     | <BOOLEAN> {jjtThis.put("name", "boolean");}
     | t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} // --> Generating warning in LL(1)
 }

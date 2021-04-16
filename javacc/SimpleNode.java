@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 
 public
@@ -50,8 +51,8 @@ class SimpleNode implements Node, JmmNode {
     return this.attributes.get(attribute);
   }
 
-  public Optional<String> getOptional(String attribute) {
-    String attribute = attributes.get(attribute);
+  public Optional<String> getOptional(String attr) {
+    String attribute = attributes.get(attr);
 
     if (attribute == null) return Optional.empty();
     return Optional.of(attribute);

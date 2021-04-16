@@ -16,7 +16,7 @@ public class GlobalScope implements Scoped {
         switch (node.getKind()) {
             case NodeNames.classDeclaration:
                 String className = node.get(Attributes.name);
-                String classExtends = node.get(Attributes.extend);
+                String classExtends = node.getOptional(Attributes.extend).orElse(null);
 
                 classScope = new ClassScope(className, classExtends);
                 return classScope;

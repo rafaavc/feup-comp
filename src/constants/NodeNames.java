@@ -8,4 +8,5 @@ public class NodeNames {
     public final static String classDeclaration = "Class";
     public final static String type = "Type";
     public final static String parameter = "Parameter";
+    public final static String mainParameter = "MainParameter";
 }

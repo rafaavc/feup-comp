@@ -26,7 +26,7 @@ public class ClassScope implements Scoped {
         switch(node.getKind()) {
             case NodeNames.method:
             case NodeNames.mainMethod:
-                String methodName = node.get(Attributes.name);
+                String methodName = node.getOptional(Attributes.name).orElse("main");
                 MethodScope methodScope = new MethodScope(methodName);
                 methods.put(methodName, methodScope);
                 return methodScope;
