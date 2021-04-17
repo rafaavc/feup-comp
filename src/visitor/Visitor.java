@@ -1,42 +1,68 @@
 package visitor;
 
+import constants.Attributes;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.ast.AJmmVisitor;
-import pt.up.fe.specs.util.SpecsCheck;
-import table.scopes.Scoped;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
+import pt.up.fe.comp.jmm.analysis.table.Type;
+import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
+import pt.up.fe.comp.jmm.report.Report;
+import table.BasicSymbolTable;
+import visitor.scopes.Scope;
+import visitor.scopes.ScopeVisitor;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 
-public class Visitor extends AJmmVisitor<Data, Scoped> {
-    private final BiFunction<Scoped, List<Scoped>, Scoped> reduce;
+public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
+    protected BasicSymbolTable symbolTable;
+    private ScopeVisitor scopeVisitor;
 
-    public Visitor(BiFunction<Scoped, List<Scoped>, Scoped> reduce) {
-        this.reduce = reduce;
+    public Visitor(BasicSymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+        this.scopeVisitor = new ScopeVisitor(symbolTable);
     }
 
-    public Visitor() {
-        this((nodeResult, childrenResults) -> nodeResult);
-        setDefaultVisit((jmmNode, data) -> data.getScope().add(jmmNode));
-    }
+    /**
+     * Verifies if node given as parameter is present in symbol table and return its type.
+     * @return Type of the identifier or null if not present in symbol table
+     */
+    protected Type getIdentifierType(JmmNode node) {
+        Scope scope = scopeVisitor.visit(node);
+        String nodeName = node.getOptional(Attributes.name).orElse(null);
+        if (nodeName == null) return null;
 
-    @Override
-    public Scoped visit(JmmNode jmmNode, Data data) {
-        SpecsCheck.checkNotNull(jmmNode, () -> "Node should not be null");
+        JmmNode methodScope = scope.getMethodScope();
+        System.out.println("### METHOD NODE: " + methodScope);
+        System.out.println("### NODE NAME: " + nodeName);
+        if (methodScope != null) {
+            String methodName = methodScope.getOptional(Attributes.name).orElse(null);
+            System.out.println("#### METHOD NAME: " + methodName);
 
-        var visit = getVisit(jmmNode.getKind());
+            Symbol parameter = symbolTable.getParameter(methodName, nodeName);
+            System.out.println("#### PARAMETER: " + parameter);
+            if (parameter != null) {
+                System.out.println("#### FOUND IT: " + parameter.getType() + " " + parameter.getName());
+                return parameter.getType();
+            }
 
-        // Preorder: 1st visit the node
-        var scope = visit.apply(jmmNode, data);
-        var dataCopy = new Data(scope, data.getReports());
-
-        // Preorder: then, visit each children
-        List<Scoped> childrenResults = new ArrayList<>();
-        for (var child : jmmNode.getChildren()) {
-            childrenResults.add(visit(child, dataCopy));
+            Symbol localVariable = symbolTable.getLocalVariable(methodName, nodeName);
+            System.out.println("#### LOCAL VAR: " + localVariable);
+            if (localVariable != null) {
+                System.out.println("#### FOUND IT: " + localVariable.getType() + " " + localVariable.getName());
+                return localVariable.getType();
+            }
         }
 
-        return reduce.apply(scope, childrenResults);
+        JmmNode classScope = scope.getClassScope();
+        if (classScope != null) {
+            Symbol field = symbolTable.getField(nodeName);
+            System.out.println("#### FIELD: " + field);
+            if (field != null) {
+                System.out.println("#### FOUND IT: " + field.getType() + " " + field.getName());
+                return field.getType();
+            }
+
+        }
+
+        return null;
     }
 }

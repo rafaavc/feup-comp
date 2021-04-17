@@ -1,19 +1,24 @@
 package visitor;
 
+import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
+import table.BasicSymbolTable;
 
 import java.util.List;
 
-//TODO: replace with constants
-public class OperatorsVisitor extends PreorderJmmVisitor<List<Report>, Boolean> {
+public class OperatorsVisitor extends Visitor {
 
-    public OperatorsVisitor() {
-        addVisit("Add", this::visitArithmetic);
-        addVisit("Sub", this::visitArithmetic);
-        addVisit("LessThan", this::visitBinary);
-        addVisit("And", this::visitBinary);
+    public OperatorsVisitor(BasicSymbolTable symbolTable) {
+        super(symbolTable);
+
+        addVisit(NodeNames.add, this::visitArithmetic);
+        addVisit(NodeNames.sub, this::visitArithmetic);
+        addVisit(NodeNames.lessThan, this::visitArithmetic);
+
+        addVisit(NodeNames.and, this::visitBinary);
+        addVisit(NodeNames.not, this::visitBinary);
     }
 
     private Boolean visitArithmetic(JmmNode node, List<Report> reports) {

@@ -1,16 +1,18 @@
 package visitor;
 
+import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
+import table.BasicSymbolTable;
 
 import java.util.List;
 
-//TODO: replace with constants
-public class ArrayAccessVisitor extends PreorderJmmVisitor<List<Report>, Boolean> {
+public class ArrayAccessVisitor extends Visitor {
 
-    public ArrayAccessVisitor() {
-        addVisit("ArrayAccessResult", this::visitArrayAccess);
+    public ArrayAccessVisitor(BasicSymbolTable symbolTable) {
+        super(symbolTable);
+        addVisit(NodeNames.arrayAccessResult, this::visitArrayAccess);
     }
 
     public Boolean visitArrayAccess(JmmNode node, List<Report> reports) {

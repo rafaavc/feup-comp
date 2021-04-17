@@ -155,9 +155,9 @@ void MethodDeclaration() #Method : {Token t1;}
 	Type() t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} <OPEN_PAR> (Param() (<COMMA> Param())*)? <CLOSE_PAR> MethodBody()
 }
 
-void MainMethodDeclaration() #MainMethod : {}
+void MainMethodDeclaration() #MainMethod : {Token t1;}
 {
-	<STATIC> <VOID> <MAIN> <OPEN_PAR> MainParam() <CLOSE_PAR> MainMethodBody()
+	<STATIC> <VOID> t1 = <MAIN> {jjtThis.put("name", t1.image);} <OPEN_PAR> MainParam() <CLOSE_PAR> MainMethodBody()
 }
 
 void Param() #Parameter : {Token t1;}
