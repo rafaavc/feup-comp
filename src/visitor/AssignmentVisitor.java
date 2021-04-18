@@ -1,9 +1,8 @@
 package visitor;
 
-import constants.Attributes;
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.report.Report;
 import table.BasicSymbolTable;
 
@@ -18,12 +17,45 @@ public class AssignmentVisitor extends Visitor {
 
     public Boolean visitAssignment(JmmNode node, List<Report> reports) {
         System.out.println("assigment");
-        System.out.println(node.getKind());
         System.out.println(node.getChildren().get(0));
-        System.out.println(node.getChildren().get(0).getAttributes());
-        getIdentifierType(node.getChildren().get(0));
         System.out.println(node.getChildren().get(1));
-        System.out.println(node.getChildren().get(1).getAttributes());
+        Type leftSideType = leftSideVerification(node, reports);
+        Type rightSideType = rightSideVerification(node, reports);
+        if (!leftSideType.equals(rightSideType)) {
+            //TODO: add to reports
+            System.out.println("!!!  WRONG ASSIGNMENT  !!!");
+            System.out.println(leftSideType);
+            System.out.println(rightSideType);
+        }
         return true;
+    }
+
+    private Type leftSideVerification(JmmNode node, List<Report> reports) {
+        JmmNode leftChild = node.getChildren().get(0);
+        return getChildType(leftChild, reports);
+    }
+
+    private Type rightSideVerification(JmmNode node, List<Report> reports) {
+        JmmNode rightChild = node.getChildren().get(1);
+        Type primitive = isPrimitiveType(rightChild);
+        if (primitive != null) return primitive;
+
+        Type alloc = isAllocType(rightChild);
+        if (alloc != null) return alloc;
+
+        return getChildType(rightChild, reports);
+    }
+
+    private Type getChildType(JmmNode child, List<Report> reports) {
+        Type type = null;
+        switch (child.getKind()) {
+            case NodeNames.identifier -> type = getIdentifierType(child);
+            case NodeNames.arrayAccessResult -> {
+                Type tempType = getIdentifierType(child.getChildren().get(0));
+                type = new Type(tempType.getName(), false);
+            }
+            default -> System.out.println("Node kind not covered yet");
+        }
+        return type;
     }
 }

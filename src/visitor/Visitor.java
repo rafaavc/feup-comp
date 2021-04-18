@@ -1,6 +1,7 @@
 package visitor;
 
 import constants.Attributes;
+import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
@@ -31,38 +32,39 @@ public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
         if (nodeName == null) return null;
 
         JmmNode methodScope = scope.getMethodScope();
-        System.out.println("### METHOD NODE: " + methodScope);
-        System.out.println("### NODE NAME: " + nodeName);
         if (methodScope != null) {
             String methodName = methodScope.getOptional(Attributes.name).orElse(null);
-            System.out.println("#### METHOD NAME: " + methodName);
 
             Symbol parameter = symbolTable.getParameter(methodName, nodeName);
-            System.out.println("#### PARAMETER: " + parameter);
-            if (parameter != null) {
-                System.out.println("#### FOUND IT: " + parameter.getType() + " " + parameter.getName());
-                return parameter.getType();
-            }
+            if (parameter != null) return parameter.getType();
 
             Symbol localVariable = symbolTable.getLocalVariable(methodName, nodeName);
-            System.out.println("#### LOCAL VAR: " + localVariable);
-            if (localVariable != null) {
-                System.out.println("#### FOUND IT: " + localVariable.getType() + " " + localVariable.getName());
-                return localVariable.getType();
-            }
+            if (localVariable != null) return localVariable.getType();
         }
 
         JmmNode classScope = scope.getClassScope();
         if (classScope != null) {
             Symbol field = symbolTable.getField(nodeName);
-            System.out.println("#### FIELD: " + field);
-            if (field != null) {
-                System.out.println("#### FOUND IT: " + field.getType() + " " + field.getName());
-                return field.getType();
-            }
-
+            if (field != null) return field.getType();
         }
 
         return null;
+    }
+
+    protected Type isPrimitiveType(JmmNode node) {
+        return switch (node.getKind()) {
+            case NodeNames.integer -> new Type("int", false);
+            case NodeNames.bool -> new Type("boolean", false);
+            default -> null;
+        };
+    }
+
+    protected Type isAllocType(JmmNode node) {
+        if (!node.getKind().equals(NodeNames.newAlloc))
+            return null;
+
+        String nodeName = node.getOptional(Attributes.name).orElse(null);
+        if (nodeName.equals("int")) return new Type("int", true);
+        else return new Type(nodeName, false);
     }
 }

@@ -43,8 +43,8 @@ public class BasicSymbolTable implements SymbolTable {
     public Symbol getField(String fieldName) {
         ClassScope classScope = global.getClassScope();
         List<Symbol> fields = classScope.getFields();
-        int i = fields.indexOf(fieldName);
-        if (i != -1) return fields.get(i);
+        for (Symbol field : fields)
+            if (fieldName.equals(field.getName())) return field;
         return null;
     }
 

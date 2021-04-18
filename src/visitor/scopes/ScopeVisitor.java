@@ -1,6 +1,5 @@
 package visitor.scopes;
 
-import constants.Attributes;
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
 import table.BasicSymbolTable;
