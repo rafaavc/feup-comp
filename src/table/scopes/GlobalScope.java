@@ -27,7 +27,6 @@ public class GlobalScope implements Scoped {
                 break;
 
             default:
-                Logger.err("Trying to add an unrecognized node type to the global scope. ('" + node.getKind() + "')");
                 break;
         }
         return this;

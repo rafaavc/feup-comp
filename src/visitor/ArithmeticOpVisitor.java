@@ -8,16 +8,19 @@ import table.BasicSymbolTable;
 
 import java.util.List;
 
-public class ArrayAccessVisitor extends Visitor {
+public class ArithmeticOpVisitor extends Visitor {
 
-    public ArrayAccessVisitor(BasicSymbolTable symbolTable) {
+    public ArithmeticOpVisitor(BasicSymbolTable symbolTable) {
         super(symbolTable);
-        addVisit(NodeNames.arrayAccessResult, this::visitArrayAccess);
+
+        addVisit(NodeNames.add, this::visitArithmetic);
+        addVisit(NodeNames.sub, this::visitArithmetic);
+        addVisit(NodeNames.lessThan, this::visitArithmetic);
     }
 
-    public Boolean visitArrayAccess(JmmNode node, List<Report> reports) {
+    private Boolean visitArithmetic(JmmNode node, List<Report> reports) {
         //TODO: valid verifications accordingly to symbol table
-        System.out.println("array access");
+        System.out.println("arithmetic");
         System.out.println(node.getKind());
         System.out.println(node.getChildren().get(0));
         System.out.println(node.getChildren().get(1));

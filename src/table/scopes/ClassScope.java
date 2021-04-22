@@ -3,9 +3,8 @@ package table.scopes;
 import constants.Attributes;
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
-import table.BasicSymbol;
-import utils.Logger;
 
 import java.util.*;
 
@@ -13,7 +12,7 @@ import static utils.JmmNodeInfo.isArray;
 
 public class ClassScope implements Scoped {
     private final String className, superClassName;
-    private final List<BasicSymbol> fields = new ArrayList<>();
+    private final List<Symbol> fields = new ArrayList<>();
     private final Map<String, MethodScope> methods = new HashMap<>();
 
     public ClassScope(String className, String superClassName) {
@@ -35,12 +34,11 @@ public class ClassScope implements Scoped {
                 JmmNode parent = node.getParent();
                 String variableName = parent.get(Attributes.name);
 
-                BasicSymbol symbol = new BasicSymbol(new Type(node.get(Attributes.name), isArray(node, variableName)), variableName);
+                Symbol symbol = new Symbol(new Type(node.get(Attributes.name), isArray(node, variableName)), variableName);
                 fields.add(symbol);
                 break;
 
             default:
-                Logger.err("Trying to add an unrecognized node type to the class scope. ('" + node.getKind() + "')");
                 break;
         }
 
@@ -55,7 +53,7 @@ public class ClassScope implements Scoped {
         return superClassName;
     }
 
-    public List<BasicSymbol> getFields() {
+    public List<Symbol> getFields() {
         return fields;
     }
 

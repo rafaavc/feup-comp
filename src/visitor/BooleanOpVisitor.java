@@ -8,16 +8,18 @@ import table.BasicSymbolTable;
 
 import java.util.List;
 
-public class ArrayAccessVisitor extends Visitor {
+public class BooleanOpVisitor extends Visitor {
 
-    public ArrayAccessVisitor(BasicSymbolTable symbolTable) {
+    public BooleanOpVisitor(BasicSymbolTable symbolTable) {
         super(symbolTable);
-        addVisit(NodeNames.arrayAccessResult, this::visitArrayAccess);
+
+        addVisit(NodeNames.and, this::visitBinary);
+        addVisit(NodeNames.not, this::visitBinary);
     }
 
-    public Boolean visitArrayAccess(JmmNode node, List<Report> reports) {
+    private Boolean visitBinary(JmmNode node, List<Report> reports) {
         //TODO: valid verifications accordingly to symbol table
-        System.out.println("array access");
+        System.out.println("binary");
         System.out.println(node.getKind());
         System.out.println(node.getChildren().get(0));
         System.out.println(node.getChildren().get(1));

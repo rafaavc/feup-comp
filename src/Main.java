@@ -2,6 +2,8 @@
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
+import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
+import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.report.Report;
 
 import java.io.File;
@@ -17,19 +19,19 @@ import table.BasicSymbolTable;
 import table.scopes.Scoped;
 import visitor.*;
 
-public class Main implements JmmParser {
+public class Main implements JmmParser, JmmAnalysis {
 
-
+	@Override
 	public JmmParserResult parse(String jmmCode) {
 		try {
 			// Replace with parser class
-		    Jmm parser = new Jmm(new StringReader(jmmCode));
-    		SimpleNode root = parser.Program(); // returns reference to root node
+			Jmm parser = new Jmm(new StringReader(jmmCode));
+			SimpleNode root = parser.Program(); // returns reference to root node
 
 			System.out.println("\n### DUMPING TREE ###");
-    		root.dump(""); // prints the tree on the screen
+			root.dump(""); // prints the tree on the screen
 
-    		return new JmmParserResult(root, parser.getReports());
+			return new JmmParserResult(root, parser.getReports());
 
 		} catch(Exception e) {  //  Only for the rare case when an exception isn't a ParseException (parse exceptions are caught before)
 			List<Report> reports = new ArrayList<>();
@@ -38,7 +40,16 @@ public class Main implements JmmParser {
 		}
 	}
 
-    public static void main(String[] args) {
+	@Override
+	public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
+		JmmNode root = parserResult.getRootNode();
+		VisitorController controller = new VisitorController(root);
+		controller.start();
+
+		return null;
+	}
+
+	public static void main(String[] args) {
         System.out.println("Executing with args: " + Arrays.toString(args));
         if (args.length < 1) {
 			System.err.println("I need at least the path of the file you want to parse. If you want, you can also specify the maximum number of errors you want me to report in the second argument.");
@@ -58,14 +69,7 @@ public class Main implements JmmParser {
 			System.out.println(report.getMessage());
 		}
 
-		List<Report> semanticReports = new ArrayList<>();
-		BasicSymbolTable table = new BasicSymbolTable();
-		Scoped globalScope = table.getGlobalScope();
-
-		JmmNode root = JmmNode.fromJson(result.getRootNode().toJson());
-		var visitor = new Visitor();
-		visitor.visit(root, new Data(globalScope, semanticReports));
-		table.log();
-		System.out.println("end of visit");
+		JmmAnalysis analyser = new Main();
+		JmmSemanticsResult semanticsResult = analyser.semanticAnalysis(result);
     }
 }

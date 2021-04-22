@@ -9,4 +9,15 @@ public class NodeNames {
     public final static String type = "Type";
     public final static String parameter = "Parameter";
     public final static String mainParameter = "MainParameter";
+    public final static String assignment = "Assignment";
+    public final static String arrayAccessResult = "ArrayAccessResult";
+    public final static String identifier = "Identifier";
+    public final static String add = "Add";
+    public final static String sub = "Sub";
+    public final static String lessThan = "LessThan";
+    public final static String and = "And";
+    public final static String not = "Not";
+    public final static String integer = "Integer";
+    public final static String bool = "Boolean";
+    public final static String newAlloc = "New";
 }

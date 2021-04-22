@@ -40,6 +40,14 @@ public class BasicSymbolTable implements SymbolTable {
         return new ArrayList<>(classScope.getFields());
     }
 
+    public Symbol getField(String fieldName) {
+        ClassScope classScope = global.getClassScope();
+        List<Symbol> fields = classScope.getFields();
+        for (Symbol field : fields)
+            if (fieldName.equals(field.getName())) return field;
+        return null;
+    }
+
     @Override
     public List<String> getMethods() {
         ClassScope classScope = global.getClassScope();
@@ -58,10 +66,26 @@ public class BasicSymbolTable implements SymbolTable {
         return classScope.getMethod(methodName).getParameters();
     }
 
+    public Symbol getParameter(String methodName, String parameterName) {
+        ClassScope classScope = global.getClassScope();
+        List<Symbol> parameters = classScope.getMethod(methodName).getParameters();
+        for (Symbol parameter : parameters)
+            if (parameterName.equals(parameter.getName())) return parameter;
+        return null;
+    }
+
     @Override
     public List<Symbol> getLocalVariables(String methodName) {
         ClassScope classScope = global.getClassScope();
         return classScope.getMethod(methodName).getLocalVariables();
+    }
+
+    public Symbol getLocalVariable(String methodName, String variableName) {
+        ClassScope classScope = global.getClassScope();
+        List<Symbol> localVariables = classScope.getMethod(methodName).getLocalVariables();
+        for (Symbol localVariable : localVariables)
+            if (variableName.equals(localVariable.getName())) return localVariable;
+        return null;
     }
 
     public void log() {

@@ -41,13 +41,8 @@ public class MethodScope implements Scoped {
             if (node.getParent().getKind().equals(NodeNames.parameter)) parameters.add(symbol);
             else localVariables.add(symbol);
         }
-        else Logger.err("Trying to add an unrecognized node type to the method scope. ('" + node.getKind() + "')");
 
         return this;
-    }
-
-    public void setReturnType(Type type) {
-        this.returnType = type;
     }
 
     public Type getReturnType() {
