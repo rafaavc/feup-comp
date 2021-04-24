@@ -14,7 +14,7 @@ import visitor.scopes.ScopeVisitor;
 
 import java.util.List;
 
-public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
+public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
     protected BasicSymbolTable symbolTable;
     private ScopeVisitor scopeVisitor;
 
@@ -116,6 +116,18 @@ public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
             return new Type(Types.integer, false);
         else if (property.getKind().equals(NodeNames.objectMethod)) {
             return getMethodType(node);
+        }
+        return null;
+    }
+
+    protected Type isExpressionType(JmmNode node) {
+        switch (node.getKind()) {
+            case NodeNames.sum, NodeNames.sub, NodeNames.mul, NodeNames.div -> {
+                return new Type(Types.integer, false);
+            }
+            case NodeNames.and, NodeNames.not, NodeNames.lessThan -> {
+                return new Type(Types.bool, false);
+            }
         }
         return null;
     }

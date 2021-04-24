@@ -2,7 +2,6 @@ package visitor;
 
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
 import table.BasicSymbolTable;
 
@@ -13,7 +12,7 @@ public class ArithmeticOpVisitor extends Visitor {
     public ArithmeticOpVisitor(BasicSymbolTable symbolTable) {
         super(symbolTable);
 
-        addVisit(NodeNames.add, this::visitArithmetic);
+        addVisit(NodeNames.sum, this::visitArithmetic);
         addVisit(NodeNames.sub, this::visitArithmetic);
         addVisit(NodeNames.lessThan, this::visitArithmetic);
     }

@@ -19,8 +19,7 @@ public class AssignmentVisitor extends Visitor {
     public Boolean visitAssignment(JmmNode node, List<Report> reports) {
         Type leftSideType = leftSideVerification(node, reports);
         Type rightSideType = rightSideVerification(node, reports);
-
-
+        
         if (leftSideType == null || rightSideType == null ||
                 (!leftSideType.equals(rightSideType)
                 && !rightSideType.getName().equals(Types.expected))) {
@@ -48,6 +47,9 @@ public class AssignmentVisitor extends Visitor {
 
         Type objectProperty = isObjectPropertyType(rightChild);
         if (objectProperty != null) return objectProperty;
+
+        Type expression = isExpressionType(rightChild);
+        if (expression != null) return expression;
 
         return getChildType(rightChild, reports);
     }
