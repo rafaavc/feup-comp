@@ -1,6 +1,7 @@
 package visitor;
 
 import constants.NodeNames;
+import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.report.Report;
@@ -16,16 +17,18 @@ public class AssignmentVisitor extends Visitor {
     }
 
     public Boolean visitAssignment(JmmNode node, List<Report> reports) {
-        System.out.println("assigment");
-        System.out.println(node.getChildren().get(0));
-        System.out.println(node.getChildren().get(1));
         Type leftSideType = leftSideVerification(node, reports);
         Type rightSideType = rightSideVerification(node, reports);
-        if (!leftSideType.equals(rightSideType)) {
+
+
+        if (leftSideType == null || rightSideType == null ||
+                (!leftSideType.equals(rightSideType)
+                && !rightSideType.getName().equals(Types.expected))) {
             //TODO: add to reports
             System.out.println("!!!  WRONG ASSIGNMENT  !!!");
-            System.out.println(leftSideType);
-            System.out.println(rightSideType);
+            System.out.println("left: " + node.getChildren().get(0));
+            System.out.println("right[0]: " + node.getChildren().get(1).getChildren().get(0));
+            System.out.println("right[1]: " + node.getChildren().get(1).getChildren().get(1));
         }
         return true;
     }
@@ -43,6 +46,9 @@ public class AssignmentVisitor extends Visitor {
         Type alloc = isAllocType(rightChild);
         if (alloc != null) return alloc;
 
+        Type objectProperty = isObjectPropertyType(rightChild);
+        if (objectProperty != null) return objectProperty;
+
         return getChildType(rightChild, reports);
     }
 
@@ -54,7 +60,7 @@ public class AssignmentVisitor extends Visitor {
                 Type tempType = getIdentifierType(child.getChildren().get(0));
                 type = new Type(tempType.getName(), false);
             }
-            default -> System.out.println("Node kind not covered yet");
+            default -> System.out.println("Node kind not covered yet: " + child);
         }
         return type;
     }

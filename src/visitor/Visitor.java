@@ -2,6 +2,7 @@ package visitor;
 
 import constants.Attributes;
 import constants.NodeNames;
+import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
@@ -42,19 +43,55 @@ public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
             if (localVariable != null) return localVariable.getType();
         }
 
-        JmmNode classScope = scope.getClassScope();
-        if (classScope != null) {
-            Symbol field = symbolTable.getField(nodeName);
-            if (field != null) return field.getType();
-        }
+        Symbol field = symbolTable.getField(nodeName);
+        if (field != null) return field.getType();
 
         return null;
     }
 
+    protected Type getMethodType(JmmNode node) {
+        JmmNode identifier = node.getChildren().get(0);
+        JmmNode objectMethod = node.getChildren().get(1);
+
+        String identifierKind = identifier.getKind();
+        String identifierName = identifier.getOptional(Attributes.name).orElse(null);
+
+        String methodName = objectMethod.getOptional(Attributes.name).orElse(null);
+        if (methodName == null) return null;
+
+        if (identifierKind.equals(NodeNames.thisName) || isCurrentClassInstance(identifier)) {
+            Type type = symbolTable.getReturnType(methodName);
+            if (type != null) return type;
+
+            if (symbolTable.getSuper() != null)
+                return new Type(Types.expected, false);
+        }
+        else {
+            if (symbolTable.getImports().contains(identifierName) ||
+                    isImportedClassInstance(identifier))
+                return new Type(Types.expected, false);
+        }
+        return null;
+    }
+
+    protected boolean isImportedClassInstance(JmmNode identifier) {
+        Type type = getIdentifierType(identifier);
+        if (type == null) return false;
+
+        return symbolTable.getImports().contains(type.getName());
+    }
+
+    protected boolean isCurrentClassInstance(JmmNode identifier) {
+        Type type = getIdentifierType(identifier);
+        if (type == null) return false;
+
+        return type.getName().equals(symbolTable.getClassName());
+    }
+
     protected Type isPrimitiveType(JmmNode node) {
         return switch (node.getKind()) {
-            case NodeNames.integer -> new Type("int", false);
-            case NodeNames.bool -> new Type("boolean", false);
+            case NodeNames.integer -> new Type(Types.integer, false);
+            case NodeNames.bool -> new Type(Types.bool, false);
             default -> null;
         };
     }
@@ -64,7 +101,22 @@ public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
             return null;
 
         String nodeName = node.getOptional(Attributes.name).orElse(null);
-        if (nodeName.equals("int")) return new Type("int", true);
+        if (nodeName == null) return null;
+
+        if (nodeName.equals(Types.integer)) return new Type(Types.integer, true);
         else return new Type(nodeName, false);
+    }
+
+    protected Type isObjectPropertyType(JmmNode node) {
+        if (!node.getKind().equals(NodeNames.objectProperty))
+            return null;
+
+        JmmNode property = node.getChildren().get(1);
+        if (property.getKind().equals(NodeNames.length))
+            return new Type(Types.integer, false);
+        else if (property.getKind().equals(NodeNames.objectMethod)) {
+            return getMethodType(node);
+        }
+        return null;
     }
 }

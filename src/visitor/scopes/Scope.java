@@ -12,10 +12,6 @@ public class Scope {
         scopes.put(nodeName, node);
     }
 
-    public JmmNode getClassScope() {
-        return scopes.get(NodeNames.classDeclaration);
-    }
-
     public JmmNode getMethodScope() {
         return scopes.get(NodeNames.method);
     }

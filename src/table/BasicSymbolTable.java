@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import table.scopes.ClassScope;
 import table.scopes.GlobalScope;
+import table.scopes.MethodScope;
 import utils.Logger;
 
 import java.util.ArrayList;
@@ -57,7 +58,9 @@ public class BasicSymbolTable implements SymbolTable {
     @Override
     public Type getReturnType(String methodName) {
         ClassScope classScope = global.getClassScope();
-        return classScope.getMethod(methodName).getReturnType();
+        MethodScope methodScope = classScope.getMethod(methodName);
+        if (methodScope == null) return null;
+        return methodScope.getReturnType();
     }
 
     @Override

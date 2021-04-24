@@ -20,4 +20,8 @@ public class NodeNames {
     public final static String integer = "Integer";
     public final static String bool = "Boolean";
     public final static String newAlloc = "New";
+    public final static String objectProperty = "ObjectProperty";
+    public final static String objectMethod = "ObjectMethod";
+    public final static String length = "Length";
+    public final static String thisName = "This";
 }
