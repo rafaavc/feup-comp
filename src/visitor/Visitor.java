@@ -15,7 +15,7 @@ import java.util.List;
 
 public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
     protected BasicSymbolTable symbolTable;
-    private ScopeVisitor scopeVisitor;
+    private final ScopeVisitor scopeVisitor;
 
     public Visitor(BasicSymbolTable symbolTable) {
         this.symbolTable = symbolTable;
@@ -63,7 +63,7 @@ public class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
         if (!node.getKind().equals(NodeNames.newAlloc))
             return null;
 
-        String nodeName = node.getOptional(Attributes.name).orElse(null);
+        String nodeName = node.getOptional(Attributes.name).orElse("");
         if (nodeName.equals("int")) return new Type("int", true);
         else return new Type(nodeName, false);
     }

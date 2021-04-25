@@ -232,9 +232,10 @@ void Condition(): {}
     <OPEN_PAR> Expression() <CLOSE_PAR>
 }
 
-void ArrayAccess() : {}
+Token ArrayAccess() : {Token t;}
 {
-	<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+	t=<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+	{ return t; } // for locating the place where the token is
 }
 
 // ---------------
@@ -271,9 +272,9 @@ void Not() #void : {}
 	(<NOT> Not() #Not ) | ExpressionExtension()
 }
 
-void ExpressionExtension() #void : {}
+void ExpressionExtension() #void : {Token t;}
 {
-	ExpressionTerminalSymbols() (ArrayAccess() #ArrayAccessResult(2) | ObjectProperty() #ObjectProperty(2))*
+	ExpressionTerminalSymbols() (t = ArrayAccess() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ArrayAccessResult(2) | ObjectProperty() #ObjectProperty(2))*
 }
 
 void ObjectProperty() #void : {Token t1;}
