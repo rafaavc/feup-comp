@@ -314,6 +314,6 @@ void ExpressionTerminalSymbols() #void : {Token t1;}
 
 void NewInstance() #New : {Token t1;}
 {
-	(<INT> {jjtThis.put("name", "int");} <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
+	(<INT> {jjtThis.put("name", "int");} t1=<OPEN_BRACKET> Expression() { jjtThis.put("line", String.valueOf(t1.beginLine)); jjtThis.put("column", String.valueOf(t1.beginColumn)); } #NewArraySize(1) <CLOSE_BRACKET>)
 	| (t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} <OPEN_PAR> <CLOSE_PAR>)
 }
