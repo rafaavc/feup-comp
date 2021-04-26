@@ -38,7 +38,7 @@ public class PropertyVisitor extends Visitor {
 
     private Boolean handleLength(JmmNode object) {
         if (object.getKind().equals(NodeNames.identifier)) {
-            Type type = getIdentifierType(object);
+            Type type = getIdentifierSymbol(object).getType();
             return type.isArray();
         }
         return false;

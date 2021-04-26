@@ -41,10 +41,10 @@ public class BasicSymbolTable implements SymbolTable {
         return new ArrayList<>(classScope.getFields());
     }
 
-    public Symbol getField(String fieldName) {
+    public BasicSymbol getField(String fieldName) {
         ClassScope classScope = global.getClassScope();
-        List<Symbol> fields = classScope.getFields();
-        for (Symbol field : fields)
+        List<BasicSymbol> fields = classScope.getFields();
+        for (BasicSymbol field : fields)
             if (fieldName.equals(field.getName())) return field;
         return null;
     }
@@ -66,13 +66,13 @@ public class BasicSymbolTable implements SymbolTable {
     @Override
     public List<Symbol> getParameters(String methodName) {
         ClassScope classScope = global.getClassScope();
-        return classScope.getMethod(methodName).getParameters();
+        return new ArrayList<>(classScope.getMethod(methodName).getParameters());
     }
 
-    public Symbol getParameter(String methodName, String parameterName) {
+    public BasicSymbol getParameter(String methodName, String parameterName) {
         ClassScope classScope = global.getClassScope();
-        List<Symbol> parameters = classScope.getMethod(methodName).getParameters();
-        for (Symbol parameter : parameters)
+        List<BasicSymbol> parameters = classScope.getMethod(methodName).getParameters();
+        for (BasicSymbol parameter : parameters)
             if (parameterName.equals(parameter.getName())) return parameter;
         return null;
     }
@@ -80,13 +80,13 @@ public class BasicSymbolTable implements SymbolTable {
     @Override
     public List<Symbol> getLocalVariables(String methodName) {
         ClassScope classScope = global.getClassScope();
-        return classScope.getMethod(methodName).getLocalVariables();
+        return new ArrayList<>(classScope.getMethod(methodName).getLocalVariables());
     }
 
-    public Symbol getLocalVariable(String methodName, String variableName) {
+    public BasicSymbol getLocalVariable(String methodName, String variableName) {
         ClassScope classScope = global.getClassScope();
-        List<Symbol> localVariables = classScope.getMethod(methodName).getLocalVariables();
-        for (Symbol localVariable : localVariables)
+        List<BasicSymbol> localVariables = classScope.getMethod(methodName).getLocalVariables();
+        for (BasicSymbol localVariable : localVariables)
             if (variableName.equals(localVariable.getName())) return localVariable;
         return null;
     }

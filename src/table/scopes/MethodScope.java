@@ -3,10 +3,9 @@ package table.scopes;
 import constants.Attributes;
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import table.BasicSymbol;
 import utils.JmmNodeInfo;
-import utils.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +13,8 @@ import java.util.List;
 public class MethodScope implements Scoped {
     private Type returnType = null;
     private final String name;
-    private final List<Symbol> parameters = new ArrayList<>();
-    private final List<Symbol> localVariables = new ArrayList<>();
+    private final List<BasicSymbol> parameters = new ArrayList<>();
+    private final List<BasicSymbol> localVariables = new ArrayList<>();
 
     public MethodScope(String name) {
         this.name = name;
@@ -24,7 +23,7 @@ public class MethodScope implements Scoped {
     public Scoped add(JmmNode node) {
         if (NodeNames.mainParameter.equals(node.getKind()))
         {
-            parameters.add(new Symbol(new Type("String", true), node.get(Attributes.name)));
+            parameters.add(new BasicSymbol(new Type("String", true), node.get(Attributes.name)));
         }
         else if (NodeNames.type.equals(node.getKind()))
         {
@@ -36,7 +35,7 @@ public class MethodScope implements Scoped {
             }
 
             String symbolName = node.getParent().get(Attributes.name);
-            Symbol symbol = new Symbol(new Type(node.get(Attributes.name), JmmNodeInfo.isArray(node, symbolName)), symbolName);
+            BasicSymbol symbol = new BasicSymbol(new Type(node.get(Attributes.name), JmmNodeInfo.isArray(node, symbolName)), symbolName);
 
             if (node.getParent().getKind().equals(NodeNames.parameter)) parameters.add(symbol);
             else localVariables.add(symbol);
@@ -53,11 +52,11 @@ public class MethodScope implements Scoped {
         return name;
     }
 
-    public List<Symbol> getParameters() {
+    public List<BasicSymbol> getParameters() {
         return parameters;
     }
 
-    public List<Symbol> getLocalVariables() {
+    public List<BasicSymbol> getLocalVariables() {
         return localVariables;
     }
 }

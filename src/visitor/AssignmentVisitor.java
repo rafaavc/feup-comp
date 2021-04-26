@@ -5,6 +5,7 @@ import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.report.Report;
+import table.BasicSymbol;
 import table.BasicSymbolTable;
 
 import java.util.List;
@@ -17,8 +18,9 @@ public class AssignmentVisitor extends Visitor {
     }
 
     public Boolean visitAssignment(JmmNode node, List<Report> reports) {
-        Type leftSideType = leftSideVerification(node);
-        Type rightSideType = rightSideVerification(node);
+        BasicSymbol leftSideSymbol = leftSideVerification(node);
+        Type leftSideType = leftSideSymbol.getType();
+        Type rightSideType = rightSideVerification(node, reports);
 
         if (leftSideType == null || rightSideType == null ||
                 (!leftSideType.equals(rightSideType)
@@ -26,19 +28,25 @@ public class AssignmentVisitor extends Visitor {
             //TODO: add to reports
             System.out.println("!!!  WRONG ASSIGNMENT  !!!");
             System.out.println("left: " + node.getChildren().get(0));
-            System.out.println("right[0]: " + node.getChildren().get(1).getChildren().get(0));
-            System.out.println("right[1]: " + node.getChildren().get(1).getChildren().get(1));
+            System.out.println("right: " + node.getChildren().get(1));
         }
+
+        leftSideSymbol.setInit(true);
         return true;
     }
 
-    private Type leftSideVerification(JmmNode node) {
+    private BasicSymbol leftSideVerification(JmmNode node) {
         JmmNode leftChild = node.getChildren().get(0);
-        return getBasicType(leftChild);
+        return getAssignableSymbol(leftChild);
     }
 
-    private Type rightSideVerification(JmmNode node) {
+    private Type rightSideVerification(JmmNode node, List<Report> reports) {
         JmmNode rightChild = node.getChildren().get(1);
+        allIdentifiersInit(rightChild, reports);
         return getNodeType(rightChild);
+    }
+
+    private void allIdentifiersInit(JmmNode node, List<Report> reports) {
+        new IdentifierVisitor(symbolTable).visit(node, reports);
     }
 }

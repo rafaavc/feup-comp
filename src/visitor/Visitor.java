@@ -4,10 +4,10 @@ import constants.Attributes;
 import constants.NodeNames;
 import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
+import table.BasicSymbol;
 import table.BasicSymbolTable;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
@@ -16,9 +16,18 @@ import java.util.List;
 
 public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> {
     protected BasicSymbolTable symbolTable;
-    private ScopeVisitor scopeVisitor;
+    protected final ScopeVisitor scopeVisitor;
 
     public Visitor(BasicSymbolTable symbolTable) {
+        super((nodeResult, childrenResults) -> {
+            if (nodeResult == null || childrenResults == null) //TODO: check why always null
+                return false;
+            if (!nodeResult) return false;
+            for (boolean b : childrenResults)
+                if (!b) return false;
+            return true;
+        });
+
         this.symbolTable = symbolTable;
         this.scopeVisitor = new ScopeVisitor(symbolTable);
     }
@@ -36,26 +45,31 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
         Type expression = isExpressionType(node);
         if (expression != null) return expression;
 
-        return getBasicType(node);
+        return getAssignableSymbol(node).getType();
     }
 
-    protected Type getBasicType(JmmNode node) {
-        Type type = null;
+    protected BasicSymbol getAssignableSymbol(JmmNode node) {
         switch (node.getKind()) {
-            case NodeNames.identifier -> type = getIdentifierType(node);
+            case NodeNames.identifier -> {
+                return getIdentifierSymbol(node);
+            }
             case NodeNames.arrayAccessResult -> {
-                Type tempType = getIdentifierType(node.getChildren().get(0));
-                type = new Type(tempType.getName(), false);
+                JmmNode leftNode = node.getChildren().get(0);
+                BasicSymbol symbol = getIdentifierSymbol(leftNode);
+
+                String typeName = symbol.getType().getName();
+                Type type = new Type(typeName, false);
+                return new BasicSymbol(type, symbol.getName());
             }
         }
-        return type;
+        return null;
     }
 
     /**
      * Verifies if node given as parameter is present in symbol table and return its type.
      * @return Type of the identifier or null if not present in symbol table
      */
-    protected Type getIdentifierType(JmmNode node) {
+    protected BasicSymbol getIdentifierSymbol(JmmNode node) {
         Scope scope = scopeVisitor.visit(node);
         String nodeName = node.getOptional(Attributes.name).orElse(null);
         if (nodeName == null) return null;
@@ -64,17 +78,14 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
         if (methodScope != null) {
             String methodName = methodScope.getOptional(Attributes.name).orElse(null);
 
-            Symbol parameter = symbolTable.getParameter(methodName, nodeName);
-            if (parameter != null) return parameter.getType();
+            BasicSymbol parameter = symbolTable.getParameter(methodName, nodeName);
+            if (parameter != null) return parameter;
 
-            Symbol localVariable = symbolTable.getLocalVariable(methodName, nodeName);
-            if (localVariable != null) return localVariable.getType();
+            BasicSymbol localVariable = symbolTable.getLocalVariable(methodName, nodeName);
+            if (localVariable != null) return localVariable;
         }
 
-        Symbol field = symbolTable.getField(nodeName);
-        if (field != null) return field.getType();
-
-        return null;
+        return symbolTable.getField(nodeName);
     }
 
     protected Type getMethodType(JmmNode node) {
@@ -101,17 +112,17 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
     }
 
     protected boolean isImportedClassInstance(JmmNode identifier) {
-        Type type = getIdentifierType(identifier);
-        if (type == null) return false;
+        BasicSymbol symbol = getIdentifierSymbol(identifier);
+        if (symbol == null) return false;
 
-        return symbolTable.getImports().contains(type.getName());
+        return symbolTable.getImports().contains(symbol.getType().getName());
     }
 
     protected boolean isCurrentClassInstance(JmmNode identifier) {
-        Type type = getIdentifierType(identifier);
-        if (type == null) return false;
+        BasicSymbol symbol = getIdentifierSymbol(identifier);
+        if (symbol == null) return false;
 
-        return type.getName().equals(symbolTable.getClassName());
+        return symbol.getType().getName().equals(symbolTable.getClassName());
     }
 
     protected Type isPrimitiveType(JmmNode node) {
