@@ -17,7 +17,6 @@ public class ScopeVisitor {
         JmmNode current = node.getParent();
         while (current != null) {
             switch (current.getKind()) {
-                case NodeNames.classDeclaration -> scope.add(NodeNames.classDeclaration, current);
                 case NodeNames.mainMethod, NodeNames.method -> scope.add(NodeNames.method, current);
             }
             current = current.getParent();

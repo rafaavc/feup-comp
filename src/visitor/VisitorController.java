@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VisitorController {
+    List<Report> semanticReports = new ArrayList<>();
     BasicSymbolTable table = new BasicSymbolTable();
     Scoped globalScope = table.getGlobalScope();
     JmmNode root;
@@ -20,22 +21,16 @@ public class VisitorController {
     public void start() {
         //visit to fill in symbol table
         new PopulateTableVisitor().visit(root, globalScope);
-        //table.log();
-        List<Report> semanticReports = new ArrayList<>();
+        table.log();
 
-        typeVerification(semanticReports);
-        methodVerification(semanticReports);
-
-        semanticReports.forEach(System.out::println);
+        visit();
     }
 
-    private void typeVerification(List<Report> semanticReports) {
-        //new AssignmentVisitor(table).visit(root, semanticReports);
+    private void visit() {
+        new ArithmeticOpVisitor(table).visit(root, semanticReports);
+        new PropertyVisitor(table).visit(root, semanticReports);
+        new AssignmentVisitor(table).visit(root, semanticReports);
         //new OperatorsVisitor().visit(root, semanticReports);
-        new ArrayAccessVisitor(table).visit(root, semanticReports);
-    }
-
-    private void methodVerification(List<Report> semanticReports) {
-        //TODO
+        //new ArrayAccessVisitor().visit(root, semanticReports);
     }
 }
