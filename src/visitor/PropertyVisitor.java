@@ -7,7 +7,6 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.report.Report;
 import table.BasicSymbolTable;
-import utils.Logger;
 
 import java.util.List;
 
@@ -19,8 +18,6 @@ public class PropertyVisitor extends Visitor {
     }
 
     private Boolean visitMethod(JmmNode node, List<Report> reports) {
-        System.out.println("object property");
-
         JmmNode object = node.getChildren().get(0);
         JmmNode property = node.getChildren().get(1);
         if (property.getKind().equals(NodeNames.length)) {
@@ -44,7 +41,6 @@ public class PropertyVisitor extends Visitor {
             Type type = getIdentifierType(object);
             return type.isArray();
         }
-        Logger.log("[Check] Length not applied to identifier");
         return false;
     }
 
