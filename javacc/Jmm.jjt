@@ -295,7 +295,7 @@ void ObjectMethod() : {Token t1;}
 	<OPEN_PAR> (ArgumentList())? <CLOSE_PAR>
 }
 
-void ArgumentList() : {}
+void ArgumentList() #void : {}
 {
 	Expression() (<COMMA> Expression())*
 }

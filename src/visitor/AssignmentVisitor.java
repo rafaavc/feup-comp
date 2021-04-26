@@ -17,9 +17,9 @@ public class AssignmentVisitor extends Visitor {
     }
 
     public Boolean visitAssignment(JmmNode node, List<Report> reports) {
-        Type leftSideType = leftSideVerification(node, reports);
-        Type rightSideType = rightSideVerification(node, reports);
-        
+        Type leftSideType = leftSideVerification(node);
+        Type rightSideType = rightSideVerification(node);
+
         if (leftSideType == null || rightSideType == null ||
                 (!leftSideType.equals(rightSideType)
                 && !rightSideType.getName().equals(Types.expected))) {
@@ -32,38 +32,13 @@ public class AssignmentVisitor extends Visitor {
         return true;
     }
 
-    private Type leftSideVerification(JmmNode node, List<Report> reports) {
+    private Type leftSideVerification(JmmNode node) {
         JmmNode leftChild = node.getChildren().get(0);
-        return getChildType(leftChild, reports);
+        return getBasicType(leftChild);
     }
 
-    private Type rightSideVerification(JmmNode node, List<Report> reports) {
+    private Type rightSideVerification(JmmNode node) {
         JmmNode rightChild = node.getChildren().get(1);
-        Type primitive = isPrimitiveType(rightChild);
-        if (primitive != null) return primitive;
-
-        Type alloc = isAllocType(rightChild);
-        if (alloc != null) return alloc;
-
-        Type objectProperty = isObjectPropertyType(rightChild);
-        if (objectProperty != null) return objectProperty;
-
-        Type expression = isExpressionType(rightChild);
-        if (expression != null) return expression;
-
-        return getChildType(rightChild, reports);
-    }
-
-    private Type getChildType(JmmNode child, List<Report> reports) {
-        Type type = null;
-        switch (child.getKind()) {
-            case NodeNames.identifier -> type = getIdentifierType(child);
-            case NodeNames.arrayAccessResult -> {
-                Type tempType = getIdentifierType(child.getChildren().get(0));
-                type = new Type(tempType.getName(), false);
-            }
-            default -> System.out.println("Node kind not covered yet: " + child);
-        }
-        return type;
+        return getNodeType(rightChild);
     }
 }

@@ -23,6 +23,34 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
         this.scopeVisitor = new ScopeVisitor(symbolTable);
     }
 
+    protected Type getNodeType(JmmNode node) {
+        Type primitive = isPrimitiveType(node);
+        if (primitive != null) return primitive;
+
+        Type alloc = isAllocType(node);
+        if (alloc != null) return alloc;
+
+        Type objectProperty = isObjectPropertyType(node);
+        if (objectProperty != null) return objectProperty;
+
+        Type expression = isExpressionType(node);
+        if (expression != null) return expression;
+
+        return getBasicType(node);
+    }
+
+    protected Type getBasicType(JmmNode node) {
+        Type type = null;
+        switch (node.getKind()) {
+            case NodeNames.identifier -> type = getIdentifierType(node);
+            case NodeNames.arrayAccessResult -> {
+                Type tempType = getIdentifierType(node.getChildren().get(0));
+                type = new Type(tempType.getName(), false);
+            }
+        }
+        return type;
+    }
+
     /**
      * Verifies if node given as parameter is present in symbol table and return its type.
      * @return Type of the identifier or null if not present in symbol table
@@ -66,11 +94,9 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
             if (symbolTable.getSuper() != null)
                 return new Type(Types.expected, false);
         }
-        else {
-            if (symbolTable.getImports().contains(identifierName) ||
+        else if (symbolTable.getImports().contains(identifierName) ||
                     isImportedClassInstance(identifier))
-                return new Type(Types.expected, false);
-        }
+            return new Type(Types.expected, false);
         return null;
     }
 
@@ -114,9 +140,8 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
         JmmNode property = node.getChildren().get(1);
         if (property.getKind().equals(NodeNames.length))
             return new Type(Types.integer, false);
-        else if (property.getKind().equals(NodeNames.objectMethod)) {
+        else if (property.getKind().equals(NodeNames.objectMethod))
             return getMethodType(node);
-        }
         return null;
     }
 
