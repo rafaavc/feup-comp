@@ -1,9 +1,11 @@
 package visitor;
 
 import constants.NodeNames;
+import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.report.Report;
+import table.BasicSymbol;
 import table.BasicSymbolTable;
 
 import java.util.List;
@@ -16,46 +18,35 @@ public class AssignmentVisitor extends Visitor {
     }
 
     public Boolean visitAssignment(JmmNode node, List<Report> reports) {
-        System.out.println("assigment");
-        System.out.println(node.getChildren().get(0));
-        System.out.println(node.getChildren().get(1));
-        Type leftSideType = leftSideVerification(node, reports);
+        BasicSymbol leftSideSymbol = leftSideVerification(node);
+        Type leftSideType = leftSideSymbol.getType();
         Type rightSideType = rightSideVerification(node, reports);
-        if (!leftSideType.equals(rightSideType)) {
+
+        if (leftSideType == null || rightSideType == null ||
+                (!leftSideType.equals(rightSideType)
+                && !rightSideType.getName().equals(Types.expected))) {
             //TODO: add to reports
             System.out.println("!!!  WRONG ASSIGNMENT  !!!");
-            System.out.println(leftSideType);
-            System.out.println(rightSideType);
+            System.out.println("left: " + node.getChildren().get(0));
+            System.out.println("right: " + node.getChildren().get(1));
         }
+
+        leftSideSymbol.setInit(true);
         return true;
     }
 
-    private Type leftSideVerification(JmmNode node, List<Report> reports) {
+    private BasicSymbol leftSideVerification(JmmNode node) {
         JmmNode leftChild = node.getChildren().get(0);
-        return getChildType(leftChild, reports);
+        return getAssignableSymbol(leftChild);
     }
 
     private Type rightSideVerification(JmmNode node, List<Report> reports) {
         JmmNode rightChild = node.getChildren().get(1);
-        Type primitive = isPrimitiveType(rightChild);
-        if (primitive != null) return primitive;
-
-        Type alloc = isAllocType(rightChild);
-        if (alloc != null) return alloc;
-
-        return getChildType(rightChild, reports);
+        allIdentifiersInit(rightChild, reports);
+        return getNodeType(rightChild);
     }
 
-    private Type getChildType(JmmNode child, List<Report> reports) {
-        Type type = null;
-        switch (child.getKind()) {
-            case NodeNames.identifier -> type = getIdentifierType(child);
-            case NodeNames.arrayAccessResult -> {
-                Type tempType = getIdentifierType(child.getChildren().get(0));
-                type = new Type(tempType.getName(), false);
-            }
-            default -> System.out.println("Node kind not covered yet");
-        }
-        return type;
+    private void allIdentifiersInit(JmmNode node, List<Report> reports) {
+        new IdentifierVisitor(symbolTable).visit(node, reports);
     }
 }

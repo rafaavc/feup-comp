@@ -23,18 +23,14 @@ public class VisitorController {
         new PopulateTableVisitor().visit(root, globalScope);
         table.log();
 
-        typeVerification();
-
-        methodVerification();
+        visit();
     }
 
-    private void typeVerification() {
+    private void visit() {
+        new ArithmeticOpVisitor(table).visit(root, semanticReports);
+        new PropertyVisitor(table).visit(root, semanticReports);
         new AssignmentVisitor(table).visit(root, semanticReports);
         //new OperatorsVisitor().visit(root, semanticReports);
         //new ArrayAccessVisitor().visit(root, semanticReports);
-    }
-
-    private void methodVerification() {
-        //TODO
     }
 }
