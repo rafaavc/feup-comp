@@ -6,8 +6,7 @@ class T {
     public static void main(String[] s) { 
         int[] a;
         int c;
-        bool t;
-        t[0] = 1;
+
         // This is valid in Java
         a = new int[0];
         c = a[true];

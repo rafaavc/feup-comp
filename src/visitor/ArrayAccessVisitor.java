@@ -2,6 +2,7 @@ package visitor;
 
 import constants.Attributes;
 import constants.NodeNames;
+import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
@@ -25,9 +26,9 @@ public class ArrayAccessVisitor extends Visitor {
     }
 
     public Boolean visitNewArraySize(JmmNode node, List<Report> reports) {
-        // TODO check if identifier has int type and expression results in int type
-        if (!node.getChildren().get(0).getKind().equals(NodeNames.integer)) {
-            reports.add(getReport(node, "'" + node.getChildren().get(0).getKind() + "' can not be used to index an array. You must use an integer."));
+        String childType = getNodeType(node.getChildren().get(0)).getName();
+        if (!childType.equals(Types.integer)) {
+            reports.add(getReport(node, "Type '" + childType + "' can not be used to index an array. You must use an integer."));
         }
         return true;
     }
@@ -47,9 +48,9 @@ public class ArrayAccessVisitor extends Visitor {
         JmmNode rightChild = node.getChildren().get(1);
         JmmNode accessValue = rightChild.getChildren().get(0);
 
-        // TODO check if identifier has int type and expression results in int type
-        if (!accessValue.getKind().equals(NodeNames.integer)) {
-            reports.add(getReport(node, "'" + accessValue.getKind() + "' can not be used to index an array. You must use an integer."));
+        String accessValueType = getNodeType(accessValue).getName();
+        if (!accessValueType.equals(Types.integer)) {
+            reports.add(getReport(node, "Type '" + accessValueType + "' can not be used to index an array. You must use an integer."));
         }
 
         return true;
