@@ -152,12 +152,17 @@ void ClassMethodDeclaration() #void : {}
 
 void MethodDeclaration() #Method : {Token t1;}
 {
-	Type() t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} <OPEN_PAR> (Param() (<COMMA> Param())*)? <CLOSE_PAR> MethodBody()
+	Type() t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} <OPEN_PAR> (ParamList())? <CLOSE_PAR> MethodBody()
 }
 
 void MainMethodDeclaration() #MainMethod : {Token t1;}
 {
 	<STATIC> <VOID> t1 = <MAIN> {jjtThis.put("name", t1.image);} <OPEN_PAR> MainParam() <CLOSE_PAR> MainMethodBody()
+}
+
+void ParamList() #void : {}
+{
+	Param() (<COMMA> Param())*
 }
 
 void Param() #Parameter : {Token t1;}
@@ -232,9 +237,10 @@ void Condition(): {}
     <OPEN_PAR> Expression() <CLOSE_PAR>
 }
 
-void ArrayAccess() : {}
+Token ArrayAccess() : {Token t;}
 {
-	<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+	t=<OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+	{ return t; } // for locating the place where the token is
 }
 
 // ---------------
@@ -271,22 +277,28 @@ void Not() #void : {}
 	(<NOT> Not() #Not ) | ExpressionExtension()
 }
 
-void ExpressionExtension() #void : {}
+void ExpressionExtension() #void : {Token t;}
 {
-	ExpressionTerminalSymbols() (ArrayAccess() #ArrayAccessResult(2) | ObjectProperty() #ObjectProperty(2))*
+	ExpressionTerminalSymbols() (t = ArrayAccess() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ArrayAccessResult(2) | ObjectProperty() #ObjectProperty(2))*
 }
 
 void ObjectProperty() #void : {Token t1;}
 {
 	<DOT> (
 		<LENGTH> #Length
-		| t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);}  #ObjectMethod <OPEN_PAR> ArgumentList() <CLOSE_PAR>
+		| ObjectMethod()
 	)
+}
+
+void ObjectMethod() : {Token t1;}
+{
+	t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);}
+	<OPEN_PAR> (ArgumentList())? <CLOSE_PAR>
 }
 
 void ArgumentList() #void : {}
 {
-	(Expression() (<COMMA> Expression())*)?
+	Expression() (<COMMA> Expression())*
 }
 
 void ExpressionTerminalSymbols() #void : {Token t1;}
@@ -302,6 +314,6 @@ void ExpressionTerminalSymbols() #void : {Token t1;}
 
 void NewInstance() #New : {Token t1;}
 {
-	(<INT> {jjtThis.put("name", "int");} <OPEN_BRACKET> Expression() <CLOSE_BRACKET>)
+	(<INT> {jjtThis.put("name", "int");} t1=<OPEN_BRACKET> Expression() { jjtThis.put("line", String.valueOf(t1.beginLine)); jjtThis.put("column", String.valueOf(t1.beginColumn)); } #NewArraySize(1) <CLOSE_BRACKET>)
 	| (t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} <OPEN_PAR> <CLOSE_PAR>)
 }

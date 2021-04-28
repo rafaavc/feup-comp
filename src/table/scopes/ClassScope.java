@@ -3,16 +3,19 @@ package table.scopes;
 import constants.Attributes;
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import table.BasicSymbol;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static utils.JmmNodeInfo.isArray;
 
 public class ClassScope implements Scoped {
     private final String className, superClassName;
-    private final List<Symbol> fields = new ArrayList<>();
+    private final List<BasicSymbol> fields = new ArrayList<>();
     private final Map<String, MethodScope> methods = new HashMap<>();
 
     public ClassScope(String className, String superClassName) {
@@ -21,8 +24,7 @@ public class ClassScope implements Scoped {
     }
 
     public Scoped add(JmmNode node) {
-
-        switch(node.getKind()) {
+        switch (node.getKind()) {
             case NodeNames.method:
             case NodeNames.mainMethod:
                 String methodName = node.getOptional(Attributes.name).orElse("main");
@@ -34,7 +36,7 @@ public class ClassScope implements Scoped {
                 JmmNode parent = node.getParent();
                 String variableName = parent.get(Attributes.name);
 
-                Symbol symbol = new Symbol(new Type(node.get(Attributes.name), isArray(node, variableName)), variableName);
+                BasicSymbol symbol = new BasicSymbol(new Type(node.get(Attributes.name), isArray(node, variableName)), variableName);
                 fields.add(symbol);
                 break;
 
@@ -53,7 +55,7 @@ public class ClassScope implements Scoped {
         return superClassName;
     }
 
-    public List<Symbol> getFields() {
+    public List<BasicSymbol> getFields() {
         return fields;
     }
 
