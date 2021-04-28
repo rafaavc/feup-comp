@@ -20,6 +20,9 @@ import java.util.function.BiFunction;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.specs.util.SpecsCheck;
 
+import constants.NodeNames;
+
+
 /**
  * Visitor that automatically applies a preorder, top-down traversal (first current node, then children).
  * 
@@ -51,10 +54,14 @@ public class PreorderJmmVisitor<D, R> extends AJmmVisitor<D, R> {
     public R visit(JmmNode jmmNode, D data) {
         SpecsCheck.checkNotNull(jmmNode, () -> "Node should not be null");
 
-        var visit = getVisit(jmmNode.getKind());
+        String kind = jmmNode.getKind();
+
+        var visit = getVisit(kind);
 
         // Preorder: 1st visit the node
         var nodeResult = visit.apply(jmmNode, data);
+        if (kind.equals(NodeNames.and) || kind.equals(NodeNames.not) ||kind.equals(NodeNames.lessThan))
+        System.out.println(nodeResult);
 
         // Preorder: then, visit each children
         List<R> childrenResults = new ArrayList<>();

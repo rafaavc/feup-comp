@@ -15,7 +15,6 @@ public class ArithmeticOpVisitor extends Visitor {
 
         addVisit(NodeNames.add, this::visitArithmetic);
         addVisit(NodeNames.sub, this::visitArithmetic);
-        addVisit(NodeNames.lessThan, this::visitArithmetic);
     }
 
     private Boolean visitArithmetic(JmmNode node, List<Report> reports) {

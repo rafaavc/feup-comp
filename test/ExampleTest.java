@@ -145,7 +145,7 @@ public class ExampleTest {
   @Test
   public void testSemanticsAnalyse() {
     String code = "";
-    File f = new File("test/fixtures/public/Simple.jmm");
+    File f = new File("test/fixtures/public/TicTacToe.jmm");
     try {
       Scanner scanner = new Scanner(f);
       code = scanner.useDelimiter("\\Z").next();
@@ -157,4 +157,6 @@ public class ExampleTest {
 
     assertEquals(0, TestUtils.getNumErrors(semanticsResult.getReports()));
   }
+
+
 }

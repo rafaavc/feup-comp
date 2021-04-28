@@ -29,8 +29,8 @@ public class VisitorController {
     }
 
     private void typeVerification() {
-        new AssignmentVisitor(table).visit(root, semanticReports);
-        //new OperatorsVisitor().visit(root, semanticReports);
+        //new AssignmentVisitor(table).visit(root, semanticReports);
+        new BooleanOpVisitor(table).visit(root, semanticReports);
         //new ArrayAccessVisitor().visit(root, semanticReports);
     }
 
