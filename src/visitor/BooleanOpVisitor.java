@@ -20,9 +20,6 @@ public class BooleanOpVisitor extends Visitor {
     }
 
     private Boolean visitBinary(JmmNode node, List<Report> reports) {
-        System.out.println("binary");
-        System.out.println(node.getKind());
-        System.out.println(node.getChildren());
         if (node.getKind().equals(NodeNames.and)) {
             return verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
         } else if (node.getKind().equals(NodeNames.not)) {
@@ -37,7 +34,9 @@ public class BooleanOpVisitor extends Visitor {
         String kind = node.getKind();
 
         if (kind.equals(NodeNames.identifier)) {
-            kind = getIdentifierType(node).getName();
+            kind = getIdentifierSymbol(node).getType().getName();
+        } else if (kind.equals(NodeNames.objectProperty)) {
+            kind = isObjectPropertyType(node).getName();
         }
 
         return kind.equals(NodeNames.bool) || kind.equals("boolean") || kind.equals(NodeNames.and) || kind.equals(NodeNames.not) || kind.equals(NodeNames.lessThan);
@@ -46,13 +45,12 @@ public class BooleanOpVisitor extends Visitor {
     private Boolean verifyNum(JmmNode node) {
         String kind = node.getKind();
 
-        if (kind.equals(NodeNames.identifier) || kind.equals(NodeNames.objectMethod)) {
-            kind = getIdentifierType(node).getName();
-            System.out.println(kind);
+        if (kind.equals(NodeNames.identifier)) {
+            kind = getIdentifierSymbol(node).getType().getName();
         } else if (kind.equals(NodeNames.objectProperty)) {
-            System.out.println(node.getChildren());
+            kind = isObjectPropertyType(node).getName();
         }
 
-        return kind.equals(NodeNames.integer) || kind.equals("int") || kind.equals(NodeNames.add) || kind.equals(NodeNames.sub) || kind.equals(NodeNames.arrayAccessResult);
+        return kind.equals(NodeNames.integer) || kind.equals("int") || kind.equals(NodeNames.sum) || kind.equals(NodeNames.sub) || kind.equals(NodeNames.mul) || kind.equals(NodeNames.div) || kind.equals(NodeNames.arrayAccessResult);
     }
 }
