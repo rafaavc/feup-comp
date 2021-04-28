@@ -19,8 +19,11 @@ class Simple {
         io.println(c);
     }
 
-    public int constInstr(){
+    public int constInstr(int t, boolean q, int p){
         int c;
+        boolean w;
+        w = true && !q && !false && !(q && true);
+        c = 10 + t *8 /10 - p;
         c = 0;
         c = 4;
         c = 8;
@@ -33,4 +36,3 @@ class Simple {
         return c;
     }
 }
-
