@@ -45,7 +45,10 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
         Type expression = isExpressionType(node);
         if (expression != null) return expression;
 
-        return getAssignableSymbol(node).getType();
+        BasicSymbol symbol = getAssignableSymbol(node);
+
+        if (symbol == null) return null;
+        return symbol.getType();
     }
 
     protected BasicSymbol getAssignableSymbol(JmmNode node) {

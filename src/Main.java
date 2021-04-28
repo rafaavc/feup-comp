@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 
 import java.io.File;
@@ -15,9 +16,8 @@ import java.util.List;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.specs.util.SpecsIo;
-import table.BasicSymbolTable;
-import table.scopes.Scoped;
 import visitor.*;
+import utils.Logger;
 
 public class Main implements JmmParser, JmmAnalysis {
 
@@ -42,11 +42,12 @@ public class Main implements JmmParser, JmmAnalysis {
 
 	@Override
 	public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
+		// TODO change
 		JmmNode root = parserResult.getRootNode();
 		VisitorController controller = new VisitorController(root);
 		controller.start();
 
-		return null;
+		return new JmmSemanticsResult(parserResult, controller.getTable(), controller.getReports());
 	}
 
 	public static void main(String[] args) {
@@ -58,8 +59,8 @@ public class Main implements JmmParser, JmmAnalysis {
         int maxErrNo = args.length > 1 ? Integer.parseInt(args[1]) : 10;
 		String jmmCode = SpecsIo.read(args[0]);
 
-		JmmParser parser = new Main();
-		JmmParserResult result = parser.parse(jmmCode);
+		Main main = new Main();
+		JmmParserResult result = main.parse(jmmCode);
 
 		File output = new File("tree.json");
 		SpecsIo.write(output, result.toJson());
@@ -69,7 +70,8 @@ public class Main implements JmmParser, JmmAnalysis {
 			System.out.println(report.getMessage());
 		}
 
-		JmmAnalysis analyser = new Main();
-		JmmSemanticsResult semanticsResult = analyser.semanticAnalysis(result);
+		JmmSemanticsResult semanticsResult = main.semanticAnalysis(result);
+
+		OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
     }
 }
