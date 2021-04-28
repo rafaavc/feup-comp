@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import table.BasicSymbolTable;
 import table.scopes.Scoped;
+import utils.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,10 @@ public class VisitorController {
         new PropertyVisitor(table).visit(root, semanticReports);
         new AssignmentVisitor(table).visit(root, semanticReports);
         //new OperatorsVisitor().visit(root, semanticReports);
-        //new ArrayAccessVisitor().visit(root, semanticReports);
+        new ArrayAccessVisitor(table).visit(root, semanticReports);
+
+        for (Report r : semanticReports) {
+            Logger.log(r.toString());
+        }
     }
 }
