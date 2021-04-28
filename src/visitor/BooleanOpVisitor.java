@@ -17,14 +17,16 @@ public class BooleanOpVisitor extends Visitor {
         addVisit(NodeNames.and, this::visitBinary);
         addVisit(NodeNames.not, this::visitBinary);
         addVisit(NodeNames.lessThan, this::visitBinary);
+        addVisit(NodeNames.condition, this::visitBinary);
     }
 
     private Boolean visitBinary(JmmNode node, List<Report> reports) {
-        if (node.getKind().equals(NodeNames.and)) {
+        String nodeKind = node.getKind();
+        if (nodeKind.equals(NodeNames.and)) {
             return verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
-        } else if (node.getKind().equals(NodeNames.not)) {
+        } else if (nodeKind.equals(NodeNames.not) || nodeKind.equals(NodeNames.condition)) {
             return verifyBool(node.getChildren().get(0));
-        } else if (node.getKind().equals(NodeNames.lessThan)) {
+        } else if (nodeKind.equals(NodeNames.lessThan)) {
             return verifyNum(node.getChildren().get(0)) && verifyNum(node.getChildren().get(1));
         }
         return false;
