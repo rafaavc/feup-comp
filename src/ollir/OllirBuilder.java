@@ -67,25 +67,32 @@ public class OllirBuilder {
         return "";
     }
 
-    public String addMethodCall(String identifier, Type identifierType, JmmNode method, Type returnType, List<String> parameters, boolean isImportedClass) {
-    	String methodName = method.getOptional(Attributes.name).orElse(null);
-    	System.out.println("## BEFORE");
-    	if (methodName == null) return null;
-		System.out.println("## AFTER");
-
-        if (isImportedClass)
-            code.append("\t\tinvokestatic(").append(identifier);
-        else
-            code.append("\t\tinvokevirtual(").append(identifier).append(typeToCode(identifierType));
-        code.append(", \"");
-		code.append(methodName).append("\", ");
-        System.out.println("RETURN TYPE = " + returnType);
-		code.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType)).append(";\n");
-        return "";
+    public void addStaticMethodCall(String identifier, JmmNode method, Type returnType, List<String> parameters) {
+        code.append("\t\tinvokestatic(").append(identifier);
+        addMethodCall(method, returnType, parameters);
     }
 
-    public String addAssignment(JmmNode node, Type nodeType) {
-        return "";
+    public void addVirtualMethodCall(String identifier, Type identifierType, JmmNode method, Type returnType, List<String> parameters) {
+        code.append("\t\tinvokevirtual(").append(identifier).append(typeToCode(identifierType));
+        addMethodCall(method, returnType, parameters);
+    }
+
+    private void addMethodCall(JmmNode method, Type returnType, List<String> parameters) {
+        String methodName = method.getOptional(Attributes.name).orElse(null);
+        if (methodName == null) return;
+
+        code.append(", \"");
+        code.append(methodName).append("\", ");
+        System.out.println("RETURN TYPE = " + returnType);
+        code.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType)).append(";\n");
+    }
+
+    public void addReturn(String returnOllirRep, Type returnType) {
+        String returnTypeCode = typeToCode(returnType);
+
+        code.append("\t\tEnd:\n");
+        code.append("\t\t\tret").append(returnTypeCode);
+        code.append(" ").append(returnOllirRep).append(returnTypeCode);
     }
 
     public String getAssignmentWithExpression(BasicSymbol symbol, String operatorName, String op1, String op2) {

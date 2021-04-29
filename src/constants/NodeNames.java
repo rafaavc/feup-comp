@@ -26,4 +26,5 @@ public class NodeNames {
     public final static String length = "Length";
     public final static String thisName = "This";
     public final static String newArraySize = "NewArraySize";
+    public final static String returnStatement = "Return";
 }

@@ -16,6 +16,7 @@ class Simple {
         b = 10;
         s = new Simple();
         c = s.add(a,b);
+        s.add(a+b+c,b);
         io.println(c);
     }
 
