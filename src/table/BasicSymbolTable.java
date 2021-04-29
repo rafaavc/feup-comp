@@ -66,7 +66,8 @@ public class BasicSymbolTable implements SymbolTable {
     @Override
     public List<Symbol> getParameters(String methodName) {
         ClassScope classScope = global.getClassScope();
-        return new ArrayList<>(classScope.getMethod(methodName).getParameters());
+        MethodScope method = classScope.getMethod(methodName);
+        return method == null ? new ArrayList<>() : new ArrayList<>(method.getParameters());
     }
 
     public BasicSymbol getParameter(String methodName, String parameterName) {
