@@ -32,6 +32,5 @@ class Simple {
 		c = 10;
         return c;
     }
-
-
 }
+

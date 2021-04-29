@@ -27,6 +27,14 @@ public class VisitorController {
         visit();
     }
 
+    public List<Report> getReports() {
+        return semanticReports;
+    }
+
+    public BasicSymbolTable getTable() {
+        return table;
+    }
+
     private void visit() {
         new ArithmeticOpVisitor(table).visit(root, semanticReports);
         new PropertyVisitor(table).visit(root, semanticReports);
