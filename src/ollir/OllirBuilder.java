@@ -136,10 +136,10 @@ public class OllirBuilder {
      * @param operand - JmmNode to represent
      * @return the ollir representation
      */
-    public String getOperandOllirRepresentation(JmmNode operand, Scope scope, Type type) {
+    public IntermediateOllirRepresentation getOperandOllirRepresentation(JmmNode operand, Scope scope, Type type) {
         return switch (operand.getKind()) {
-            case NodeNames.integer -> operand.get(Attributes.value) + ".i32";
-            case NodeNames.bool -> (operand.get(Attributes.value).equals("true") ? "1" : "0") + ".bool";
+            case NodeNames.integer -> new IntermediateOllirRepresentation(operand.get(Attributes.value) + ".i32", "");
+            case NodeNames.bool -> new IntermediateOllirRepresentation((operand.get(Attributes.value).equals("true") ? "1" : "0") + ".bool", "");
             case NodeNames.identifier -> {
                 List<Symbol> parameters = table.getParameters(scope.getMethodScope().get(Attributes.name));
                 String operandName = operand.get(Attributes.name);
@@ -151,11 +151,44 @@ public class OllirBuilder {
                     }
                 }
 
-                yield (inParameter != 0 ? "$" + inParameter + "." : "") + operand.get(Attributes.name) + typeToCode(type);
+                String current;
+                String before = "";
+                if (inParameter != 0)
+                    current = "$" + inParameter + "." + operand.get(Attributes.name) + typeToCode(type);
+                else if (isField(operandName, type)) {
+                    String auxName = getNextAuxName();
+                    String typeCode = typeToCode(type);
+                    String rightSide = "";
+                    rightSide += "getfield(this, " + operandName;
+                    rightSide += typeCode + ")" + typeCode;
+
+                    before = getAssignmentCustom(new BasicSymbol(type, auxName), rightSide);
+                    current = auxName + typeCode;
+                }
+                else
+                    current = operand.get(Attributes.name) + typeToCode(type);
+
+                yield new IntermediateOllirRepresentation(current, before);
             }
-            case NodeNames.arrayAccessResult -> "Not needed in this checkpoint";
+            case NodeNames.arrayAccessResult -> null;
             default -> null;
         };
+    }
+
+    public boolean isField(Symbol symbol) {
+        if (symbol == null) return false;
+        return isField(symbol.getName(), symbol.getType());
+    }
+
+    private boolean isField(String name, Type type) {
+        List<Symbol> fields = table.getFields();
+
+        for (Symbol field : fields) {
+            if (field.getName().equals(name) &&
+                field.getType().equals(type))
+                return true;
+        }
+        return false;
     }
 
     public String getAssignmentCustom(BasicSymbol symbol, String rightSide) {

@@ -43,7 +43,8 @@ public class OllirVisitor extends Visitor {
                 if (representations.size() == 1)
                     current = ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(0).getCurrent();
                 else
-                    current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(1).getCurrent();
+                    current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind())
+                            + representations.get(1).getCurrent();
 
 
                 if (!inline) {
@@ -83,13 +84,11 @@ public class OllirVisitor extends Visitor {
 
             case NodeNames.objectProperty -> handleObjectProperty(node, type, inline);
 
-            default -> new IntermediateOllirRepresentation(ollirBuilder.getOperandOllirRepresentation(node, new ScopeVisitor(symbolTable).visit(node), getNodeType(node)), "");
+            default -> ollirBuilder.getOperandOllirRepresentation(node, new ScopeVisitor(symbolTable).visit(node), getNodeType(node));
         };
     }
 
     public void visitNode(JmmNode node) {
-        System.out.println("NODE: " + node);
-        Type nodeType = getNodeType(node);
         String nodeKind = node.getKind();
         List<JmmNode> children = node.getChildren();
 
@@ -102,7 +101,7 @@ public class OllirVisitor extends Visitor {
                 IntermediateOllirRepresentation representation = getOllirRepresentation(rightSide, symbol.getType(), true);
 
                 ollirBuilder.add(representation.getBefore());
-                if (isField(symbol))
+                if (ollirBuilder.isField(symbol))
                     ollirBuilder.addPutField(symbol, representation.getCurrent());
                 else
                     ollirBuilder.add(ollirBuilder.getAssignmentCustom(symbol, representation.getCurrent()));
@@ -136,21 +135,9 @@ public class OllirVisitor extends Visitor {
         for (JmmNode child : children) visitNode(child);
     }
 
-    private boolean isField(Symbol symbol) {
-        List<Symbol> fields = symbolTable.getFields();
-
-        for (Symbol field : fields) {
-            if (field.equals(symbol)) return true;
-        }
-        return false;
-    }
-
     private IntermediateOllirRepresentation handleObjectProperty(JmmNode node, Type type, boolean inline) {
-        JmmNode identifier = node.getChildren().get(0);
         JmmNode property = node.getChildren().get(1);
-
         JmmNode parent = node.getParent();
-        System.out.println("PARENT: " + parent.getKind());
 
         Type expectedType = switch(parent.getKind()) {
             case NodeNames.returnStatement -> {
