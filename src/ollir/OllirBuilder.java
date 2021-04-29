@@ -181,13 +181,13 @@ public class OllirBuilder {
 
     public String operatorNameToSymbol(String operatorName) {
         return switch (operatorName) {
-            case NodeNames.sum -> " + ";
-            case NodeNames.sub -> " - ";
-            case NodeNames.mul -> " * ";
-            case NodeNames.div -> " / ";
-            case NodeNames.and -> " && ";
-            case NodeNames.not -> "!";
-            case NodeNames.lessThan -> " < ";
+            case NodeNames.sum -> " +.i32 ";
+            case NodeNames.sub -> " -.i32 ";
+            case NodeNames.mul -> " *.i32 ";
+            case NodeNames.div -> " /.i32 ";
+            case NodeNames.and -> " &&.bool ";
+            case NodeNames.not -> "!.bool ";
+            case NodeNames.lessThan -> " <.i32 ";
             default -> null;
         };
     }
