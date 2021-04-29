@@ -119,9 +119,8 @@ public class OllirBuilder {
     public void addReturn(String returnOllirRep, Type returnType) {
         String returnTypeCode = typeToCode(returnType);
 
-        code.append("\t\tEnd:\n");
-        code.append("\t\t\tret").append(returnTypeCode);
-        code.append(" ").append(returnOllirRep).append(returnTypeCode);
+        code.append("\t\tret").append(returnTypeCode);
+        code.append(" ").append(returnOllirRep).append("\n");
     }
 
     public String getAssignmentWithExpression(BasicSymbol symbol, String operatorName, String op1, String op2) {

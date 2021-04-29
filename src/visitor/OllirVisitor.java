@@ -118,7 +118,17 @@ public class OllirVisitor extends Visitor {
             }
 
             case NodeNames.returnStatement -> {
+                JmmNode returnIdentifier = node.getChildren().get(0);
+                Type returnType = getNodeType(returnIdentifier);
+                System.out.println("Type: " + node);
+                IntermediateOllirRepresentation representation = getOllirRepresentation(returnIdentifier, returnType, true);
 
+                ollirBuilder.add(representation.getBefore());
+                System.out.println("BEFORE: " + representation.getBefore());
+                ollirBuilder.addReturn(representation.getCurrent(), returnType);
+                System.out.println("CURRENT: " + representation.getCurrent());
+
+                return;
             }
         }
 

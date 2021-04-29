@@ -3,7 +3,7 @@ class Simple {
 
     public int add(int a, int b){
         int c;
-        c = a + this.constInstr(10+20+40);
+        c = a + this.constInstr(10, true, b);
         return c;
     }
 
@@ -16,14 +16,16 @@ class Simple {
         b = 10;
         new Simple();
         s = new Simple();
-        s.add(a+b+c,b);
-        c = s.add(a,b+a*c/10, s.add(1+2));
+        s.add(a,b);
+        c = s.add(b+a/10, s.add(1, 2));
         io.println(c);
     }
 
     public int constInstr(int t, boolean q, int p){
         int c;
         boolean w;
+		Simple s;
+		s = new Simple();
         w = true && !q && !false && !(q && true);
         c = 10 + t *8 /10 - p;
         c = 0;
@@ -35,6 +37,6 @@ class Simple {
         c = 1000;
         c = 100474650;
 		c = 10;
-        return c;
+        return 1+1+1+33+4+5;
     }
 }
