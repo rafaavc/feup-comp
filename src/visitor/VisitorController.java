@@ -31,7 +31,7 @@ public class VisitorController {
         new ArithmeticOpVisitor(table).visit(root, semanticReports);
         new PropertyVisitor(table).visit(root, semanticReports);
         new AssignmentVisitor(table).visit(root, semanticReports);
-        //new OperatorsVisitor().visit(root, semanticReports);
+        new BooleanOpVisitor(table).visit(root, semanticReports);
         new ArrayAccessVisitor(table).visit(root, semanticReports);
 
         for (Report r : semanticReports) {

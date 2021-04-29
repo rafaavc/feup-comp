@@ -60,6 +60,7 @@ public class MainAnalysis implements JmmAnalysis { // }, JmmOptimization, Jasmin
         postOrderVisitor.visit(node, kindCount);
         System.out.println("Kinds count: " + kindCount);
 
+
         // No Symbol Table being calculated yet
         return new JmmSemanticsResult(node, null, parserResult.getReports());
 
