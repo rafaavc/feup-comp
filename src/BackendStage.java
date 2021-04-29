@@ -1,19 +1,15 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import org.specs.comp.ollir.ClassUnit;
-import org.specs.comp.ollir.OllirErrorException;
-import org.specs.comp.ollir;
+import org.specs.comp.ollir.*;
 
 import pt.up.fe.comp.jmm.jasmin.JasminBackend;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
-import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
-import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
-import pt.up.fe.specs.util.SpecsIo;
 
 
 /**
@@ -54,7 +50,7 @@ public class BackendStage implements JasminBackend {
 
         } catch (OllirErrorException e) {
             return new JasminResult(ollirClass.getClassName(), null,
-                    Arrays.asList(Report.newError(Stage.GENERATION, -1, -1, "Exception during Jasmin generation", e)));
+                    Collections.singletonList(Report.newError(Stage.GENERATION, -1, -1, "Exception during Jasmin generation", e)));
         }
 
     }
@@ -62,12 +58,12 @@ public class BackendStage implements JasminBackend {
     private String getJasminCode(ClassUnit classUnit) {
         StringBuilder code = new StringBuilder();
 
-        code.append(".class " + classUnit.getClassAccessModifier().toString() + " " + classUnit.getClassName() );
+        code.append(".class ").append(classUnit.getClassAccessModifier().toString()).append(" ").append(classUnit.getClassName());
 
-        code.append(".super " + classUnit.getSuperClass());
+        code.append(".super ").append(classUnit.getSuperClass());
 
         //constructor
-        code.append(".method " + classUnit.getClassAccessModifier().toString() + " <init>()V");
+        code.append(".method ").append(classUnit.getClassAccessModifier().toString()).append(" <init>()V");
         code.append("aload_0");
         code.append("invokenonvirtual java/lang/Object/<init>()V");
         code.append("return");
@@ -105,9 +101,7 @@ public class BackendStage implements JasminBackend {
             }
         }
 
-
-
-        System.out.println(code.toString());
+        System.out.println(code);
 
         return code.toString();
     }
@@ -115,32 +109,12 @@ public class BackendStage implements JasminBackend {
     private String getElementType(Type e) {
         ElementType eType = e.getTypeOfElement();
 
-        switch (eType) {
-            case INT32:
-                return "I";
-                break;
-            case BOOLEAN:
-                return "x";
-                break;
-            case ARRAYREF:
-                return "[";
-                break;
-            case OBJECTREF:
-                return "x";
-                break;
-            case CLASS:
-                return "x";
-                break;
-            case THIS:
-                return "x";
-                break;
-            case STRING:
-                return "x";
-                break;
-            case VOID:
-                return "V";
-                break;
-        }
+        return switch (eType) {
+            case INT32 -> "I";
+            case BOOLEAN, OBJECTREF, CLASS, THIS, STRING -> "x";
+            case ARRAYREF -> "[";
+            case VOID -> "V";
+        };
     }
 
 }
