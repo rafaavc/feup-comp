@@ -72,38 +72,46 @@ public class OllirVisitor extends Visitor {
 
                 return;
             }
-            case NodeNames.objectProperty -> {
-                JmmNode identifier = node.getChildren().get(0);
-                System.out.println("identifier: " + identifier);
-                JmmNode property = node.getChildren().get(1);
+            case NodeNames.objectProperty ->
+                handleObjectProperty(node);
 
-                Type returnType = getNodeType(node);
-                if (property.getKind().equals(NodeNames.objectMethod)) {
-                    System.out.println("here MODAFOCA: " + node);
-                    List<JmmNode> parameters = property.getChildren();
-                    List<String> parametersRep = new ArrayList<>();
-
-                    for (JmmNode parameter : parameters) {
-                        IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, getNodeType(parameter), false);
-                        ollirBuilder.add(representation.getBefore());
-                        parametersRep.add(representation.getCurrent());
-                    }
-                    if (isImportedClassInstance(identifier)) {
-                    	String identifierName = identifier.getOptional(Attributes.name).orElse(null);
-                    	if (identifierName == null) return;
-
-                        ollirBuilder.addMethodCall(identifierName, null, property, returnType, parametersRep, true);
-                    } else {
-                        BasicSymbol symbol = getIdentifierSymbol(identifier);
-                        ollirBuilder.addMethodCall(symbol.getName(), symbol.getType(), property, returnType, parametersRep, false);
-                    }
-
-                } else if (property.getKind().equals(NodeNames.length)) {
-                    //TODO: when considering arrays
-                }
-            }
+            case NodeNames.returnStatement ->
+                handleReturn(node);
         }
 
         for (JmmNode child : children) recursiveVisit(child);
+    }
+
+    private void handleObjectProperty(JmmNode node) {
+        JmmNode identifier = node.getChildren().get(0);
+        JmmNode property = node.getChildren().get(1);
+
+        Type returnType = getNodeType(node);
+        if (property.getKind().equals(NodeNames.objectMethod)) {
+            List<JmmNode> parameters = property.getChildren();
+            List<String> parametersRep = new ArrayList<>();
+
+            for (JmmNode parameter : parameters) {
+                IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, getNodeType(parameter), false);
+                ollirBuilder.add(representation.getBefore());
+                parametersRep.add(representation.getCurrent());
+            }
+
+            if (isImportedClassInstance(identifier)) {
+                String identifierName = identifier.getOptional(Attributes.name).orElse(null);
+                if (identifierName == null) return;
+                ollirBuilder.addStaticMethodCall(identifierName, property, returnType, parametersRep);
+            } else {
+                BasicSymbol symbol = getIdentifierSymbol(identifier);
+                ollirBuilder.addVirtualMethodCall(symbol.getName(), symbol.getType(), property, returnType, parametersRep);
+            }
+
+        } else if (property.getKind().equals(NodeNames.length)) {
+            //TODO: when considering arrays
+        }
+    }
+
+    private void handleReturn(JmmNode node) {
+
     }
 }
