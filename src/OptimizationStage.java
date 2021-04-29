@@ -6,7 +6,9 @@ import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
-import pt.up.fe.specs.util.SpecsIo;
+import visitor.OllirVisitor;
+import table.BasicSymbolTable;
+import ollir.OllirBuilder;
 
 /**
  * Copyright 2021 SPeCS.
@@ -29,11 +31,15 @@ public class OptimizationStage implements JmmOptimization {
         JmmNode node = semanticsResult.getRootNode();
 
         // Convert the AST to a String containing the equivalent OLLIR code
-        String ollirCode = ""; // Convert node ...
+        OllirBuilder ollirBuilder = new OllirBuilder((BasicSymbolTable) semanticsResult.getSymbolTable());
+        new OllirVisitor((BasicSymbolTable) semanticsResult.getSymbolTable(), ollirBuilder).visitNode(node);
+
+        String ollirCode = ollirBuilder.getCode();
+
+        System.out.println("## Got the ollir code:\n\n" + ollirCode);
 
         // More reports from this stage
         List<Report> reports = new ArrayList<>();
-
         return new OllirResult(semanticsResult, ollirCode, reports);
     }
 
@@ -50,3 +56,4 @@ public class OptimizationStage implements JmmOptimization {
     }
 
 }
+

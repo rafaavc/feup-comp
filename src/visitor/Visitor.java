@@ -45,7 +45,10 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
         Type expression = isExpressionType(node);
         if (expression != null) return expression;
 
-        return getAssignableSymbol(node).getType();
+        BasicSymbol symbol = getAssignableSymbol(node);
+
+        if (symbol == null) return null;
+        return symbol.getType();
     }
 
     protected BasicSymbol getAssignableSymbol(JmmNode node) {
@@ -112,10 +115,10 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
     }
 
     protected boolean isImportedClassInstance(JmmNode identifier) {
-        BasicSymbol symbol = getIdentifierSymbol(identifier);
-        if (symbol == null) return false;
+        String identifierName = identifier.getOptional(Attributes.name).orElse(null);
+        if (identifierName == null) return false;
 
-        return symbolTable.getImports().contains(symbol.getType().getName());
+        return symbolTable.getImports().contains(identifierName);
     }
 
     protected boolean isCurrentClassInstance(JmmNode identifier) {

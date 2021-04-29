@@ -1,0 +1,55 @@
+import io;
+class Simple {
+	int test;
+	boolean newNode;
+	Simple t;
+
+    public int add(int a, int b){
+        int c;
+        c = a + this.constInstr(10, true, b);
+        return c;
+    }
+
+    public static void main(String[] args){
+        int a;
+        int b;
+        int c;
+        Simple s;
+        boolean aa;
+        a = 20;
+        b = 10;
+       	c = 2;
+        new Simple();
+        s = new Simple();
+        s.add(a+b,b);
+        aa = io.println();
+        c = s.add(a, b+a*c/10);
+        io.println(io.println(9, 6));
+    }
+
+    public int constInstr(int t, boolean q, int p){
+        int c;
+        boolean w;
+		Simple s;
+		s = new Simple();
+    	test = s.add(1, 2);
+    	c = test;
+    	newNode = false;
+    	w = newNode;
+    	s.add(test, 1);
+        w = true && !q && !false && !(q && true);
+        c = 10 + t *8 /10 - p;
+        w = true && !q && !false && !(q && true) && s.add(1, 2);
+        c = 10 + t *8 /10 + test;
+        c = 0;
+        c = 4;
+        c = 8;
+        c = 14;
+        c = 250;
+        c = 400;
+        c = 1000;
+        c = 100474650;
+		c = 10;
+        return io.println(c);
+    }
+}

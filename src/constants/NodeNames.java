@@ -4,7 +4,6 @@ public class NodeNames {
     public final static String importNode = "Import";
     public final static String method = "Method";
     public final static String mainMethod = "MainMethod";
-    public final static String variable = "Variable";
     public final static String classDeclaration = "Class";
     public final static String type = "Type";
     public final static String parameter = "Parameter";
@@ -27,6 +26,7 @@ public class NodeNames {
     public final static String length = "Length";
     public final static String thisName = "This";
     public final static String newArraySize = "NewArraySize";
+    public final static String returnStatement = "Return";
     public final static String ifelse = "IfElse";
     public final static String whileLoop = "While";
     public final static String condition = "Condition";
