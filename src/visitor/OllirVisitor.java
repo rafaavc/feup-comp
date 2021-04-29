@@ -2,6 +2,7 @@ package visitor;
 
 import constants.Attributes;
 import constants.NodeNames;
+import constants.Types;
 import ollir.IntermediateOllirRepresentation;
 import ollir.OllirBuilder;
 import table.BasicSymbolTable;
@@ -9,6 +10,7 @@ import table.BasicSymbol;
 
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import utils.Logger;
 import visitor.scopes.ScopeVisitor;
 
 import java.util.ArrayList;
@@ -22,30 +24,65 @@ public class OllirVisitor extends Visitor {
         this.ollirBuilder = ollirBuilder;
     }
 
-    private IntermediateOllirRepresentation getOllirRepresentation(JmmNode node, Type type, boolean assignment) {
-        switch (node.getKind()) {
+    private IntermediateOllirRepresentation getOllirRepresentation(JmmNode node, Type type, boolean inline) {
+        return switch (node.getKind()) {
             case NodeNames.sum, NodeNames.mul, NodeNames.sub, NodeNames.div, NodeNames.lessThan, NodeNames.and, NodeNames.not -> {
+                if (node.getChildren().size() > 2 || node.getChildren().size() < 1)
+                    Logger.err("> Invalid node in IntermediateOllirRepresentation!");
+
                 List<IntermediateOllirRepresentation> representations = new ArrayList<>();
-                for (JmmNode child: node.getChildren()) representations.add(getOllirRepresentation(child, type, false));
+                for (JmmNode child : node.getChildren())
+                    representations.add(getOllirRepresentation(child, type, child.getKind().equals(NodeNames.objectProperty)));
 
                 StringBuilder before = new StringBuilder();
                 for (IntermediateOllirRepresentation rep : representations) before.append(rep.getBefore());
 
                 String current;
-                if (representations.size() == 1) current = ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(0).getCurrent();
-                else current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(1).getCurrent();
+                if (representations.size() == 1)
+                    current = ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(0).getCurrent();
+                else
+                    current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(1).getCurrent();
 
 
-                if (!assignment) {
-                    String name = ollirBuilder.getNextAuxName();
-                    before.append(ollirBuilder.getAssignmentCustom(new BasicSymbol(type, name), current));
-                    current = name + ollirBuilder.typeToCode(type);
+                if (!inline) {
+                    String auxName = ollirBuilder.getNextAuxName();
+                    before.append(ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), current));
+                    current = auxName + ollirBuilder.typeToCode(type);
                 }
 
-                return new IntermediateOllirRepresentation(current, before.toString());
+                yield new IntermediateOllirRepresentation(current, before.toString());
             }
-        }
-        return new IntermediateOllirRepresentation(ollirBuilder.getOperandOllirRepresentation(node, new ScopeVisitor(symbolTable).visit(node), getNodeType(node)), "");
+
+            case NodeNames.newAlloc -> {
+                String name = node.get(Attributes.name);
+                if (name.equals(Types.integer)) {
+                    // TODO
+                    Logger.err("> array instantiation is not for checkpoint 2");
+                    yield null;
+                }
+                /*
+                    A.myClass :=.myClass new(myClass).myClass;
+                    invokespecial(A.myClass,"<init>").V;
+                 */
+
+                String auxName = ollirBuilder.getNextAuxName();
+                String instantiation = ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), ollirBuilder.getClassInstantiation(name)) + ollirBuilder.getClassInitCall(auxName, name);
+                String current, before;
+                if (!inline) {
+                    before = "";
+                    current = instantiation;
+                } else {
+                    before = instantiation;
+                    current = auxName + ollirBuilder.typeToCode(type);
+                }
+
+                yield new IntermediateOllirRepresentation(current, before);
+            }
+
+            case NodeNames.objectProperty -> handleObjectProperty(node, type, inline);
+
+            default -> new IntermediateOllirRepresentation(ollirBuilder.getOperandOllirRepresentation(node, new ScopeVisitor(symbolTable).visit(node), getNodeType(node)), "");
+        };
     }
 
     public void visitNode(JmmNode node) {
@@ -72,46 +109,70 @@ public class OllirVisitor extends Visitor {
 
                 return;
             }
-            case NodeNames.objectProperty ->
-                handleObjectProperty(node);
+            case NodeNames.objectProperty, NodeNames.newAlloc -> {
+                Type returnType = getNodeType(node);
+                IntermediateOllirRepresentation representation = getOllirRepresentation(node, returnType, false);
 
-            case NodeNames.returnStatement ->
-                handleReturn(node);
+                ollirBuilder.add(representation.getBefore());
+                ollirBuilder.add(representation.getCurrent());
+            }
+
+            case NodeNames.returnStatement -> {
+
+            }
         }
 
         for (JmmNode child : children) recursiveVisit(child);
     }
 
-    private void handleObjectProperty(JmmNode node) {
+    private IntermediateOllirRepresentation handleObjectProperty(JmmNode node, Type type, boolean inline) {
         JmmNode identifier = node.getChildren().get(0);
         JmmNode property = node.getChildren().get(1);
 
-        Type returnType = getNodeType(node);
         if (property.getKind().equals(NodeNames.objectMethod)) {
-            List<JmmNode> parameters = property.getChildren();
-            List<String> parametersRep = new ArrayList<>();
-
-            for (JmmNode parameter : parameters) {
-                IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, getNodeType(parameter), false);
-                ollirBuilder.add(representation.getBefore());
-                parametersRep.add(representation.getCurrent());
-            }
-
-            if (isImportedClassInstance(identifier)) {
-                String identifierName = identifier.getOptional(Attributes.name).orElse(null);
-                if (identifierName == null) return;
-                ollirBuilder.addStaticMethodCall(identifierName, property, returnType, parametersRep);
-            } else {
-                BasicSymbol symbol = getIdentifierSymbol(identifier);
-                ollirBuilder.addVirtualMethodCall(symbol.getName(), symbol.getType(), property, returnType, parametersRep);
-            }
-
+            return handleObjectMethod(node, type, inline);
         } else if (property.getKind().equals(NodeNames.length)) {
             //TODO: when considering arrays
         }
+
+        return new IntermediateOllirRepresentation("\t\tTODO in handleObjectProperty\n", "\t\tTODO in handleObjectProperty\n");
     }
 
-    private void handleReturn(JmmNode node) {
+    private IntermediateOllirRepresentation handleObjectMethod(JmmNode node, Type type, boolean inline) {
+        JmmNode identifier = node.getChildren().get(0);
+        JmmNode property = node.getChildren().get(1);
 
+        List<JmmNode> parameters = property.getChildren();
+        List<String> parametersRep = new ArrayList<>();
+        StringBuilder before = new StringBuilder();
+
+        for (JmmNode parameter : parameters) {
+            IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, getNodeType(parameter), true);
+            before.append(representation.getBefore());
+            parametersRep.add(representation.getCurrent());
+        }
+
+        String methodCallOllir;
+
+        if (isImportedClassInstance(identifier)) {
+            String identifierName = identifier.getOptional(Attributes.name).orElse(null);
+            if (identifierName == null)
+                return new IntermediateOllirRepresentation("\t\tTODO in handleObjectMethod\n", "\t\tTODO in handleObjectMethod\n");
+
+            methodCallOllir = ollirBuilder.getStaticMethodCall(identifierName, property, type, parametersRep);
+        } else if (identifier.getKind().equals(NodeNames.thisName)) {
+            methodCallOllir = ollirBuilder.getVirtualMethodCall("this", property, type, parametersRep);
+        } else {
+            BasicSymbol symbol = getIdentifierSymbol(identifier);
+            methodCallOllir = ollirBuilder.getVirtualMethodCall(symbol.getName(), symbol.getType(), property, type, parametersRep);
+        }
+
+        if (inline) {
+            String auxName = ollirBuilder.getNextAuxName();
+            before.append(ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), methodCallOllir));
+            methodCallOllir = auxName + ollirBuilder.typeToCode(type);
+        } else methodCallOllir = "\t\t" + methodCallOllir + "\n";
+
+        return new IntermediateOllirRepresentation(methodCallOllir, before.toString());
     }
 }

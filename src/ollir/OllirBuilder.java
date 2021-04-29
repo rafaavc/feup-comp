@@ -38,7 +38,7 @@ public class OllirBuilder {
     public void addConstructor() {
         code.append("\t.contruct ").append(table.getClassName());
         code.append("().V {\n");
-        code.append("\t\tinvokespecial(this, \"<init>\").V;\n");
+        code.append("\t\tinvokespecial(this, \"<init>\").V\n");
         code.append("\t}\n");
     }
 
@@ -63,28 +63,57 @@ public class OllirBuilder {
         if (fieldName == null) return "";
 
         Type fieldType = table.getField(fieldName).getType();
-        code.append(fieldName).append(".").append(typeToCode(fieldType)).append(";\n");
+        code.append(fieldName).append(".").append(typeToCode(fieldType)).append("\n");
         return "";
     }
 
-    public void addStaticMethodCall(String identifier, JmmNode method, Type returnType, List<String> parameters) {
-        code.append("\t\tinvokestatic(").append(identifier);
-        addMethodCall(method, returnType, parameters);
+    public String getClassInstantiation(String name) {
+        return "new(" + name + ")." + name;
     }
 
-    public void addVirtualMethodCall(String identifier, Type identifierType, JmmNode method, Type returnType, List<String> parameters) {
-        code.append("\t\tinvokevirtual(").append(identifier).append(typeToCode(identifierType));
-        addMethodCall(method, returnType, parameters);
+    public String getClassInitCall(String varName, String className) {
+        return "\t\tinvokespecial(" + varName + "." + className + ",\"<init>\").V\n";
     }
 
-    private void addMethodCall(JmmNode method, Type returnType, List<String> parameters) {
+    public String getStaticMethodCall(String identifier, JmmNode method, Type returnType, List<String> parameters) {
+        StringBuilder methodCode = new StringBuilder();
+
+        methodCode.append("invokestatic(").append(identifier);
+        methodCode.append(getMethodCall(method, returnType, parameters));
+
+        return methodCode.toString();
+    }
+
+    public String getVirtualMethodCall(String identifier, Type identifierType, JmmNode method, Type returnType, List<String> parameters) {
+        StringBuilder methodCode = new StringBuilder();
+
+        methodCode.append("invokevirtual(").append(identifier).append(typeToCode(identifierType));
+        methodCode.append(getMethodCall(method, returnType, parameters));
+
+        return methodCode.toString();
+    }
+
+    public String getVirtualMethodCall(String identifier, JmmNode method, Type returnType, List<String> parameters) {
+        StringBuilder methodCode = new StringBuilder();
+
+        methodCode.append("invokevirtual(").append(identifier);
+        methodCode.append(getMethodCall(method, returnType, parameters));
+
+        return methodCode.toString();
+    }
+
+    private String getMethodCall(JmmNode method, Type returnType, List<String> parameters) {
         String methodName = method.getOptional(Attributes.name).orElse(null);
-        if (methodName == null) return;
+        if (methodName == null) return "";
 
-        code.append(", \"");
-        code.append(methodName).append("\", ");
+        StringBuilder methodCode = new StringBuilder();
+
+        methodCode.append(", \"");
+        methodCode.append(methodName).append("\", ");
         System.out.println("RETURN TYPE = " + returnType);
-        code.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType)).append(";\n");
+        methodCode.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType));
+
+        return methodCode.toString();
     }
 
     public void addReturn(String returnOllirRep, Type returnType) {
@@ -128,7 +157,7 @@ public class OllirBuilder {
                 for (int i = 0; i < parameters.size(); i++) {
                     Symbol parameter = parameters.get(i);
                     if (parameter.getName().equals(operandName)) {
-                        inParameter = i+1;
+                        inParameter = i + 1;
                     }
                 }
                 yield (inParameter != 0 ? "$" + inParameter + "." : "") + operand.get(Attributes.name) + typeToCode(type);
@@ -142,13 +171,13 @@ public class OllirBuilder {
         return "\t\t" + symbol.getName() +
                 typeToCode(symbol.getType()) +
                 equalsSign(symbol.getType()) +
-                rightSide + ";\n";
+                rightSide + "\n";
     }
 
 
     public String getCode() {
         String code = this.code.toString();
-        return code + "\t}\n}";
+        return code.replaceAll("(?<!})(?<!\\{)\n", ";\n") + "\t}\n}";
     }
 
     public String operatorNameToSymbol(String operatorName) {
