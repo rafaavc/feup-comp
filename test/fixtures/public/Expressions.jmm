@@ -12,13 +12,15 @@ class Simple {
         int b;
         int c;
         Simple s;
+        boolean aa;
         a = 20;
         b = 10;
         new Simple();
         s = new Simple();
-        s.add(a,b);
-        c = s.add(b+a/10, s.add(1, 2));
-        io.println(c);
+        s.add(a+b+c,b);
+        aa = io.println();
+        c = s.add(a, io.println(c), b+a*c/10);
+        io.println(io.println(9, 6));
     }
 
     public int constInstr(int t, boolean q, int p){
@@ -26,8 +28,8 @@ class Simple {
         boolean w;
 		Simple s;
 		s = new Simple();
-        w = true && !q && !false && !(q && true);
-        c = 10 + t *8 /10 - p;
+        w = true && !q && !false && !(q && true) && s.add(1, 2);
+        c = 10 + t *8 /10 - io.println(c);
         c = 0;
         c = 4;
         c = 8;
@@ -37,6 +39,6 @@ class Simple {
         c = 1000;
         c = 100474650;
 		c = 10;
-        return 1+1+1+33+4+5;
+        return io.println(c);
     }
 }

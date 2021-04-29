@@ -75,34 +75,25 @@ public class OllirBuilder {
         return "\t\tinvokespecial(" + varName + "." + className + ",\"<init>\").V\n";
     }
 
-    public String getStaticMethodCall(String identifier, JmmNode method, Type returnType, List<String> parameters) {
-        StringBuilder methodCode = new StringBuilder();
+    public String getStaticMethodCall(String identifier, JmmNode method, Type returnType, Type expected, List<String> parameters) {
 
-        methodCode.append("invokestatic(").append(identifier);
-        methodCode.append(getMethodCall(method, returnType, parameters));
-
-        return methodCode.toString();
+        return "invokestatic(" + identifier +
+                getMethodCall(method, returnType, expected, parameters);
     }
 
-    public String getVirtualMethodCall(String identifier, Type identifierType, JmmNode method, Type returnType, List<String> parameters) {
-        StringBuilder methodCode = new StringBuilder();
+    public String getVirtualMethodCall(String identifier, Type identifierType, JmmNode method, Type returnType, Type expected, List<String> parameters) {
 
-        methodCode.append("invokevirtual(").append(identifier).append(typeToCode(identifierType));
-        methodCode.append(getMethodCall(method, returnType, parameters));
-
-        return methodCode.toString();
+        return "invokevirtual(" + identifier + typeToCode(identifierType) +
+                getMethodCall(method, returnType, expected, parameters);
     }
 
-    public String getVirtualMethodCall(String identifier, JmmNode method, Type returnType, List<String> parameters) {
-        StringBuilder methodCode = new StringBuilder();
+    public String getVirtualMethodCall(String identifier, JmmNode method, Type returnType, Type expected, List<String> parameters) {
 
-        methodCode.append("invokevirtual(").append(identifier);
-        methodCode.append(getMethodCall(method, returnType, parameters));
-
-        return methodCode.toString();
+        return "invokevirtual(" + identifier +
+                getMethodCall(method, returnType, expected, parameters);
     }
 
-    private String getMethodCall(JmmNode method, Type returnType, List<String> parameters) {
+    private String getMethodCall(JmmNode method, Type returnType, Type expected, List<String> parameters) {
         String methodName = method.getOptional(Attributes.name).orElse(null);
         if (methodName == null) return "";
 
@@ -111,7 +102,7 @@ public class OllirBuilder {
         methodCode.append(", \"");
         methodCode.append(methodName).append("\", ");
         System.out.println("RETURN TYPE = " + returnType);
-        methodCode.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType));
+        methodCode.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType, expected));
 
         return methodCode.toString();
     }
