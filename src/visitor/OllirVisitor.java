@@ -187,6 +187,14 @@ public class OllirVisitor extends Visitor {
         return new IntermediateOllirRepresentation("\t\tTODO in handleObjectProperty\n", "\t\tTODO in handleObjectProperty\n");
     }
 
+    public boolean isExpression(JmmNode node) {
+        String kind = node.getKind();
+        return switch(kind) {
+            case NodeNames.and, NodeNames.lessThan, NodeNames.not, NodeNames.sum, NodeNames.sub, NodeNames.mul, NodeNames.div -> true;
+            default -> false;
+        };
+    }
+
     private IntermediateOllirRepresentation handleObjectMethod(JmmNode node, Type type, Type expectedType, boolean inline) {
         JmmNode identifier = node.getChildren().get(0);
         JmmNode property = node.getChildren().get(1);
@@ -200,7 +208,8 @@ public class OllirVisitor extends Visitor {
         for (int i = 0; i < parameters.size(); i++) {
             JmmNode parameter = parameters.get(i);
             Type nodeType = realParameters.size() >= i+1 ? realParameters.get(i).getType() : getNodeType(parameter);
-            IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, nodeType, true);
+
+            IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, nodeType, !isExpression(parameter));
             before.append(representation.getBefore());
             parametersRep.add(representation.getCurrent());
         }

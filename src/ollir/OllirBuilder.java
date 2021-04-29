@@ -100,9 +100,10 @@ public class OllirBuilder {
         StringBuilder methodCode = new StringBuilder();
 
         methodCode.append(", \"");
-        methodCode.append(methodName).append("\", ");
-        methodCode.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType, expected));
+        methodCode.append(methodName).append("\"");
+        if (parameters.size() != 0) methodCode.append(", ");
 
+        methodCode.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType, expected));
         return methodCode.toString();
     }
 
