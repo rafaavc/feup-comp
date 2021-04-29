@@ -159,6 +159,7 @@ public class OllirBuilder {
                         inParameter = i + 1;
                     }
                 }
+
                 yield (inParameter != 0 ? "$" + inParameter + "." : "") + operand.get(Attributes.name) + typeToCode(type);
             }
             case NodeNames.arrayAccessResult -> "Not needed in this checkpoint";
@@ -173,6 +174,11 @@ public class OllirBuilder {
                 rightSide + "\n";
     }
 
+    public void addPutField(BasicSymbol symbol, String rightSide) {
+        code.append("\t\tputfield(this, ").append(symbol.getName());
+        code.append(typeToCode(symbol.getType())).append(", ").append(rightSide);
+        code.append(").V\n");
+    }
 
     public String getCode() {
         String code = this.code.toString();

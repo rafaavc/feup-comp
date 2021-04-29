@@ -5,6 +5,7 @@ import constants.NodeNames;
 import constants.Types;
 import ollir.IntermediateOllirRepresentation;
 import ollir.OllirBuilder;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import table.BasicSymbolTable;
 import table.BasicSymbol;
 
@@ -105,7 +106,10 @@ public class OllirVisitor extends Visitor {
                 IntermediateOllirRepresentation representation = getOllirRepresentation(rightSide, symbol.getType(), true);
 
                 ollirBuilder.add(representation.getBefore());
-                ollirBuilder.add(ollirBuilder.getAssignmentCustom(symbol, representation.getCurrent()));
+                if (isField(symbol))
+                    ollirBuilder.addPutField(symbol, representation.getCurrent());
+                else
+                    ollirBuilder.add(ollirBuilder.getAssignmentCustom(symbol, representation.getCurrent()));
 
                 return;
             }
@@ -120,19 +124,25 @@ public class OllirVisitor extends Visitor {
             case NodeNames.returnStatement -> {
                 JmmNode returnIdentifier = node.getChildren().get(0);
                 Type returnType = getNodeType(returnIdentifier);
-                System.out.println("Type: " + node);
                 IntermediateOllirRepresentation representation = getOllirRepresentation(returnIdentifier, returnType, true);
 
                 ollirBuilder.add(representation.getBefore());
-                System.out.println("BEFORE: " + representation.getBefore());
                 ollirBuilder.addReturn(representation.getCurrent(), returnType);
-                System.out.println("CURRENT: " + representation.getCurrent());
 
                 return;
             }
         }
 
         for (JmmNode child : children) recursiveVisit(child);
+    }
+
+    private boolean isField(Symbol symbol) {
+        List<Symbol> fields = symbolTable.getFields();
+
+        for (Symbol field : fields) {
+            if (field.equals(symbol)) return true;
+        }
+        return false;
     }
 
     private IntermediateOllirRepresentation handleObjectProperty(JmmNode node, Type type, boolean inline) {
