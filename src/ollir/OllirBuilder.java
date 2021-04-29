@@ -36,7 +36,7 @@ public class OllirBuilder {
     }
 
     public void addConstructor() {
-        code.append("\t.contruct ").append(table.getClassName());
+        code.append("\t.construct ").append(table.getClassName());
         code.append("().V {\n");
         code.append("\t\tinvokespecial(this, \"<init>\").V\n");
         code.append("\t}\n");
@@ -100,10 +100,13 @@ public class OllirBuilder {
         StringBuilder methodCode = new StringBuilder();
 
         methodCode.append(", \"");
-        methodCode.append(methodName).append("\", ");
-        System.out.println("RETURN TYPE = " + returnType);
-        methodCode.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType, expected));
+        methodCode.append(methodName).append("\"");
+        if (parameters.size() != 0) methodCode.append(", ");
 
+        System.out.println("RETURN TYPE = " + returnType);
+
+        for (String parameter : parameters) System.out.print(" [" + parameter + "] ");
+        methodCode.append(String.join(", ", parameters)).append(")").append(typeToCode(returnType, expected));
         return methodCode.toString();
     }
 
