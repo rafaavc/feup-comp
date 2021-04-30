@@ -1,7 +1,6 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
+import utils.Logger;
 
 import org.specs.comp.ollir.*;
 
@@ -26,6 +25,32 @@ import pt.up.fe.comp.jmm.report.Stage;
  */
 
 public class BackendStage implements JasminBackend {
+
+    private static class LocalVariable {
+        private int nextLocalVariable = 0;
+        private Map<String, Integer> identifiers = new HashMap<>();
+
+        public LocalVariable(ArrayList<Element> parameters) {
+            for (Element parameter : parameters) {
+                addCorrespondence(((Operand)parameter).getName(), getNextLocalVariable());
+            }
+
+        }
+
+        public int getNextLocalVariable() {
+            int tmp = nextLocalVariable;
+            nextLocalVariable++;
+            return tmp;
+        }
+
+        public void addCorrespondence(String identifier, int localVariable) {
+            identifiers.put(identifier, localVariable);
+        }
+
+        public int getCorrespondence(String identifier) {
+            return identifiers.get(identifier);
+        }
+    }
 
     @Override
     public JasminResult toJasmin(OllirResult ollirResult) {
@@ -65,39 +90,21 @@ public class BackendStage implements JasminBackend {
         if (superClass == null) superClass = "java/lang/Object";
         code.append(".super ").append(superClass).append("\n");
 
-		code.append(buildConstructor(classUnit));
+        code.append(buildConstructor(classUnit));
 
         for (Method m : classUnit.getMethods()) {
-            String declaration = ".method " + m.getMethodAccessModifier().toString() + " ";
+            code.append(buildMethodDeclaration(m)).append("\n");
 
-            if (m.isFinalMethod()) declaration += "final ";
-            if (m.isStaticMethod()) declaration += "static ";
+            code.append("\t.limit locals 99\n");
+            code.append("\t.limit stack 99\n");
 
-            declaration += m.getMethodName() + "(";
-
-            for (Element e : m.getParams())
-                declaration += getElementType(e.getType()) + ",";
-            if (m.getParams().size() > 0)
-                declaration = declaration.substring(0, declaration.length() - 1);
-
-            declaration += ")" + getElementType(m.getReturnType());
-
-            code.append(declaration);
-
-            code.append(".limit locals 99");
-            code.append(".limit stack 99");
-
+            LocalVariable localVariable = new LocalVariable(m.getParams());
             for (Instruction i : m.getInstructions()) {
-            	i.show();
-				switch(i.getInstType()) {
-                    case ASSIGN:
-                        AssignInstruction instruction = (AssignInstruction) i;
-                        System.out.println("DEST = " + instruction.getDest());
-                        System.out.println("RHS = " + instruction.getRhs());
-                        System.out.println();
-                }
+                StringBuilder sb = new StringBuilder();
+                buildInstruction(i, localVariable, sb);
+                code.append(sb);
             }
-            code.append("\n");
+            code.append(".end method\n");
         }
 
         System.out.println("Printing jasmin..");
@@ -107,13 +114,123 @@ public class BackendStage implements JasminBackend {
     }
 
     private String buildConstructor(ClassUnit classUnit) {
-    	StringBuilder code = new StringBuilder();
-        code.append(".method ").append(classUnit.getClassAccessModifier().toString()).append(" <init>()V").append("\n");
-        code.append("\taload_0").append("\n");
-        code.append("\tinvokenonvirtual java/lang/Object/<init>()V").append("\n");
-        code.append("\treturn").append("\n");
-        code.append(".end method").append("\n");
-        return code.toString();
+        return ".method " + classUnit.getClassAccessModifier().toString() + " <init>()V" + "\n" +
+                "\taload_0" + "\n" +
+                "\tinvokenonvirtual java/lang/Object/<init>()V" + "\n" +
+                "\treturn" + "\n" +
+                ".end method" + "\n";
+    }
+
+    private String buildMethodDeclaration(Method m) {
+        StringBuilder declaration = new StringBuilder(".method " + m.getMethodAccessModifier().toString() + " ");
+
+        if (m.isFinalMethod()) declaration.append("final ");
+        if (m.isStaticMethod()) declaration.append("static ");
+
+        declaration.append(m.getMethodName()).append("(");
+
+        for (Element e : m.getParams())
+            declaration.append(getElementType(e.getType()));
+
+        declaration.append(")").append(getElementType(m.getReturnType()));
+        return declaration.toString();
+    }
+
+    private void loadElement(Element element, LocalVariable localVariable, StringBuilder sb) {
+        if (element.isLiteral()) {
+            Logger.log("Is literal (TODO)");
+            return;
+        }
+        Operand operand = (Operand) element;
+        System.out.println("Is operand, name = " + operand.getName());
+        String typePrefix = getElementTypePrefix(element);
+        sb.append("\t").append(typePrefix).append("load ").append(localVariable.getCorrespondence(operand.getName())).append("\n");
+
+    }
+
+    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb) {
+        i.show();
+        switch (i.getInstType()) {
+            case ASSIGN:
+                AssignInstruction assignInstruction = (AssignInstruction) i;
+                System.out.println("DEST = " + assignInstruction.getDest());
+                System.out.println("RHS = " + assignInstruction.getRhs());
+                System.out.println();
+
+                int variable = localVariable.getNextLocalVariable();
+                String identifierName = ((Operand)assignInstruction.getDest()).getName();
+
+                localVariable.addCorrespondence(identifierName, variable);
+
+                buildInstruction(assignInstruction.getRhs(), localVariable, sb);
+
+                sb.append("\t").append(getElementTypePrefix(assignInstruction.getDest())).append("store ").append(variable).append("\n");
+
+                break;
+            case CALL:
+                break;
+            case GOTO:
+                Logger.err("Not for checkpoint 2");
+                break;
+            case BRANCH:
+                Logger.err("Not for checkpoint 2");
+                break;
+            case RETURN:
+                break;
+            case PUTFIELD:
+                break;
+            case GETFIELD:
+                break;
+            case UNARYOPER:
+                UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) i;
+                System.out.println("RIGHT OPERAND = " + unaryOpInstruction.getRightOperand());
+                System.out.println("UNARY OPERATION = " + unaryOpInstruction.getUnaryOperation());
+                break;
+            case BINARYOPER:
+                BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) i;
+                System.out.println("LEFT OPERAND = " + binaryOpInstruction.getLeftOperand());
+                System.out.println("RIGHT OPERAND = " + binaryOpInstruction.getRightOperand());
+                System.out.println("UNARY OPERATION = " + binaryOpInstruction.getUnaryOperation());
+
+                loadElement(binaryOpInstruction.getLeftOperand(), localVariable, sb);
+                loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
+
+                String typePrefix = getElementTypePrefix(binaryOpInstruction.getLeftOperand());
+                switch(binaryOpInstruction.getUnaryOperation().getOpType()) {
+                    case ADD:
+                        break;
+                    case MUL:
+                        break;
+                    case SUB:
+                        break;
+                    case DIV:
+                        break;
+                    case AND:
+                        break;
+                    case LTH:
+                        break;
+                }
+
+                break;
+            case NOPER:
+                SingleOpInstruction singleOpInstruction = (SingleOpInstruction) i;
+                System.out.println("TYPE: " + singleOpInstruction.getSingleOperand().getType());
+
+                Element element = singleOpInstruction.getSingleOperand();
+                Type elementType = element.getType();
+                if (element.isLiteral()) {
+                    if (isPrimitive(elementType)) { //TODO: verify if is needed
+                        sb.append("\tldc ").append(((LiteralElement) element).getLiteral()).append("\n");
+                    }
+
+                } else {
+                    System.out.println("BEFORE");
+                    loadElement(element, localVariable, sb);
+                    System.out.println("AFTER");
+                }
+                break;
+        }
+
     }
 
     private String getElementType(Type e) {
@@ -125,6 +242,21 @@ public class BackendStage implements JasminBackend {
             case ARRAYREF -> "[";
             case VOID -> "V";
         };
+    }
+
+    private String getElementTypePrefix(Element element) {
+        return switch(element.getType().getTypeOfElement()) {
+            case INT32 -> "i";
+            case BOOLEAN -> "i";
+            case ARRAYREF -> "a";
+            case OBJECTREF -> "a"; // ?
+            default -> null;
+        };
+    }
+
+    private boolean isPrimitive(Type elementType) {
+        return elementType.getTypeOfElement().equals(ElementType.INT32) ||
+                elementType.getTypeOfElement().equals(ElementType.BOOLEAN);
     }
 
 }
