@@ -27,8 +27,8 @@ public class ArithmeticOpVisitor extends Visitor {
         Type expected = new Type(Types.integer, false);
 
         if (!leftType.equals(expected) || !rightType.equals(expected)) {
-            //TODO: add to reports
-            System.out.println("!!! Wrong arithmetic operation !!!");
+            reports.add(getReport(node, "Invalid arithmetic operation"));
+            return false;
         }
 
         return true;

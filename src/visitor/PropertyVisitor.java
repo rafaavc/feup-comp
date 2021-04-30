@@ -22,15 +22,14 @@ public class PropertyVisitor extends Visitor {
         JmmNode property = node.getChildren().get(1);
         if (property.getKind().equals(NodeNames.length)) {
             if (!handleLength(object)) {
-                //TODO: add to reports
-                System.out.println("!!! Length not applied to array !!!");
+                reports.add(getReport(node, "Length not applicable"));
+                return false;
             }
         }
         else if (property.getKind().equals(NodeNames.objectMethod))
             if (!handleMethod(node, property)) {
-                //TODO: add to reports
-                System.out.println("!!! Wrong method call !!!");
-                System.out.println(node);
+                reports.add(getReport(node, "Method wrongly called"));
+                return false;
             }
 
         return true;

@@ -21,11 +21,7 @@ public class IdentifierVisitor extends Visitor {
         BasicSymbol symbol = getIdentifierSymbol(node);
         if (symbol == null) return true;
         if (!symbol.isInit() && !isParameter(node)) {
-            //TODO: add to reports
-            System.out.println("!!! Not init !!!");
-            System.out.println("Node: " + node);
-            String name = node.getOptional(Attributes.name).orElse(null);
-            System.out.println("Name: " + name);
+            reports.add(getReport(node, "Variable not initialized"));
             return false;
         }
         return true;
