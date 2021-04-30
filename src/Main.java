@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 
@@ -73,5 +74,7 @@ public class Main implements JmmParser, JmmAnalysis {
 		JmmSemanticsResult semanticsResult = main.semanticAnalysis(result);
 
 		OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
+		
+		JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
     }
 }
