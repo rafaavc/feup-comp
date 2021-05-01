@@ -57,6 +57,9 @@ public class OllirBuilder {
         else firstMethod = false;
 
         code.append("\t.method public ");
+        if (node.getKind().equals(NodeNames.mainMethod))
+            code.append("static ");
+
         String methodName = node.getOptional(Attributes.name).orElse(null);
         if (methodName == null) return;
 

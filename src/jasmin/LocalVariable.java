@@ -8,14 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LocalVariable {
-    private int nextLocalVariable = 0;
+    private int nextLocalVariable = 1;
     private final Map<String, Integer> identifiers = new HashMap<>();
 
     public LocalVariable(ArrayList<Element> parameters) {
         for (Element parameter : parameters) {
             addCorrespondence(((Operand)parameter).getName(), getNextLocalVariable());
         }
-
     }
 
     public int getNextLocalVariable() {

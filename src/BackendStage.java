@@ -87,9 +87,11 @@ public class BackendStage implements JasminBackend {
 
         for (Field field : classUnit.getFields()) addField(field, code);
 
-        code.append(buildConstructor(superClass));
-
         for (Method m : classUnit.getMethods()) {
+            if (m.isConstructMethod()) {
+                code.append(buildConstructor(superClass));
+                continue;
+            }
             code.append(buildMethodDeclaration(m)).append("\n");
 
             code.append("\t.limit locals 99\n");
@@ -291,7 +293,7 @@ public class BackendStage implements JasminBackend {
             case INT32 -> "I";
             case BOOLEAN -> "I";
             case CLASS, THIS, STRING -> "whhaaat";
-            case ARRAYREF -> "[";
+            case ARRAYREF -> "[Ljava/lang/String;";  // TODO
             case VOID -> "V";
             case OBJECTREF -> "L" + "TODO (this should be classname)" + ";"; // TODO
         };
