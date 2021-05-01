@@ -87,7 +87,7 @@ public class BackendStage implements JasminBackend {
 
         for (Field field : classUnit.getFields()) addField(field, code);
 
-        code.append(buildConstructor());
+        code.append(buildConstructor(superClass));
 
         for (Method m : classUnit.getMethods()) {
             code.append(buildMethodDeclaration(m)).append("\n");
@@ -121,10 +121,10 @@ public class BackendStage implements JasminBackend {
         return modifier.toString().toLowerCase();
     }
 
-    private String buildConstructor() {
+    private String buildConstructor(String superClass) {
         return ".method " + getAccessType(classUnit.getClassAccessModifier()) + " <init>()V" + "\n" +
                 "\taload_0" + "\n" +
-                "\tinvokenonvirtual java/lang/Object/<init>()V" + "\n" +
+                "\tinvokenonvirtual " + superClass + "/<init>()V" + "\n" +
                 "\treturn" + "\n" +
                 ".end method" + "\n";
     }
@@ -289,7 +289,8 @@ public class BackendStage implements JasminBackend {
 
         return switch (eType) {
             case INT32 -> "I";
-            case BOOLEAN, CLASS, THIS, STRING -> "whhaaat";
+            case BOOLEAN -> "I";
+            case CLASS, THIS, STRING -> "whhaaat";
             case ARRAYREF -> "[";
             case VOID -> "V";
             case OBJECTREF -> "L" + "TODO (this should be classname)" + ";"; // TODO

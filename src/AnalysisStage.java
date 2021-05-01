@@ -15,13 +15,14 @@ import pt.up.fe.comp.jmm.ast.examples.ExampleVisitor;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
+import visitor.VisitorController;
 
 public class AnalysisStage implements JmmAnalysis {
 
     @Override
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
 
-        if (TestUtils.getNumReports(parserResult.getReports(), ReportType.ERROR) > 0) {
+        /*if (TestUtils.getNumReports(parserResult.getReports(), ReportType.ERROR) > 0) {
             var errorReport = new Report(ReportType.ERROR, Stage.SEMANTIC, -1,
                     "Started semantic analysis but there are errors from previous stage");
             return new JmmSemanticsResult(parserResult, null, Arrays.asList(errorReport));
@@ -53,10 +54,13 @@ public class AnalysisStage implements JmmAnalysis {
         System.out.println(
                 "Print variables name and line, and their corresponding parent with Visitor that automatically performs preorder tree traversal");
         var varPrinter = new ExamplePrintVariables("Variable", "name", "line");
-        varPrinter.visit(node, null);
+        varPrinter.visit(node, null);*/
 
-        // No Symbol Table being calculated yet
-        return new JmmSemanticsResult(parserResult, null, new ArrayList<>());
+
+        VisitorController controller = new VisitorController(parserResult.getRootNode());
+        controller.start();
+
+        return new JmmSemanticsResult(parserResult, controller.getTable(), controller.getReports());
 
     }
 
