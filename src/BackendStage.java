@@ -107,11 +107,17 @@ public class BackendStage implements JasminBackend {
             code.append("\t.limit stack 99\n");
 
             LocalVariable localVariable = new LocalVariable(m.getParams());
-            for (Instruction i : m.getInstructions()) {
+            List<Instruction> instructions = m.getInstructions();
+            for (Instruction i : instructions) {
                 StringBuilder sb = new StringBuilder();
                 buildInstruction(i, localVariable, sb);
                 code.append(sb);
             }
+
+            if (instructions.get(instructions.size()-1).getInstType() != InstructionType.RETURN) {
+                code.append("\treturn\n");
+            }
+
             code.append(".end method\n");
         }
 
@@ -188,6 +194,15 @@ public class BackendStage implements JasminBackend {
                 Logger.err("Not for checkpoint 2");
                 break;
             case RETURN:
+                ReturnInstruction returnInstruction = (ReturnInstruction) i;
+
+                if (returnInstruction.hasReturnValue()) {
+                    loadElement(returnInstruction.getOperand(), localVariable, sb);
+                    String typePrefix = getElementTypePrefix(returnInstruction.getOperand());
+                    sb.append("\t").append(typePrefix);
+                } else sb.append("\t");
+                sb.append("return\n");
+
                 break;
             case PUTFIELD:
                 break;
