@@ -53,6 +53,7 @@ public class BackendStage implements JasminBackend {
     }
 
     private int nextLabel = 1;
+    private ClassUnit classUnit = null;
 
     private String getNextLabel() {
         String tmp = "label" + nextLabel;
@@ -63,7 +64,7 @@ public class BackendStage implements JasminBackend {
     @Override
     public JasminResult toJasmin(OllirResult ollirResult) {
         ClassUnit ollirClass = ollirResult.getOllirClass();
-
+        classUnit = ollirClass;
         try {
 
             // Example of what you can do with the OLLIR class
@@ -74,7 +75,7 @@ public class BackendStage implements JasminBackend {
             ollirClass.show(); // print to console main information about the input OLLIR
 
             // Convert the OLLIR to a String containing the equivalent Jasmin code
-            String jasminCode = getJasminCode(ollirClass);
+            String jasminCode = getJasminCode();
 
             // More reports from this stage
             List<Report> reports = new ArrayList<>();
@@ -88,7 +89,7 @@ public class BackendStage implements JasminBackend {
 
     }
 
-    private String getJasminCode(ClassUnit classUnit) {
+    private String getJasminCode() {
         StringBuilder code = new StringBuilder();
 
         code.append(".class ").append(classUnit.getClassAccessModifier().toString()).append(" ");
@@ -98,7 +99,19 @@ public class BackendStage implements JasminBackend {
         if (superClass == null) superClass = "java/lang/Object";
         code.append(".super ").append(superClass).append("\n");
 
-        code.append(buildConstructor(classUnit));
+        for (Field field : classUnit.getFields()) {
+            code.append(".field ")
+                    .append(field.getFieldAccessModifier())
+                    .append(" ")
+                    .append(classUnit.getClassName())
+                    .append(" ")
+                    .append(field.getFieldName())
+                    .append(" ")
+                    .append(getElementType(field.getFieldType()))
+                    .append("\n");
+        }
+
+        code.append(buildConstructor());
 
         for (Method m : classUnit.getMethods()) {
             code.append(buildMethodDeclaration(m)).append("\n");
@@ -127,7 +140,7 @@ public class BackendStage implements JasminBackend {
         return code.toString();
     }
 
-    private String buildConstructor(ClassUnit classUnit) {
+    private String buildConstructor() {
         return ".method " + classUnit.getClassAccessModifier().toString() + " <init>()V" + "\n" +
                 "\taload_0" + "\n" +
                 "\tinvokenonvirtual java/lang/Object/<init>()V" + "\n" +
@@ -138,8 +151,8 @@ public class BackendStage implements JasminBackend {
     private String buildMethodDeclaration(Method m) {
         StringBuilder declaration = new StringBuilder(".method " + m.getMethodAccessModifier().toString() + " ");
 
-        if (m.isFinalMethod()) declaration.append("final ");
         if (m.isStaticMethod()) declaration.append("static ");
+        if (m.isFinalMethod()) declaration.append("final ");
 
         declaration.append(m.getMethodName()).append("(");
 
@@ -169,55 +182,65 @@ public class BackendStage implements JasminBackend {
     private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb) {
         i.show();
         switch (i.getInstType()) {
-            case ASSIGN:
+            case ASSIGN -> {
                 AssignInstruction assignInstruction = (AssignInstruction) i;
                 System.out.println("DEST = " + assignInstruction.getDest());
                 System.out.println("RHS = " + assignInstruction.getRhs());
                 System.out.println();
-
                 int variable = localVariable.getNextLocalVariable();
-                String identifierName = ((Operand)assignInstruction.getDest()).getName();
-
+                String identifierName = ((Operand) assignInstruction.getDest()).getName();
                 localVariable.addCorrespondence(identifierName, variable);
                 System.out.println("Building " + assignInstruction.getRhs());
                 buildInstruction(assignInstruction.getRhs(), localVariable, sb);
-
                 sb.append("\t").append(getElementTypePrefix(assignInstruction.getDest())).append("store ").append(variable).append("\n");
-
-                break;
-            case CALL:
+            }
+            case CALL -> {
                 CallInstruction callInstruction = (CallInstruction) i;
                 System.out.println("What's on the operand list: ");
                 System.out.println("FIRST ARG: " + callInstruction.getFirstArg());
                 System.out.println("SECOND ARG: " + callInstruction.getSecondArg());
-                for(Element el : callInstruction.getListOfOperands()) {
+                for (Element el : callInstruction.getListOfOperands()) {
                     System.out.println("---");
                     System.out.println(el);
                     System.out.println("---");
                 }
-                break;
-            case GOTO:
-                Logger.err("Not for checkpoint 2");
-                break;
-            case BRANCH:
-                Logger.err("Not for checkpoint 2");
-                break;
-            case RETURN:
+            }
+            case GOTO, BRANCH -> Logger.err("Not for checkpoint 2");
+            case RETURN -> {
                 ReturnInstruction returnInstruction = (ReturnInstruction) i;
-
                 if (returnInstruction.hasReturnValue()) {
                     loadElement(returnInstruction.getOperand(), localVariable, sb);
                     String typePrefix = getElementTypePrefix(returnInstruction.getOperand());
                     sb.append("\t").append(typePrefix);
                 } else sb.append("\t");
                 sb.append("return\n");
-
-                break;
-            case PUTFIELD:
-                break;
-            case GETFIELD:
-                break;
-            case UNARYOPER:
+            }
+            case PUTFIELD -> {
+                PutFieldInstruction putFieldInstruction = (PutFieldInstruction) i;
+                loadElement(putFieldInstruction.getThirdOperand(), localVariable, sb);
+                Operand firstPutFieldOperand = (Operand) putFieldInstruction.getFirstOperand();
+                Operand secondPutFieldOperand = (Operand) putFieldInstruction.getSecondOperand();
+                sb.append("\tputfield ")
+                        .append(firstPutFieldOperand.getName().equals("this") ? classUnit.getClassName() : firstPutFieldOperand.getName())
+                        .append("/")
+                        .append(secondPutFieldOperand.getName())
+                        .append(" ")
+                        .append(getElementType(putFieldInstruction.getSecondOperand().getType()))
+                        .append("\n");
+            }
+            case GETFIELD -> {
+                GetFieldInstruction getFieldInstruction = (GetFieldInstruction) i;
+                Operand firstGetFieldOperand = (Operand) getFieldInstruction.getFirstOperand();
+                Operand secondGetFieldOperand = (Operand) getFieldInstruction.getSecondOperand();
+                sb.append("\tgetfield ")
+                        .append(firstGetFieldOperand.getName().equals("this") ? classUnit.getClassName() : secondGetFieldOperand.getName())
+                        .append("/")
+                        .append(secondGetFieldOperand.getName())
+                        .append(" ")
+                        .append(getElementType(getFieldInstruction.getSecondOperand().getType()))
+                        .append("\n");
+            }
+            case UNARYOPER -> {
                 UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) i;
                 if (unaryOpInstruction.getUnaryOperation().getOpType() == OperationType.NOTB) {
                     System.out.println("FOund NOTB!!!");
@@ -227,13 +250,11 @@ public class BackendStage implements JasminBackend {
                 } else {
                     Logger.err("!!! >> Unrecognized UnaryOpInstruction!!");
                 }
-                break;
-            case BINARYOPER:
+            }
+            case BINARYOPER -> {
                 BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) i;
-
                 loadElement(binaryOpInstruction.getLeftOperand(), localVariable, sb);
                 loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
-
                 String typePrefix = getElementTypePrefix(binaryOpInstruction.getLeftOperand());
                 sb.append("\t");
                 switch (binaryOpInstruction.getUnaryOperation().getOpType()) {
@@ -255,16 +276,13 @@ public class BackendStage implements JasminBackend {
                                 .append(continueLabel).append(":");
                     }
                 }
-
                 sb.append("\n");
-
-                break;
-            case NOPER:
+            }
+            case NOPER -> {
                 SingleOpInstruction singleOpInstruction = (SingleOpInstruction) i;
                 System.out.println("TYPE: " + singleOpInstruction.getSingleOperand().getType());
-
                 loadElement(singleOpInstruction.getSingleOperand(), localVariable, sb);
-                break;
+            }
         }
 
     }
@@ -274,9 +292,10 @@ public class BackendStage implements JasminBackend {
 
         return switch (eType) {
             case INT32 -> "I";
-            case BOOLEAN, OBJECTREF, CLASS, THIS, STRING -> "x";
+            case BOOLEAN, CLASS, THIS, STRING -> "whhaaat";
             case ARRAYREF -> "[";
             case VOID -> "V";
+            case OBJECTREF -> "L" + "TODO (this should be classname)" + ";"; // TODO
         };
     }
 
