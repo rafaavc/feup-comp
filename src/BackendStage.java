@@ -65,7 +65,7 @@ public class BackendStage implements JasminBackend {
 
     private void addField(Field field, StringBuilder sb) {
         sb.append(".field ")
-            .append(field.getFieldAccessModifier())
+            .append(getAccessType(field.getFieldAccessModifier()))
             .append(" ")
             .append(classUnit.getClassName())
             .append(" ")
@@ -78,7 +78,7 @@ public class BackendStage implements JasminBackend {
     private String getJasminCode() {
         StringBuilder code = new StringBuilder();
 
-        code.append(".class ").append(classUnit.getClassAccessModifier().toString()).append(" ");
+        code.append(".class ").append(getAccessType(classUnit.getClassAccessModifier())).append(" ");
         code.append(classUnit.getClassName()).append("\n");
 
         String superClass = classUnit.getSuperClass();
@@ -116,8 +116,13 @@ public class BackendStage implements JasminBackend {
         return code.toString();
     }
 
+    private String getAccessType(AccessModifiers modifier) {
+        if (modifier == AccessModifiers.DEFAULT) modifier = AccessModifiers.PUBLIC;
+        return modifier.toString().toLowerCase();
+    }
+
     private String buildConstructor() {
-        return ".method " + classUnit.getClassAccessModifier().toString() + " <init>()V" + "\n" +
+        return ".method " + getAccessType(classUnit.getClassAccessModifier()) + " <init>()V" + "\n" +
                 "\taload_0" + "\n" +
                 "\tinvokenonvirtual java/lang/Object/<init>()V" + "\n" +
                 "\treturn" + "\n" +
@@ -125,7 +130,7 @@ public class BackendStage implements JasminBackend {
     }
 
     private String buildMethodDeclaration(Method m) {
-        StringBuilder declaration = new StringBuilder(".method " + m.getMethodAccessModifier().toString() + " ");
+        StringBuilder declaration = new StringBuilder(".method " + getAccessType(m.getMethodAccessModifier()) + " ");
 
         if (m.isStaticMethod()) declaration.append("static ");
         if (m.isFinalMethod()) declaration.append("final ");
