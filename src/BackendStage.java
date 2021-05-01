@@ -1,6 +1,7 @@
 import java.util.*;
 
 import utils.Logger;
+import jasmin.LocalVariable;
 
 import org.specs.comp.ollir.*;
 
@@ -25,33 +26,6 @@ import pt.up.fe.comp.jmm.report.Stage;
  */
 
 public class BackendStage implements JasminBackend {
-
-    private static class LocalVariable {
-        private int nextLocalVariable = 0;
-        private Map<String, Integer> identifiers = new HashMap<>();
-
-        public LocalVariable(ArrayList<Element> parameters) {
-            for (Element parameter : parameters) {
-                addCorrespondence(((Operand)parameter).getName(), getNextLocalVariable());
-            }
-
-        }
-
-        public int getNextLocalVariable() {
-            int tmp = nextLocalVariable;
-            nextLocalVariable++;
-            return tmp;
-        }
-
-        public void addCorrespondence(String identifier, int localVariable) {
-            identifiers.put(identifier, localVariable);
-        }
-
-        public int getCorrespondence(String identifier) {
-            return identifiers.get(identifier);
-        }
-    }
-
     private int nextLabel = 1;
     private ClassUnit classUnit = null;
 
