@@ -186,6 +186,15 @@ public class BackendStage implements JasminBackend {
 
                 break;
             case CALL:
+                CallInstruction callInstruction = (CallInstruction) i;
+                System.out.println("What's on the operand list: ");
+                System.out.println("FIRST ARG: " + callInstruction.getFirstArg());
+                System.out.println("SECOND ARG: " + callInstruction.getSecondArg());
+                for(Element el : callInstruction.getListOfOperands()) {
+                    System.out.println("---");
+                    System.out.println(el);
+                    System.out.println("---");
+                }
                 break;
             case GOTO:
                 Logger.err("Not for checkpoint 2");
@@ -210,8 +219,14 @@ public class BackendStage implements JasminBackend {
                 break;
             case UNARYOPER:
                 UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) i;
-                System.out.println("RIGHT OPERAND = " + unaryOpInstruction.getRightOperand());
-                System.out.println("UNARY OPERATION = " + unaryOpInstruction.getUnaryOperation());
+                if (unaryOpInstruction.getUnaryOperation().getOpType() == OperationType.NOTB) {
+                    System.out.println("FOund NOTB!!!");
+                    loadElement(unaryOpInstruction.getRightOperand(), localVariable, sb);
+                    sb.append("\tldc 1\n");
+                    sb.append("\tixor\n");
+                } else {
+                    Logger.err("!!! >> Unrecognized UnaryOpInstruction!!");
+                }
                 break;
             case BINARYOPER:
                 BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) i;
