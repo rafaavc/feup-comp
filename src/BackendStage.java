@@ -89,6 +89,18 @@ public class BackendStage implements JasminBackend {
 
     }
 
+    private void addField(Field field, StringBuilder sb) {
+        sb.append(".field ")
+            .append(field.getFieldAccessModifier())
+            .append(" ")
+            .append(classUnit.getClassName())
+            .append(" ")
+            .append(field.getFieldName())
+            .append(" ")
+            .append(getElementType(field.getFieldType()))
+            .append("\n");
+    }
+
     private String getJasminCode() {
         StringBuilder code = new StringBuilder();
 
@@ -99,17 +111,7 @@ public class BackendStage implements JasminBackend {
         if (superClass == null) superClass = "java/lang/Object";
         code.append(".super ").append(superClass).append("\n");
 
-        for (Field field : classUnit.getFields()) {
-            code.append(".field ")
-                    .append(field.getFieldAccessModifier())
-                    .append(" ")
-                    .append(classUnit.getClassName())
-                    .append(" ")
-                    .append(field.getFieldName())
-                    .append(" ")
-                    .append(getElementType(field.getFieldType()))
-                    .append("\n");
-        }
+        for (Field field : classUnit.getFields()) addField(field, code);
 
         code.append(buildConstructor());
 
@@ -179,14 +181,15 @@ public class BackendStage implements JasminBackend {
 
     }
 
+    private String getClassNameRepresentation(Operand operand) {
+        return operand.getName().equals("this") ? classUnit.getClassName() : operand.getName();
+    }
+
     private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb) {
         i.show();
         switch (i.getInstType()) {
             case ASSIGN -> {
                 AssignInstruction assignInstruction = (AssignInstruction) i;
-                System.out.println("DEST = " + assignInstruction.getDest());
-                System.out.println("RHS = " + assignInstruction.getRhs());
-                System.out.println();
                 int variable = localVariable.getNextLocalVariable();
                 String identifierName = ((Operand) assignInstruction.getDest()).getName();
                 localVariable.addCorrespondence(identifierName, variable);
@@ -196,13 +199,28 @@ public class BackendStage implements JasminBackend {
             }
             case CALL -> {
                 CallInstruction callInstruction = (CallInstruction) i;
-                System.out.println("What's on the operand list: ");
-                System.out.println("FIRST ARG: " + callInstruction.getFirstArg());
-                System.out.println("SECOND ARG: " + callInstruction.getSecondArg());
-                for (Element el : callInstruction.getListOfOperands()) {
-                    System.out.println("---");
-                    System.out.println(el);
-                    System.out.println("---");
+                for (Element el : callInstruction.getListOfOperands()) loadElement(el, localVariable, sb);
+
+                Operand firstCallOperand = (Operand) callInstruction.getFirstArg();
+                LiteralElement secondCallOperand = (LiteralElement) callInstruction.getSecondArg();
+
+                CallType invocationType = callInstruction.getInvocationType();
+
+                switch(invocationType) {
+                    case ldc, arraylength -> Logger.err("Received ldc or arraylength in invocation type (not supposed)");
+                    case NEW -> sb.append("\tnew ").append(getClassNameRepresentation(firstCallOperand)).append("\n");
+                    default -> {
+                        sb.append("\t").append(invocationType)
+                                .append(" ")
+                                .append(getClassNameRepresentation(firstCallOperand));
+
+                        if (secondCallOperand != null)
+                            sb.append("/").append(secondCallOperand.getLiteral().replace("\"", ""));
+
+                        sb.append("(");
+                        for (Element el : callInstruction.getListOfOperands()) sb.append(getElementType(el.getType()));
+                        sb.append(")").append(getElementType(callInstruction.getReturnType())).append("\n");
+                    }
                 }
             }
             case GOTO, BRANCH -> Logger.err("Not for checkpoint 2");
@@ -221,7 +239,7 @@ public class BackendStage implements JasminBackend {
                 Operand firstPutFieldOperand = (Operand) putFieldInstruction.getFirstOperand();
                 Operand secondPutFieldOperand = (Operand) putFieldInstruction.getSecondOperand();
                 sb.append("\tputfield ")
-                        .append(firstPutFieldOperand.getName().equals("this") ? classUnit.getClassName() : firstPutFieldOperand.getName())
+                        .append(getClassNameRepresentation(firstPutFieldOperand))
                         .append("/")
                         .append(secondPutFieldOperand.getName())
                         .append(" ")
@@ -233,7 +251,7 @@ public class BackendStage implements JasminBackend {
                 Operand firstGetFieldOperand = (Operand) getFieldInstruction.getFirstOperand();
                 Operand secondGetFieldOperand = (Operand) getFieldInstruction.getSecondOperand();
                 sb.append("\tgetfield ")
-                        .append(firstGetFieldOperand.getName().equals("this") ? classUnit.getClassName() : secondGetFieldOperand.getName())
+                        .append(getClassNameRepresentation(firstGetFieldOperand))
                         .append("/")
                         .append(secondGetFieldOperand.getName())
                         .append(" ")
