@@ -52,6 +52,14 @@ public class BackendStage implements JasminBackend {
         }
     }
 
+    private int nextLabel = 1;
+
+    private String getNextLabel() {
+        String tmp = "label" + nextLabel;
+        nextLabel++;
+        return tmp;
+    }
+
     @Override
     public JasminResult toJasmin(OllirResult ollirResult) {
         ClassUnit ollirClass = ollirResult.getOllirClass();
@@ -136,9 +144,13 @@ public class BackendStage implements JasminBackend {
         return declaration.toString();
     }
 
-    private void loadElement(Element element, LocalVariable localVariable, StringBuilder sb) {
+    private void loadElement(Element element, LocalVariable localVariable, StringBuilder sb) {Type elementType = element.getType();
         if (element.isLiteral()) {
-            Logger.log("Is literal (TODO)");
+            if (isPrimitive(elementType)) { //TODO: verify if is needed
+                sb.append("\tldc ").append(((LiteralElement) element).getLiteral()).append("\n");
+            } else {
+                System.out.println("!!! >> Found element that is literal but is not primitive??");
+            }
             return;
         }
         Operand operand = (Operand) element;
@@ -161,7 +173,7 @@ public class BackendStage implements JasminBackend {
                 String identifierName = ((Operand)assignInstruction.getDest()).getName();
 
                 localVariable.addCorrespondence(identifierName, variable);
-
+                System.out.println("Building " + assignInstruction.getRhs());
                 buildInstruction(assignInstruction.getRhs(), localVariable, sb);
 
                 sb.append("\t").append(getElementTypePrefix(assignInstruction.getDest())).append("store ").append(variable).append("\n");
@@ -188,46 +200,40 @@ public class BackendStage implements JasminBackend {
                 break;
             case BINARYOPER:
                 BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) i;
-                System.out.println("LEFT OPERAND = " + binaryOpInstruction.getLeftOperand());
-                System.out.println("RIGHT OPERAND = " + binaryOpInstruction.getRightOperand());
-                System.out.println("UNARY OPERATION = " + binaryOpInstruction.getUnaryOperation());
 
                 loadElement(binaryOpInstruction.getLeftOperand(), localVariable, sb);
                 loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
 
                 String typePrefix = getElementTypePrefix(binaryOpInstruction.getLeftOperand());
-                switch(binaryOpInstruction.getUnaryOperation().getOpType()) {
-                    case ADD:
-                        break;
-                    case MUL:
-                        break;
-                    case SUB:
-                        break;
-                    case DIV:
-                        break;
-                    case AND:
-                        break;
-                    case LTH:
-                        break;
+                sb.append("\t");
+                switch (binaryOpInstruction.getUnaryOperation().getOpType()) {
+                    case ADD -> {
+                        sb.append(typePrefix).append("add");
+                    }
+                    case MUL -> sb.append(typePrefix).append("mul");
+                    case SUB -> sb.append(typePrefix).append("sub");
+                    case DIV -> sb.append(typePrefix).append("div");
+                    case ANDB -> sb.append(typePrefix).append("and"); // bitwise and works because it is between 0 and 1 (booleans)
+                    case LTH -> {
+                        String trueLabel = getNextLabel(), continueLabel = getNextLabel();
+                        sb.append(typePrefix).append("sub\n")
+                                .append("\tiflt ").append(trueLabel).append("\n") // 1st is lt 2nd if their subtraction is less than 0
+                                .append("\tldc 0\n")
+                                .append("\tgoto ").append(continueLabel).append("\n")
+                                .append(trueLabel).append(":\n")
+                                .append("\tldc 1\n")
+                                .append(continueLabel).append(":");
+                    }
                 }
+
+                sb.append("\n");
 
                 break;
             case NOPER:
                 SingleOpInstruction singleOpInstruction = (SingleOpInstruction) i;
                 System.out.println("TYPE: " + singleOpInstruction.getSingleOperand().getType());
 
-                Element element = singleOpInstruction.getSingleOperand();
-                Type elementType = element.getType();
-                if (element.isLiteral()) {
-                    if (isPrimitive(elementType)) { //TODO: verify if is needed
-                        sb.append("\tldc ").append(((LiteralElement) element).getLiteral()).append("\n");
-                    }
-
-                } else {
-                    System.out.println("BEFORE");
-                    loadElement(element, localVariable, sb);
-                    System.out.println("AFTER");
-                }
+                loadElement(singleOpInstruction.getSingleOperand(), localVariable, sb);
                 break;
         }
 
