@@ -1,5 +1,6 @@
 import java.util.*;
 
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import utils.Logger;
 import jasmin.LocalVariable;
 
@@ -28,6 +29,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 public class BackendStage implements JasminBackend {
     private int nextLabel = 1;
     private ClassUnit classUnit = null;
+    private SymbolTable symbolTable = null;
 
     private String getNextLabel() {
         String tmp = "label" + nextLabel;
@@ -39,6 +41,7 @@ public class BackendStage implements JasminBackend {
     public JasminResult toJasmin(OllirResult ollirResult) {
         ClassUnit ollirClass = ollirResult.getOllirClass();
         classUnit = ollirClass;
+        symbolTable = ollirResult.getSymbolTable();
         try {
 
             // Example of what you can do with the OLLIR class
@@ -162,8 +165,23 @@ public class BackendStage implements JasminBackend {
 
     }
 
+    private String getClassNameWithImport(String className) {
+        for (String imp : symbolTable.getImports()) {
+            if (imp.endsWith(className)) {
+                return imp.replace('.', '/');
+            }
+        }
+        return className;
+    }
+
     private String getClassNameRepresentation(Operand operand) {
-        return operand.getName().equals("this") ? classUnit.getClassName() : operand.getName();
+        if (operand.getName().equals("this")) {
+            return classUnit.getClassName();
+        }
+        if (operand.getType().getTypeOfElement() == ElementType.CLASS) {
+            return getClassNameWithImport(operand.getName());
+        }
+        return getClassNameWithImport(((ClassType) operand.getType()).getName());
     }
 
     private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb) {
@@ -176,11 +194,15 @@ public class BackendStage implements JasminBackend {
                 localVariable.addCorrespondence(identifierName, variable);
                 System.out.println("Building " + assignInstruction.getRhs());
                 buildInstruction(assignInstruction.getRhs(), localVariable, sb);
-                sb.append("\t").append(getElementTypePrefix(assignInstruction.getDest())).append("store ").append(variable).append("\n");
+                if (assignInstruction.getRhs().getInstType() == InstructionType.CALL && ((CallInstruction)assignInstruction.getRhs()).getInvocationType() == CallType.NEW) {
+                    sb.append("\tdup\n");
+                }
+                else {
+                    sb.append("\t").append(getElementTypePrefix(assignInstruction.getDest())).append("store ").append(variable).append("\n");
+                }
             }
             case CALL -> {
                 CallInstruction callInstruction = (CallInstruction) i;
-                for (Element el : callInstruction.getListOfOperands()) loadElement(el, localVariable, sb);
 
                 Operand firstCallOperand = (Operand) callInstruction.getFirstArg();
                 LiteralElement secondCallOperand = (LiteralElement) callInstruction.getSecondArg();
@@ -190,7 +212,25 @@ public class BackendStage implements JasminBackend {
                 switch(invocationType) {
                     case ldc, arraylength -> Logger.err("Received ldc or arraylength in invocation type (not supposed)");
                     case NEW -> sb.append("\tnew ").append(getClassNameRepresentation(firstCallOperand)).append("\n");
+                    case invokespecial -> {
+                        sb.append("\tinvokespecial ")
+                                .append(getClassNameRepresentation(firstCallOperand))
+                                .append("/").append(secondCallOperand.getLiteral().replace("\"", ""));
+
+                        sb.append("(");
+                        for (Element el : callInstruction.getListOfOperands()) sb.append(getElementType(el.getType()));
+                        sb.append(")").append(getElementType(callInstruction.getReturnType())).append("\n");
+
+                        sb.append("\tastore ").append(localVariable.getCorrespondence(firstCallOperand.getName())).append("\n");
+                    }
                     default -> {
+                        if (firstCallOperand.getType().getTypeOfElement() == ElementType.OBJECTREF)
+                            loadElement(firstCallOperand, localVariable, sb);
+                        else if (firstCallOperand.getType().getTypeOfElement() == ElementType.THIS)
+                            sb.append("\taload 0\n");
+
+                        for (Element el : callInstruction.getListOfOperands()) loadElement(el, localVariable, sb);
+
                         sb.append("\t").append(invocationType)
                                 .append(" ")
                                 .append(getClassNameRepresentation(firstCallOperand));
