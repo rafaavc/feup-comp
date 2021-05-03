@@ -17,6 +17,8 @@ import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import visitor.VisitorController;
 
+import visitor.VisitorController;
+
 public class AnalysisStage implements JmmAnalysis {
 
     @Override
@@ -56,12 +58,9 @@ public class AnalysisStage implements JmmAnalysis {
         var varPrinter = new ExamplePrintVariables("Variable", "name", "line");
         varPrinter.visit(node, null);*/
 
-
         VisitorController controller = new VisitorController(parserResult.getRootNode());
         controller.start();
 
         return new JmmSemanticsResult(parserResult, controller.getTable(), controller.getReports());
-
     }
-
 }

@@ -30,7 +30,8 @@ public class ArithmeticOpVisitor extends Visitor {
         Type expected = new Type(Types.integer, false);
 
         if (!leftType.equals(expected) || !rightType.equals(expected)) {
-            reports.add(new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get(Attributes.line)), Integer.parseInt(node.get(Attributes.column)), "Invalid arithmetic operation"));
+            reports.add(getReport(node, "Invalid arithmetic operation"));
+            return false;
         }
 
         return true;

@@ -196,12 +196,12 @@ void Type(): {Token t1;}
 // --Statements--
 // --------------
 
-void Statement() #void : {}
+void Statement() #void : { Token t;}
 {
 	BlockStatement()
 	| IfElseStatement()
 	| WhileStatement()
-    | Expression() (<EQ> Expression() #Assignment(2))? <SEMICOLON>
+    | Expression() (t = <EQ> Expression() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #Assignment(2))? <SEMICOLON>
 }
 
 void BlockStatement() #Block : {}
@@ -279,15 +279,16 @@ void Not() #void : {Token t;}
 
 void ExpressionExtension() #void : {Token t;}
 {
-	ExpressionTerminalSymbols() (t = ArrayAccess() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ArrayAccessResult(2) | ObjectProperty() #ObjectProperty(2))*
+	ExpressionTerminalSymbols() (t = ArrayAccess() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ArrayAccessResult(2) | t = ObjectProperty() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ObjectProperty(2))*
 }
 
-void ObjectProperty() #void : {Token t1;}
+Token ObjectProperty() #void : {Token t1;}
 {
-	<DOT> (
+	t1 = <DOT> (
 		<LENGTH> #Length
 		| ObjectMethod()
 	)
+    {return t1;}
 }
 
 void ObjectMethod() : {Token t1;}

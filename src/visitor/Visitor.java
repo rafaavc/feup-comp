@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.ReportType;
+import pt.up.fe.comp.jmm.report.Stage;
 import table.BasicSymbol;
 import table.BasicSymbolTable;
 import visitor.scopes.Scope;
@@ -169,5 +171,9 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
             }
         }
         return null;
+    }
+
+    public Report getReport(JmmNode node, String msg) {
+        return new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get(Attributes.line)), Integer.parseInt(node.get(Attributes.column)), msg);
     }
 }
