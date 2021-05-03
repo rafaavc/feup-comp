@@ -84,13 +84,13 @@ public class BackendStage implements JasminBackend {
 
         String superClass = classUnit.getSuperClass();
         if (superClass == null) superClass = "java/lang/Object";
-        code.append(".super ").append(superClass).append("\n");
+        code.append(".super ").append(getClassNameWithImport(superClass)).append("\n");
 
         for (Field field : classUnit.getFields()) addField(field, code);
 
         for (Method m : classUnit.getMethods()) {
             if (m.isConstructMethod()) {
-                code.append(buildConstructor(superClass));
+                code.append(buildConstructor(getClassNameWithImport(superClass)));
                 continue;
             }
             code.append(buildMethodDeclaration(m)).append("\n");
@@ -172,7 +172,7 @@ public class BackendStage implements JasminBackend {
     }
 
     private String getClassNameWithImport(String className) {
-        for (String imp : symbolTable.getImports()) {
+        for (String imp : classUnit.getImports()) {
             if (imp.endsWith(className)) {
                 return imp.replace('.', '/');
             }
