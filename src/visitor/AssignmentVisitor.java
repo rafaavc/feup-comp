@@ -32,13 +32,13 @@ public class AssignmentVisitor extends Visitor {
 
     private BasicSymbol leftSideVerification(JmmNode node) {
         JmmNode leftChild = node.getChildren().get(0);
-        return getAssignableSymbol(leftChild);
+        return typeInterpreter.getAssignableSymbol(leftChild);
     }
 
     private Type rightSideVerification(JmmNode node, List<Report> reports) {
         JmmNode rightChild = node.getChildren().get(1);
         allIdentifiersInit(rightChild, reports);
-        return getNodeType(rightChild);
+        return typeInterpreter.getNodeType(rightChild);
     }
 
     private void allIdentifiersInit(JmmNode node, List<Report> reports) {

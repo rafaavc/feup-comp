@@ -5,6 +5,7 @@ import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import table.BasicSymbol;
+import table.MethodIdBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ public class ClassScope implements Scoped {
     private final String className, superClassName;
     private final List<BasicSymbol> fields = new ArrayList<>();
     private final Map<String, MethodScope> methods = new HashMap<>();
+    private final MethodIdBuilder methodBuilder = new MethodIdBuilder();
 
     public ClassScope(String className, String superClassName) {
         this.className = className;
@@ -27,9 +29,9 @@ public class ClassScope implements Scoped {
         switch (node.getKind()) {
             case NodeNames.method:
             case NodeNames.mainMethod:
-                String methodName = node.getOptional(Attributes.name).orElse("main");
-                MethodScope methodScope = new MethodScope(methodName);
-                methods.put(methodName, methodScope);
+                String methodId = methodBuilder.buildMethodId(node);
+                MethodScope methodScope = new MethodScope(methodId);
+                methods.put(methodId, methodScope);
                 return methodScope;
 
             case NodeNames.type:
@@ -63,7 +65,7 @@ public class ClassScope implements Scoped {
         return methods;
     }
 
-    public MethodScope getMethod(String name) {
-        return methods.get(name);
+    public MethodScope getMethod(String methodId) {
+        return methods.get(methodId);
     }
 }

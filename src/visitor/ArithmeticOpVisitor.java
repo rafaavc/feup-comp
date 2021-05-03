@@ -22,8 +22,8 @@ public class ArithmeticOpVisitor extends Visitor {
         JmmNode leftNode = node.getChildren().get(0);
         JmmNode rightNode = node.getChildren().get(1);
 
-        Type leftType = getNodeType(leftNode);
-        Type rightType = getNodeType(rightNode);
+        Type leftType = typeInterpreter.getNodeType(leftNode);
+        Type rightType = typeInterpreter.getNodeType(rightNode);
         Type expected = new Type(Types.integer, false);
 
         if (!leftType.equals(expected) || !rightType.equals(expected)) {

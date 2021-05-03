@@ -2,10 +2,8 @@ package visitor;
 
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
 import table.BasicSymbolTable;
-import constants.Attributes;
 
 import java.util.List;
 
@@ -43,9 +41,9 @@ public class BooleanOpVisitor extends Visitor {
         String kind = node.getKind();
 
         if (kind.equals(NodeNames.identifier)) {
-            kind = getIdentifierSymbol(node).getType().getName();
+            kind = typeInterpreter.getIdentifierSymbol(node).getType().getName();
         } else if (kind.equals(NodeNames.objectProperty)) {
-            kind = isObjectPropertyType(node).getName();
+            kind = typeInterpreter.isObjectPropertyType(node).getName();
         }
 
         return kind.equals(NodeNames.bool) || kind.equals("boolean") || kind.equals(NodeNames.and) || kind.equals(NodeNames.not) || kind.equals(NodeNames.lessThan);
@@ -55,9 +53,9 @@ public class BooleanOpVisitor extends Visitor {
         String kind = node.getKind();
 
         if (kind.equals(NodeNames.identifier)) {
-            kind = getIdentifierSymbol(node).getType().getName();
+            kind = typeInterpreter.getIdentifierSymbol(node).getType().getName();
         } else if (kind.equals(NodeNames.objectProperty)) {
-            kind = isObjectPropertyType(node).getName();
+            kind = typeInterpreter.isObjectPropertyType(node).getName();
         }
 
         return kind.equals(NodeNames.integer) || kind.equals("int") || kind.equals(NodeNames.sum) || kind.equals(NodeNames.sub) || kind.equals(NodeNames.mul) || kind.equals(NodeNames.div) || kind.equals(NodeNames.arrayAccessResult);

@@ -72,6 +72,6 @@ public class Main implements JmmParser, JmmAnalysis {
 
 		JmmSemanticsResult semanticsResult = main.semanticAnalysis(result);
 
-		OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
+		//OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
     }
 }

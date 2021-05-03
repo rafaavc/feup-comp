@@ -149,8 +149,8 @@ public class ExampleTest {
     files.add("test/fixtures/public/HelloWorld.jmm");
     files.add("test/fixtures/public/Lazysort.jmm");
     files.add("test/fixtures/public/Life.jmm");
-    files.add("test/fixtures/public/MonteCarloPi.jmm");  //dá erro
-    files.add("test/fixtures/public/QuickSort.jmm"); //dá erro
+    files.add("test/fixtures/public/MonteCarloPi.jmm");
+    files.add("test/fixtures/public/QuickSort.jmm");
     files.add("test/fixtures/public/Simple.jmm");
     files.add("test/fixtures/public/TicTacToe.jmm");
     files.add("test/fixtures/public/WhileAndIf.jmm");
