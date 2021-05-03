@@ -21,14 +21,10 @@ public class MethodScope implements Scoped {
     }
 
     public Scoped add(JmmNode node) {
-        if (NodeNames.mainParameter.equals(node.getKind()))
-        {
+        if (NodeNames.mainParameter.equals(node.getKind())) {
             parameters.add(new BasicSymbol(new Type("String", true), node.get(Attributes.name)));
-        }
-        else if (NodeNames.type.equals(node.getKind()))
-        {
-            if (node.getParent().getKind().equals(NodeNames.method))
-            {
+        } else if (NodeNames.type.equals(node.getKind())) {
+            if (node.getParent().getKind().equals(NodeNames.method)) {
                 String returnNodeName = node.get(Attributes.name);
                 returnType = new Type(returnNodeName, JmmNodeInfo.isArray(node, returnNodeName));
                 return this;

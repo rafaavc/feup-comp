@@ -22,7 +22,16 @@ public class AssignmentVisitor extends Visitor {
         Type leftSideType = leftSideSymbol.getType();
         Type rightSideType = rightSideVerification(node, reports);
 
-        if (leftSideType == null || rightSideType == null || (!leftSideType.equals(rightSideType) && !rightSideType.getName().equals(Types.expected))) {
+        if (leftSideType == null) {
+            reports.add(getReport(node, "Left hand side of assignment does not exist or is not assignable!"));
+            return false;
+        }
+        if (rightSideType == null) {
+            leftSideSymbol.setInit(true);
+            return false;
+        }
+
+        if (!leftSideType.equals(rightSideType) && !rightSideType.getName().equals(Types.expected)) {
             reports.add(getReport(node, "Right hand side type does not match left hand side"));
         }
 
@@ -32,13 +41,13 @@ public class AssignmentVisitor extends Visitor {
 
     private BasicSymbol leftSideVerification(JmmNode node) {
         JmmNode leftChild = node.getChildren().get(0);
-        return getAssignableSymbol(leftChild);
+        return typeInterpreter.getAssignableSymbol(leftChild);
     }
 
     private Type rightSideVerification(JmmNode node, List<Report> reports) {
         JmmNode rightChild = node.getChildren().get(1);
         allIdentifiersInit(rightChild, reports);
-        return getNodeType(rightChild);
+        return typeInterpreter.getNodeType(rightChild);
     }
 
     private void allIdentifiersInit(JmmNode node, List<Report> reports) {

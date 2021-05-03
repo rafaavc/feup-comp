@@ -84,7 +84,7 @@ public class OllirVisitor extends Visitor {
 
             case NodeNames.objectProperty -> handleObjectProperty(node, type, inline);
 
-            default -> ollirBuilder.getOperandOllirRepresentation(node, new ScopeVisitor(symbolTable).visit(node), getNodeType(node));
+            default -> ollirBuilder.getOperandOllirRepresentation(node, new ScopeVisitor(symbolTable).visit(node), typeInterpreter.getNodeType(node));
         };
     }
 
@@ -95,7 +95,7 @@ public class OllirVisitor extends Visitor {
         switch (nodeKind) {
             case NodeNames.method, NodeNames.mainMethod -> ollirBuilder.addMethod(node);
             case NodeNames.assignment -> {
-                BasicSymbol symbol = getIdentifierSymbol(node.getChildren().get(0));
+                BasicSymbol symbol = typeInterpreter.getIdentifierSymbol(node.getChildren().get(0));
                 JmmNode rightSide = node.getChildren().get(1);
 
                 IntermediateOllirRepresentation representation = getOllirRepresentation(rightSide, symbol.getType(), true);
@@ -109,7 +109,7 @@ public class OllirVisitor extends Visitor {
                 return;
             }
             case NodeNames.objectProperty, NodeNames.newAlloc -> {
-                Type returnType = getNodeType(node);
+                Type returnType = typeInterpreter.getNodeType(node);
                 IntermediateOllirRepresentation representation = getOllirRepresentation(node, returnType, false);
 
                 ollirBuilder.add(representation.getBefore());
@@ -121,7 +121,7 @@ public class OllirVisitor extends Visitor {
             case NodeNames.returnStatement -> {
                 JmmNode returnIdentifier = node.getChildren().get(0);
                 Scope nodeScope = new ScopeVisitor(symbolTable).visit(returnIdentifier);
-                Type returnType = symbolTable.getReturnType(nodeScope.getMethodScope().get(Attributes.name));
+                Type returnType = symbolTable.getReturnType(methodIdBuilder.buildMethodId(nodeScope.getMethodScope()));
 
                 IntermediateOllirRepresentation representation = getOllirRepresentation(returnIdentifier, returnType, true);
 
@@ -142,16 +142,16 @@ public class OllirVisitor extends Visitor {
         Type expectedType = switch(parent.getKind()) {
             case NodeNames.returnStatement -> {
                 Scope nodeScope = new ScopeVisitor(symbolTable).visit(parent);
-                yield symbolTable.getReturnType(nodeScope.getMethodScope().get(Attributes.name));
+                yield symbolTable.getReturnType(methodIdBuilder.buildMethodId(nodeScope.getMethodScope()));
             }
-            case NodeNames.assignment -> getNodeType(parent.getChildren().get(0));
+            case NodeNames.assignment -> typeInterpreter.getNodeType(parent.getChildren().get(0));
             case NodeNames.lessThan, NodeNames.sum, NodeNames.sub, NodeNames.mul, NodeNames.div -> new Type(Types.integer, false);
             case NodeNames.and, NodeNames.not -> new Type(Types.bool, false);
             case NodeNames.objectMethod -> {
                 List<JmmNode> children = parent.getChildren();
                 for (int i = 0; i < children.size(); i++) {
                     if (children.get(i) == node ) {
-                        List<Symbol> parameters = symbolTable.getParameters(parent.get(Attributes.name));
+                        List<Symbol> parameters = symbolTable.getParameters(typeInterpreter.buildMethodCallId(parent));
                         if (parameters.size() >= i+1) {
                             Symbol parameter = parameters.get(i);
                             yield parameter != null ? parameter.getType() : null;
@@ -190,11 +190,11 @@ public class OllirVisitor extends Visitor {
         List<String> parametersRep = new ArrayList<>();
         StringBuilder before = new StringBuilder();
 
-        List<Symbol> realParameters = symbolTable.getParameters(property.get(Attributes.name));
+        List<Symbol> realParameters = symbolTable.getParameters(typeInterpreter.buildMethodCallId(property));
 
         for (int i = 0; i < parameters.size(); i++) {
             JmmNode parameter = parameters.get(i);
-            Type nodeType = realParameters.size() >= i+1 ? realParameters.get(i).getType() : getNodeType(parameter);
+            Type nodeType = realParameters.size() >= i+1 ? realParameters.get(i).getType() : typeInterpreter.getNodeType(parameter);
 
             IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, nodeType, !isExpression(parameter));
             before.append(representation.getBefore());
@@ -203,7 +203,7 @@ public class OllirVisitor extends Visitor {
 
         String methodCallOllir;
 
-        if (isImportedClassInstance(identifier)) {
+        if (typeInterpreter.isImportedClassInstance(identifier)) {
             String identifierName = identifier.getOptional(Attributes.name).orElse(null);
             if (identifierName == null)
                 return new IntermediateOllirRepresentation("\t\tTODO in handleObjectMethod\n", "\t\tTODO in handleObjectMethod\n");
@@ -212,7 +212,7 @@ public class OllirVisitor extends Visitor {
         } else if (identifier.getKind().equals(NodeNames.thisName)) {
             methodCallOllir = ollirBuilder.getVirtualMethodCall("this", property, type, expectedType, parametersRep);
         } else {
-            BasicSymbol symbol = getIdentifierSymbol(identifier);
+            BasicSymbol symbol = typeInterpreter.getIdentifierSymbol(identifier);
             methodCallOllir = ollirBuilder.getVirtualMethodCall(symbol.getName(), symbol.getType(), property, type, expectedType, parametersRep);
         }
 

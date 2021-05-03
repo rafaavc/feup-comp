@@ -9,7 +9,10 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 
 import table.BasicSymbol;
 import table.BasicSymbolTable;
+import table.MethodIdBuilder;
+import typeInterpreter.TypeInterpreter;
 import visitor.scopes.Scope;
+import visitor.scopes.ScopeVisitor;
 
 import java.util.List;
 
@@ -18,9 +21,12 @@ public class OllirBuilder {
     private final BasicSymbolTable table;
     private int nextAuxNumber = 1;
     private boolean firstMethod = true;
+    protected TypeInterpreter typeInterpreter;
+    protected MethodIdBuilder methodIdBuilder = new MethodIdBuilder();
 
     public OllirBuilder(BasicSymbolTable table) {
         this.table = table;
+        this.typeInterpreter = new TypeInterpreter(table, new ScopeVisitor(table));
 
         for (String importName : table.getImports()) {
             code.append("import ").append(importName).append("\n");
@@ -70,9 +76,10 @@ public class OllirBuilder {
 
         String methodName = node.getOptional(Attributes.name).orElse(null);
         if (methodName == null) return;
+        String methodId = methodIdBuilder.buildMethodId(node);
 
-        Type returnType = table.getReturnType(methodName);
-        String parameters = parseParameters(table.getParameters(methodName));
+        Type returnType = table.getReturnType(methodId);
+        String parameters = parseParameters(table.getParameters(methodId));
 
         code.append(methodName).append("(").append(parameters);
         code.append(")").append(typeToCode(returnType)).append(" {\n");
@@ -152,7 +159,7 @@ public class OllirBuilder {
             case NodeNames.integer -> new IntermediateOllirRepresentation(operand.get(Attributes.value) + ".i32", "");
             case NodeNames.bool -> new IntermediateOllirRepresentation((operand.get(Attributes.value).equals("true") ? "1" : "0") + ".bool", "");
             case NodeNames.identifier -> {
-                List<Symbol> parameters = table.getParameters(scope.getMethodScope().get(Attributes.name));
+                List<Symbol> parameters = table.getParameters(methodIdBuilder.buildMethodId(scope.getMethodScope()));
                 String operandName = operand.get(Attributes.name);
                 int inParameter = 0;
                 for (int i = 0; i < parameters.size(); i++) {
@@ -260,13 +267,19 @@ public class OllirBuilder {
         String code = "";
         if (type.isArray()) code += ".array";
 
-        if (type.getName().equals(Types.integer))
-            code += ".i32";
-        else if (type.getName().equals(Types.bool))
-            code += ".bool";
-        else if (type.getName().equals(Types.expected))
-            return expected == null ? ".V" : typeToCode(expected, null);
-        else code += "." + type.getName();
+        switch (type.getName()) {
+            case Types.integer:
+                code += ".i32";
+                break;
+            case Types.bool:
+                code += ".bool";
+                break;
+            case Types.expected:
+                return expected == null ? ".V" : typeToCode(expected, null);
+            default:
+                code += "." + type.getName();
+                break;
+        }
 
         return code;
     }

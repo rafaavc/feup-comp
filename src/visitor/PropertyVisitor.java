@@ -37,30 +37,32 @@ public class PropertyVisitor extends Visitor {
 
     private Boolean handleLength(JmmNode object) {
         if (object.getKind().equals(NodeNames.identifier)) {
-            Type type = getIdentifierSymbol(object).getType();
+            Type type = typeInterpreter.getIdentifierSymbol(object).getType();
             return type.isArray();
         }
         return false;
     }
 
-    //TODO: might need changes when method overload
     private Boolean handleMethod(JmmNode node, JmmNode method) {
-        if (getMethodType(node) == null) return false;
+        if (typeInterpreter.getMethodType(node) == null) {
+            return false;
+        }
 
         String methodName = method.getOptional(Attributes.name).orElse(null);
         if (methodName == null) return false;
+        String methodId = typeInterpreter.buildMethodCallId(method);
 
-        if (symbolTable.getReturnType(methodName) == null)
+        if (symbolTable.getReturnType(methodId) == null)
             return true;
 
         List<JmmNode> parameters = method.getChildren();
-        List<Symbol> expectedParameters = symbolTable.getParameters(methodName);
+        List<Symbol> expectedParameters = symbolTable.getParameters(methodId);
 
         if (parameters.size() != expectedParameters.size())
             return false;
 
         for (int i = 0; i < parameters.size(); i++) {
-            Type type = getNodeType(parameters.get(i));
+            Type type = typeInterpreter.getNodeType(parameters.get(i));
             Type expectedType = expectedParameters.get(i).getType();
             if (!type.equals(expectedType)) return false;
         }

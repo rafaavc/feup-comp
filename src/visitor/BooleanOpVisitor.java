@@ -2,10 +2,8 @@ package visitor;
 
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
-import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
 import table.BasicSymbolTable;
-import constants.Attributes;
 
 import java.util.List;
 
@@ -22,19 +20,24 @@ public class BooleanOpVisitor extends Visitor {
 
     private Boolean visitBinary(JmmNode node, List<Report> reports) {
         String nodeKind = node.getKind();
-        Boolean result = false;
-        if (nodeKind.equals(NodeNames.and)) {
-            result = verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
-            if (!result) reports.add(getReport(node, "Invalid and operation"));
-        } else if (nodeKind.equals(NodeNames.not)) {
-            result = verifyBool(node.getChildren().get(0));
-            if (!result) reports.add(getReport(node, "Invalid not operation"));
-        } else if (nodeKind.equals(NodeNames.lessThan)) {
-            result = verifyNum(node.getChildren().get(0)) && verifyNum(node.getChildren().get(1));
-            if (!result) reports.add(getReport(node, "Invalid less than operation"));
-        } else if (nodeKind.equals(NodeNames.condition)) {
-            result = verifyBool(node.getChildren().get(0));
-            if (!result) reports.add(getReport(node, "Invalid condition"));
+        boolean result = false;
+        switch (nodeKind) {
+            case NodeNames.and -> {
+                result = verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
+                if (!result) reports.add(getReport(node, "Invalid and operation"));
+            }
+            case NodeNames.not -> {
+                result = verifyBool(node.getChildren().get(0));
+                if (!result) reports.add(getReport(node, "Invalid not operation"));
+            }
+            case NodeNames.lessThan -> {
+                result = verifyNum(node.getChildren().get(0)) && verifyNum(node.getChildren().get(1));
+                if (!result) reports.add(getReport(node, "Invalid less than operation"));
+            }
+            case NodeNames.condition -> {
+                result = verifyBool(node.getChildren().get(0));
+                if (!result) reports.add(getReport(node, "Invalid condition"));
+            }
         }
         return result;
     }
@@ -43,9 +46,9 @@ public class BooleanOpVisitor extends Visitor {
         String kind = node.getKind();
 
         if (kind.equals(NodeNames.identifier)) {
-            kind = getIdentifierSymbol(node).getType().getName();
+            kind = typeInterpreter.getIdentifierSymbol(node).getType().getName();
         } else if (kind.equals(NodeNames.objectProperty)) {
-            kind = isObjectPropertyType(node).getName();
+            kind = typeInterpreter.isObjectPropertyType(node).getName();
         }
 
         return kind.equals(NodeNames.bool) || kind.equals("boolean") || kind.equals(NodeNames.and) || kind.equals(NodeNames.not) || kind.equals(NodeNames.lessThan);
@@ -55,9 +58,9 @@ public class BooleanOpVisitor extends Visitor {
         String kind = node.getKind();
 
         if (kind.equals(NodeNames.identifier)) {
-            kind = getIdentifierSymbol(node).getType().getName();
+            kind = typeInterpreter.getIdentifierSymbol(node).getType().getName();
         } else if (kind.equals(NodeNames.objectProperty)) {
-            kind = isObjectPropertyType(node).getName();
+            kind = typeInterpreter.isObjectPropertyType(node).getName();
         }
 
         return kind.equals(NodeNames.integer) || kind.equals("int") || kind.equals(NodeNames.sum) || kind.equals(NodeNames.sub) || kind.equals(NodeNames.mul) || kind.equals(NodeNames.div) || kind.equals(NodeNames.arrayAccessResult);

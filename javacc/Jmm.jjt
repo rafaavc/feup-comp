@@ -307,7 +307,7 @@ void ExpressionTerminalSymbols() #void : {Token t1;}
 	t1 = <INTEGERLITERAL> {jjtThis.put("val", t1.image);} #Integer
 	| <TRUE> {jjtThis.put("val", "true");} #Boolean
 	| <FALSE> {jjtThis.put("val", "false");} #Boolean
-	| t1 = <IDENTIFIER> {jjtThis.put("name", t1.image);} #Identifier
+	| t1 = <IDENTIFIER> {jjtThis.put("name", t1.image); jjtThis.put("line", String.valueOf(t1.beginLine)); jjtThis.put("column", String.valueOf(t1.beginColumn));} #Identifier
 	| <THIS> #This
 	| <NEW> NewInstance()
 	| <OPEN_PAR> Expression() <CLOSE_PAR>

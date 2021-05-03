@@ -20,7 +20,7 @@ public class ArrayAccessVisitor extends Visitor {
     }
 
     public Boolean visitNewArraySize(JmmNode node, List<Report> reports) {
-        String childType = getNodeType(node.getChildren().get(0)).getName();
+        String childType = typeInterpreter.getNodeType(node.getChildren().get(0)).getName();
         if (!childType.equals(Types.integer)) {
             reports.add(getReport(node, "Type '" + childType + "' can not be used to index an array. You must use an integer."));
         }
@@ -32,8 +32,7 @@ public class ArrayAccessVisitor extends Visitor {
         if (!leftChild.getKind().equals(NodeNames.identifier)) {
             reports.add(getReport(node, "'" + leftChild.getKind() + "' can not be indexed. It is not an array."));
         } else {
-            Symbol symbol = getIdentifierSymbol(leftChild);
-            System.out.println("Found symbol of " + symbol.getName() + ": " + symbol.toString());
+            Symbol symbol = typeInterpreter.getIdentifierSymbol(leftChild);
             if (!symbol.getType().isArray()) {
                 reports.add(getReport(node, "Identifier '" + leftChild.get(Attributes.name) + "' can not be indexed. It is not an array."));
             }
@@ -42,7 +41,7 @@ public class ArrayAccessVisitor extends Visitor {
         JmmNode rightChild = node.getChildren().get(1);
         JmmNode accessValue = rightChild.getChildren().get(0);
 
-        String accessValueType = getNodeType(accessValue).getName();
+        String accessValueType = typeInterpreter.getNodeType(accessValue).getName();
         if (!accessValueType.equals(Types.integer)) {
             reports.add(getReport(node, "Type '" + accessValueType + "' can not be used to index an array. You must use an integer."));
         }

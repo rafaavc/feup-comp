@@ -1,26 +1,20 @@
-
-import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
-import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.io.StringReader;
-import java.util.List;
-
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.specs.util.SpecsIo;
-import visitor.*;
-import utils.Logger;
 
-public class Main implements JmmParser, JmmAnalysis {
+import java.io.File;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Main implements JmmParser {
 
 	@Override
 	public JmmParserResult parse(String jmmCode) {
@@ -39,16 +33,6 @@ public class Main implements JmmParser, JmmAnalysis {
 			reports.add(new Report(ReportType.ERROR, Stage.SYNTATIC, 0, e.getMessage()));
 			return new JmmParserResult(null, reports);
 		}
-	}
-
-	@Override
-	public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
-		// TODO change
-		JmmNode root = parserResult.getRootNode();
-		VisitorController controller = new VisitorController(root);
-		controller.start();
-
-		return new JmmSemanticsResult(parserResult, controller.getTable(), controller.getReports());
 	}
 
 	private static boolean containsErrorReport(List<Report> reports) {
@@ -88,24 +72,35 @@ public class Main implements JmmParser, JmmAnalysis {
 
 		boolean success = false;
 		if (!containsErrorReport(parserResult.getReports())) {
-			JmmSemanticsResult semanticsResult = main.semanticAnalysis(parserResult);
+			AnalysisStage analysis = new AnalysisStage();
+			JmmSemanticsResult semanticsResult = analysis.semanticAnalysis(parserResult);
 			globalReports.addAll(semanticsResult.getReports());
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
-				OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
-				globalReports.addAll(ollirResult.getReports());
+				OllirResult ollirResult;
+				try {
+					ollirResult = new OptimizationStage().toOllir(semanticsResult);
+					globalReports.addAll(ollirResult.getReports());
+				} catch (Exception e) {
+					System.out.println("Error in OLLIR, caused by one of the following (these operations are not being taken into consideration for checkpoint 2):");
+					System.out.println("\t-Array access\n\t-If statement\n\t-While statement");
+					return;
+				}
 
 				if (!containsErrorReport(ollirResult.getReports())) {
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
 					globalReports.addAll(jasminResult.getReports());
 
-					if (!containsErrorReport(jasminResult.getReports())) success = true;
+					if (!containsErrorReport(jasminResult.getReports())) {
+						success = true;
+						System.out.print("Jasmin result: ");
+						jasminResult.run();
+					}
 				}
 			}
 		}
 
 		logReports(globalReports, maxErrNo);
-
 		if (success) System.out.println("Jasmin code generated with success!");
     }
 }

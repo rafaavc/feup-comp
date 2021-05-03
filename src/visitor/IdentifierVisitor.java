@@ -18,7 +18,12 @@ public class IdentifierVisitor extends Visitor {
     }
 
     private Boolean verifyInit(JmmNode node, List<Report> reports) {
-        BasicSymbol symbol = getIdentifierSymbol(node);
+        BasicSymbol symbol = typeInterpreter.getIdentifierSymbol(node);
+        if (symbol == null && !typeInterpreter.isImportedClassInstance(node)) {
+            reports.add(getReport(node, "Variable " + node.getOptional(Attributes.name).orElse(null) + " does not exist"));
+            return false;
+        }
+
         if (symbol == null) return true;
         if (!symbol.isInit() && !isParameter(node)) {
             reports.add(getReport(node, "Variable not initialized"));
@@ -34,9 +39,9 @@ public class IdentifierVisitor extends Visitor {
 
         JmmNode methodScope = scope.getMethodScope();
         if (methodScope != null) {
-            String methodName = methodScope.getOptional(Attributes.name).orElse(null);
+            String methodId = methodIdBuilder.buildMethodId(methodScope);
 
-            BasicSymbol parameter = symbolTable.getParameter(methodName, nodeName);
+            BasicSymbol parameter = symbolTable.getParameter(methodId, nodeName);
             return parameter != null;
         }
         return false;
