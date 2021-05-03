@@ -22,13 +22,8 @@ public class AssignmentVisitor extends Visitor {
         Type leftSideType = leftSideSymbol.getType();
         Type rightSideType = rightSideVerification(node, reports);
 
-        if (leftSideType == null || rightSideType == null ||
-                (!leftSideType.equals(rightSideType)
-                && !rightSideType.getName().equals(Types.expected))) {
-            //TODO: add to reports
-            System.out.println("!!!  WRONG ASSIGNMENT  !!!");
-            System.out.println("left: " + node.getChildren().get(0));
-            System.out.println("right: " + node.getChildren().get(1));
+        if (leftSideType == null || rightSideType == null || (!leftSideType.equals(rightSideType) && !rightSideType.getName().equals(Types.expected))) {
+            reports.add(getReport(node, "Right hand side type does not match left hand side"));
         }
 
         leftSideSymbol.setInit(true);

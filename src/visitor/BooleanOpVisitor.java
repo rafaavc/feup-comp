@@ -22,14 +22,21 @@ public class BooleanOpVisitor extends Visitor {
 
     private Boolean visitBinary(JmmNode node, List<Report> reports) {
         String nodeKind = node.getKind();
+        Boolean result = false;
         if (nodeKind.equals(NodeNames.and)) {
-            return verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
-        } else if (nodeKind.equals(NodeNames.not) || nodeKind.equals(NodeNames.condition)) {
-            return verifyBool(node.getChildren().get(0));
+            result = verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
+            if (!result) reports.add(getReport(node, "Invalid and operation"));
+        } else if (nodeKind.equals(NodeNames.not)) {
+            result = verifyBool(node.getChildren().get(0));
+            if (!result) reports.add(getReport(node, "Invalid not operation"));
         } else if (nodeKind.equals(NodeNames.lessThan)) {
-            return verifyNum(node.getChildren().get(0)) && verifyNum(node.getChildren().get(1));
+            result = verifyNum(node.getChildren().get(0)) && verifyNum(node.getChildren().get(1));
+            if (!result) reports.add(getReport(node, "Invalid less than operation"));
+        } else if (nodeKind.equals(NodeNames.condition)) {
+            result = verifyBool(node.getChildren().get(0));
+            if (!result) reports.add(getReport(node, "Invalid condition"));
         }
-        return false;
+        return result;
     }
 
     private Boolean verifyBool(JmmNode node) {

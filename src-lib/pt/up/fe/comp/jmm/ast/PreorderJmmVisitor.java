@@ -60,8 +60,6 @@ public class PreorderJmmVisitor<D, R> extends AJmmVisitor<D, R> {
 
         // Preorder: 1st visit the node
         var nodeResult = visit.apply(jmmNode, data);
-        if (kind.equals(NodeNames.and) || kind.equals(NodeNames.not) ||kind.equals(NodeNames.lessThan))
-        System.out.println(nodeResult);
 
         // Preorder: then, visit each children
         List<R> childrenResults = new ArrayList<>();

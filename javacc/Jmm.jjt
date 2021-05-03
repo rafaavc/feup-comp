@@ -196,12 +196,12 @@ void Type(): {Token t1;}
 // --Statements--
 // --------------
 
-void Statement() #void : {}
+void Statement() #void : { Token t;}
 {
 	BlockStatement()
 	| IfElseStatement()
 	| WhileStatement()
-    | Expression() (<EQ> Expression() #Assignment(2))? <SEMICOLON>
+    | Expression() (t = <EQ> Expression() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #Assignment(2))? <SEMICOLON>
 }
 
 void BlockStatement() #Block : {}
@@ -252,42 +252,43 @@ void Expression() #void : {}
 	And()
 }
 
-void And() #void : {}
+void And() #void : {Token t;}
 {
-	LessThan() (<AND> LessThan() #And(2))*
+	LessThan() (t=<AND> LessThan() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #And(2))*
 }
 
-void LessThan() #void : {}
+void LessThan() #void : {Token t;}
 {
-	SumSub() (<LT> SumSub() #LessThan(2))*
+	SumSub() (t=<LT> SumSub() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #LessThan(2))*
 }
 
-void SumSub() #void : {}
+void SumSub() #void : {Token t;}
 {
-	MulDiv() ((<SUM> MulDiv() #Sum(2) | <SUB> MulDiv() #Sub(2)))*
+	MulDiv() ((t=<SUM> MulDiv() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #Sum(2) | t=<SUB> MulDiv() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #Sub(2)))*
 }
 
-void MulDiv() #void : {}
+void MulDiv() #void : {Token t;}
 {
-	Not() ((<MUL> Not() #Mul(2) | <DIV> Not() #Div(2) ))*
+	Not() ((t=<MUL> Not() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #Mul(2) | t=<DIV> Not() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #Div(2) ))*
 }
 
-void Not() #void : {}
+void Not() #void : {Token t;}
 {
-	(<NOT> Not() #Not ) | ExpressionExtension()
+	(t=<NOT> Not() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn)); } #Not(1) ) | ExpressionExtension()
 }
 
 void ExpressionExtension() #void : {Token t;}
 {
-	ExpressionTerminalSymbols() (t = ArrayAccess() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ArrayAccessResult(2) | ObjectProperty() #ObjectProperty(2))*
+	ExpressionTerminalSymbols() (t = ArrayAccess() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ArrayAccessResult(2) | t = ObjectProperty() {jjtThis.put("line", String.valueOf(t.beginLine)); jjtThis.put("column", String.valueOf(t.beginColumn));} #ObjectProperty(2))*
 }
 
-void ObjectProperty() #void : {Token t1;}
+Token ObjectProperty() #void : {Token t1;}
 {
-	<DOT> (
+	t1 = <DOT> (
 		<LENGTH> #Length
 		| ObjectMethod()
 	)
+    {return t1;}
 }
 
 void ObjectMethod() : {Token t1;}

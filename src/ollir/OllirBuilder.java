@@ -22,7 +22,15 @@ public class OllirBuilder {
     public OllirBuilder(BasicSymbolTable table) {
         this.table = table;
 
-        code.append(table.getClassName()).append(" {\n");
+        for (String importName : table.getImports()) {
+            code.append("import ").append(importName).append("\n");
+        }
+
+        code.append(table.getClassName());
+        if (table.getSuper() != null) {
+            code.append(" extends ").append(table.getSuper());
+        }
+        code.append(" {\n");
         addFields();
         addConstructor();
     }
@@ -57,6 +65,9 @@ public class OllirBuilder {
         else firstMethod = false;
 
         code.append("\t.method public ");
+        if (node.getKind().equals(NodeNames.mainMethod))
+            code.append("static ");
+
         String methodName = node.getOptional(Attributes.name).orElse(null);
         if (methodName == null) return;
 

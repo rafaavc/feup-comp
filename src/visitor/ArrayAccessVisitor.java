@@ -7,8 +7,6 @@ import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
-import pt.up.fe.comp.jmm.report.ReportType;
-import pt.up.fe.comp.jmm.report.Stage;
 import table.BasicSymbolTable;
 
 import java.util.List;
@@ -19,10 +17,6 @@ public class ArrayAccessVisitor extends Visitor {
         super(symbolTable);
         addVisit(NodeNames.arrayAccessResult, this::visitArrayAccess);
         addVisit(NodeNames.newArraySize, this::visitNewArraySize);
-    }
-
-    public Report getReport(JmmNode node, String msg) {
-        return new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get(Attributes.line)), Integer.parseInt(node.get(Attributes.column)), msg);
     }
 
     public Boolean visitNewArraySize(JmmNode node, List<Report> reports) {
