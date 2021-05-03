@@ -70,8 +70,6 @@ public class BackendStage implements JasminBackend {
         sb.append(".field ")
             .append(getAccessType(field.getFieldAccessModifier()))
             .append(" ")
-            .append(classUnit.getClassName())
-            .append(" ")
             .append(field.getFieldName())
             .append(" ")
             .append(getElementType(field.getFieldType()))
@@ -158,7 +156,15 @@ public class BackendStage implements JasminBackend {
             }
             return;
         }
+
+        if (element.getType().getTypeOfElement() == ElementType.THIS) {
+            sb.append("\taload 0\n");
+            return;
+        }
+
         Operand operand = (Operand) element;
+        System.out.println("Loading element from local variables...");
+        localVariable.log();
         System.out.println("Is operand, name = " + operand.getName());
         String typePrefix = getElementTypePrefix(element);
         sb.append("\t").append(typePrefix).append("load ").append(localVariable.getCorrespondence(operand.getName())).append("\n");
@@ -256,9 +262,12 @@ public class BackendStage implements JasminBackend {
             }
             case PUTFIELD -> {
                 PutFieldInstruction putFieldInstruction = (PutFieldInstruction) i;
-                loadElement(putFieldInstruction.getThirdOperand(), localVariable, sb);
                 Operand firstPutFieldOperand = (Operand) putFieldInstruction.getFirstOperand();
                 Operand secondPutFieldOperand = (Operand) putFieldInstruction.getSecondOperand();
+
+                loadElement(firstPutFieldOperand, localVariable, sb);
+                loadElement(putFieldInstruction.getThirdOperand(), localVariable, sb);
+
                 sb.append("\tputfield ")
                         .append(getClassNameRepresentation(firstPutFieldOperand))
                         .append("/")
@@ -271,6 +280,9 @@ public class BackendStage implements JasminBackend {
                 GetFieldInstruction getFieldInstruction = (GetFieldInstruction) i;
                 Operand firstGetFieldOperand = (Operand) getFieldInstruction.getFirstOperand();
                 Operand secondGetFieldOperand = (Operand) getFieldInstruction.getSecondOperand();
+
+                loadElement(firstGetFieldOperand, localVariable, sb);
+
                 sb.append("\tgetfield ")
                         .append(getClassNameRepresentation(firstGetFieldOperand))
                         .append("/")

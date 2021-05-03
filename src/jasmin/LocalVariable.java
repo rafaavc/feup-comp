@@ -30,4 +30,11 @@ public class LocalVariable {
     public int getCorrespondence(String identifier) {
         return identifiers.get(identifier);
     }
+
+    public void log() {
+        for (String id : identifiers.keySet()) {
+            System.out.print(id + "; ");
+        }
+        System.out.println();
+    }
 }
