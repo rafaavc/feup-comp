@@ -51,6 +51,24 @@ public class Main implements JmmParser, JmmAnalysis {
 		return new JmmSemanticsResult(parserResult, controller.getTable(), controller.getReports());
 	}
 
+	private static boolean containsErrorReport(List<Report> reports) {
+		for (Report report : reports) if (report.getType() == ReportType.ERROR) return true;
+		return false;
+	}
+
+	private static void logReports(List<Report> reports, int limit) {
+		if (reports.size() == 0) {
+			System.out.println("Nothing to report.");
+			return;
+		}
+		int count = 0;
+		for (Report report: reports) {
+			if (count >= limit) return;
+			System.out.println(report);
+			count++;
+		}
+	}
+
 	public static void main(String[] args) {
         System.out.println("Executing with args: " + Arrays.toString(args));
         if (args.length < 1) {
@@ -61,20 +79,33 @@ public class Main implements JmmParser, JmmAnalysis {
 		String jmmCode = SpecsIo.read(args[0]);
 
 		Main main = new Main();
-		JmmParserResult result = main.parse(jmmCode);
+		JmmParserResult parserResult = main.parse(jmmCode);
 
 		File output = new File("tree.json");
-		SpecsIo.write(output, result.toJson());
+		SpecsIo.write(output, parserResult.toJson());
 
-		List<Report> reports = result.getReports();
-		for (Report report : reports.subList(0, Math.min(reports.size(), maxErrNo))) {
-			System.out.println(report.getMessage());
+		List<Report> globalReports = new ArrayList<>(parserResult.getReports());
+
+		boolean success = false;
+		if (!containsErrorReport(parserResult.getReports())) {
+			JmmSemanticsResult semanticsResult = main.semanticAnalysis(parserResult);
+			globalReports.addAll(semanticsResult.getReports());
+
+			if (!containsErrorReport(semanticsResult.getReports())) {
+				OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
+				globalReports.addAll(ollirResult.getReports());
+
+				if (!containsErrorReport(ollirResult.getReports())) {
+					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
+					globalReports.addAll(jasminResult.getReports());
+
+					if (!containsErrorReport(jasminResult.getReports())) success = true;
+				}
+			}
 		}
 
-		JmmSemanticsResult semanticsResult = main.semanticAnalysis(result);
+		logReports(globalReports, maxErrNo);
 
-		OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
-		
-		JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
+		if (success) System.out.println("Jasmin code generated with success!");
     }
 }

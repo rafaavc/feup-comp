@@ -41,9 +41,5 @@ public class VisitorController {
         new AssignmentVisitor(table).visit(root, semanticReports);
         new BooleanOpVisitor(table).visit(root, semanticReports);
         new ArrayAccessVisitor(table).visit(root, semanticReports);
-
-        for (Report r : semanticReports) {
-            Logger.log(r.toString());
-        }
     }
 }
