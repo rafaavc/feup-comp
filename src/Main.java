@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 
@@ -19,7 +20,7 @@ import pt.up.fe.specs.util.SpecsIo;
 import visitor.*;
 import utils.Logger;
 
-public class Main implements JmmParser, JmmAnalysis {
+public class Main implements JmmParser {
 
 	@Override
 	public JmmParserResult parse(String jmmCode) {
@@ -40,14 +41,22 @@ public class Main implements JmmParser, JmmAnalysis {
 		}
 	}
 
-	@Override
-	public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
-		// TODO change
-		JmmNode root = parserResult.getRootNode();
-		VisitorController controller = new VisitorController(root);
-		controller.start();
+	private static boolean containsErrorReport(List<Report> reports) {
+		for (Report report : reports) if (report.getType() == ReportType.ERROR) return true;
+		return false;
+	}
 
-		return new JmmSemanticsResult(parserResult, controller.getTable(), controller.getReports());
+	private static void logReports(List<Report> reports, int limit) {
+		if (reports.size() == 0) {
+			System.out.println("Nothing to report.");
+			return;
+		}
+		int count = 0;
+		for (Report report: reports) {
+			if (count >= limit) return;
+			System.out.println(report);
+			count++;
+		}
 	}
 
 	public static void main(String[] args) {
@@ -60,18 +69,37 @@ public class Main implements JmmParser, JmmAnalysis {
 		String jmmCode = SpecsIo.read(args[0]);
 
 		Main main = new Main();
-		JmmParserResult result = main.parse(jmmCode);
+		JmmParserResult parserResult = main.parse(jmmCode);
 
 		File output = new File("tree.json");
-		SpecsIo.write(output, result.toJson());
+		SpecsIo.write(output, parserResult.toJson());
 
-		List<Report> reports = result.getReports();
-		for (Report report : reports.subList(0, Math.min(reports.size(), maxErrNo))) {
-			System.out.println(report.getMessage());
+		List<Report> globalReports = new ArrayList<>(parserResult.getReports());
+
+		boolean success = false;
+		if (!containsErrorReport(parserResult.getReports())) {
+			AnalysisStage analysis = new AnalysisStage();
+			JmmSemanticsResult semanticsResult = analysis.semanticAnalysis(parserResult);
+			globalReports.addAll(semanticsResult.getReports());
+
+			if (!containsErrorReport(semanticsResult.getReports())) {
+				OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
+				globalReports.addAll(ollirResult.getReports());
+
+				if (!containsErrorReport(ollirResult.getReports())) {
+					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
+					globalReports.addAll(jasminResult.getReports());
+
+					if (!containsErrorReport(jasminResult.getReports())) {
+						success = true;
+						System.out.print("Jasmin result: ");
+						jasminResult.run();
+					}
+				}
+			}
 		}
 
-		JmmSemanticsResult semanticsResult = main.semanticAnalysis(result);
-
-		//OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
+		logReports(globalReports, maxErrNo);
+		if (success) System.out.println("Jasmin code generated with success!");
     }
 }

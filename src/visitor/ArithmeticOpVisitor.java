@@ -1,10 +1,13 @@
 package visitor;
 
+import constants.Attributes;
 import constants.NodeNames;
 import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.ReportType;
+import pt.up.fe.comp.jmm.report.Stage;
 import table.BasicSymbolTable;
 
 import java.util.List;
