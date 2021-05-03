@@ -95,11 +95,24 @@ public class TypeInterpreter {
             Type type = symbolTable.getReturnType(buildMethodCallId(objectMethod));
             if (type != null) return type;
 
-            if (symbolTable.getSuper() != null) return new Type(Types.expected, false);
+            if (symbolTable.getSuper() != null) {
+                if (!validateStaticMethodParameters(objectMethod)) return null;
+                return new Type(Types.expected, false);
+            }
 
-        } else if (isImportedClassInstance(identifier))
+        } else if (isImportedClassInstance(identifier)) {
+            if (!validateStaticMethodParameters(objectMethod)) return null;
             return new Type(Types.expected, false);
+        }
         return null;
+    }
+
+    private boolean validateStaticMethodParameters(JmmNode node) {
+        List<JmmNode> params = node.getChildren();
+        for (JmmNode param : params) {
+            if (getNodeType(param) == null) return false;
+        }
+        return true;
     }
 
     public boolean isImportedClassInstance(JmmNode identifier) {
@@ -176,9 +189,8 @@ public class TypeInterpreter {
     private String buildParametersCallId(List<JmmNode> parameters) {
         List<String> parameterIds = new ArrayList<>();
         for (JmmNode parameter : parameters) {
-            System.out.println("PARAMETER: " + parameter);
             Type type = getNodeType(parameter);
-            System.out.println("TYPE: " + type);
+            if (type == null) return "";
 
             if (type.isArray()) parameterIds.add(type.getName() + "[]");
             else parameterIds.add(type.getName());

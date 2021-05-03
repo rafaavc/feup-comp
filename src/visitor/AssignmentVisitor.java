@@ -22,7 +22,16 @@ public class AssignmentVisitor extends Visitor {
         Type leftSideType = leftSideSymbol.getType();
         Type rightSideType = rightSideVerification(node, reports);
 
-        if (leftSideType == null || rightSideType == null || (!leftSideType.equals(rightSideType) && !rightSideType.getName().equals(Types.expected))) {
+        if (leftSideType == null) {
+            reports.add(getReport(node, "Left hand side of assignment does not exist or is not assignable!"));
+            return false;
+        }
+        if (rightSideType == null) {
+            leftSideSymbol.setInit(true);
+            return false;
+        }
+
+        if (!leftSideType.equals(rightSideType) && !rightSideType.getName().equals(Types.expected)) {
             reports.add(getReport(node, "Right hand side type does not match left hand side"));
         }
 

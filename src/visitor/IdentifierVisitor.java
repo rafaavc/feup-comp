@@ -19,12 +19,12 @@ public class IdentifierVisitor extends Visitor {
 
     private Boolean verifyInit(JmmNode node, List<Report> reports) {
         BasicSymbol symbol = typeInterpreter.getIdentifierSymbol(node);
-        //TODO: verify if exists
-        if (symbol == null) return true;
-        /*        && !typeInterpreter.isImportedClassInstance(node)) {
+        if (symbol == null && !typeInterpreter.isImportedClassInstance(node)) {
             reports.add(getReport(node, "Variable " + node.getOptional(Attributes.name).orElse(null) + " does not exist"));
             return false;
-        }*/
+        }
+
+        if (symbol == null) return true;
         if (!symbol.isInit() && !isParameter(node)) {
             reports.add(getReport(node, "Variable not initialized"));
             return false;
