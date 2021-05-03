@@ -343,7 +343,7 @@ public class BackendStage implements JasminBackend {
             case INT32 -> "I";
             case BOOLEAN -> "I";
             case THIS, STRING -> "whhaaat";
-            case CLASS, OBJECTREF -> "L" + ((ClassType) type).getName() + ";";
+            case CLASS, OBJECTREF -> "L" + getClassNameWithImport(((ClassType) type).getName()) + ";";
             case ARRAYREF -> "[Ljava/lang/String;";  // TODO
             case VOID -> "V";
         };
