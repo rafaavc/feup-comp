@@ -108,7 +108,7 @@ public class BasicSymbolTable implements SymbolTable {
         Logger.log("## Methods");
         for (String method : getMethods()) {
             Logger.log("### New method");
-            Logger.log("- " + /*method.split("-")[0]*/ method + ", returns " + getReturnType(method));
+            Logger.log("- " + method.split("-")[0] + ", returns " + getReturnType(method));
             Logger.log("");
             Logger.log("#### Parameters");
             for (Symbol param : getParameters(method)) Logger.log("-" + param);

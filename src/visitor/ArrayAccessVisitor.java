@@ -33,7 +33,6 @@ public class ArrayAccessVisitor extends Visitor {
             reports.add(getReport(node, "'" + leftChild.getKind() + "' can not be indexed. It is not an array."));
         } else {
             Symbol symbol = typeInterpreter.getIdentifierSymbol(leftChild);
-            System.out.println("Found symbol of " + symbol.getName() + ": " + symbol.toString());
             if (!symbol.getType().isArray()) {
                 reports.add(getReport(node, "Identifier '" + leftChild.get(Attributes.name) + "' can not be indexed. It is not an array."));
             }

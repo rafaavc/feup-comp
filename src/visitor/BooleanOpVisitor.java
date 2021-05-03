@@ -20,19 +20,24 @@ public class BooleanOpVisitor extends Visitor {
 
     private Boolean visitBinary(JmmNode node, List<Report> reports) {
         String nodeKind = node.getKind();
-        Boolean result = false;
-        if (nodeKind.equals(NodeNames.and)) {
-            result = verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
-            if (!result) reports.add(getReport(node, "Invalid and operation"));
-        } else if (nodeKind.equals(NodeNames.not)) {
-            result = verifyBool(node.getChildren().get(0));
-            if (!result) reports.add(getReport(node, "Invalid not operation"));
-        } else if (nodeKind.equals(NodeNames.lessThan)) {
-            result = verifyNum(node.getChildren().get(0)) && verifyNum(node.getChildren().get(1));
-            if (!result) reports.add(getReport(node, "Invalid less than operation"));
-        } else if (nodeKind.equals(NodeNames.condition)) {
-            result = verifyBool(node.getChildren().get(0));
-            if (!result) reports.add(getReport(node, "Invalid condition"));
+        boolean result = false;
+        switch (nodeKind) {
+            case NodeNames.and -> {
+                result = verifyBool(node.getChildren().get(0)) && verifyBool(node.getChildren().get(1));
+                if (!result) reports.add(getReport(node, "Invalid and operation"));
+            }
+            case NodeNames.not -> {
+                result = verifyBool(node.getChildren().get(0));
+                if (!result) reports.add(getReport(node, "Invalid not operation"));
+            }
+            case NodeNames.lessThan -> {
+                result = verifyNum(node.getChildren().get(0)) && verifyNum(node.getChildren().get(1));
+                if (!result) reports.add(getReport(node, "Invalid less than operation"));
+            }
+            case NodeNames.condition -> {
+                result = verifyBool(node.getChildren().get(0));
+                if (!result) reports.add(getReport(node, "Invalid condition"));
+            }
         }
         return result;
     }

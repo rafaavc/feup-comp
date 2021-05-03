@@ -88,20 +88,16 @@ public class TypeInterpreter {
         JmmNode identifier = node.getChildren().get(0);
         JmmNode objectMethod = node.getChildren().get(1);
 
-        String identifierKind = identifier.getKind();
-        String identifierName = identifier.getOptional(Attributes.name).orElse(null);
-
         String methodName = objectMethod.getOptional(Attributes.name).orElse(null);
         if (methodName == null) return null;
 
-        if (identifierKind.equals(NodeNames.thisName) || isCurrentClassInstance(identifier)) {
+        if (isCurrentClassInstance(identifier)) {
             Type type = symbolTable.getReturnType(buildMethodCallId(objectMethod));
             if (type != null) return type;
 
-            if (symbolTable.getSuper() != null)
-                return new Type(Types.expected, false);
-        } else if (symbolTable.getImports().contains(identifierName) ||
-                isImportedClassInstance(identifier))
+            if (symbolTable.getSuper() != null) return new Type(Types.expected, false);
+
+        } else if (isImportedClassInstance(identifier))
             return new Type(Types.expected, false);
         return null;
     }
@@ -114,6 +110,8 @@ public class TypeInterpreter {
     }
 
     public boolean isCurrentClassInstance(JmmNode identifier) {
+        if (identifier.getKind().equals(NodeNames.thisName)) return true;
+
         if (identifier.getKind().equals(NodeNames.identifier)) {
             BasicSymbol symbol = getIdentifierSymbol(identifier);
             if (symbol == null) return false;
@@ -178,7 +176,9 @@ public class TypeInterpreter {
     private String buildParametersCallId(List<JmmNode> parameters) {
         List<String> parameterIds = new ArrayList<>();
         for (JmmNode parameter : parameters) {
+            System.out.println("PARAMETER: " + parameter);
             Type type = getNodeType(parameter);
+            System.out.println("TYPE: " + type);
 
             if (type.isArray()) parameterIds.add(type.getName() + "[]");
             else parameterIds.add(type.getName());

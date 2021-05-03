@@ -1,13 +1,10 @@
 package visitor;
 
-import constants.Attributes;
 import constants.NodeNames;
 import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.report.Report;
-import pt.up.fe.comp.jmm.report.ReportType;
-import pt.up.fe.comp.jmm.report.Stage;
 import table.BasicSymbolTable;
 
 import java.util.List;
@@ -29,11 +26,15 @@ public class ArithmeticOpVisitor extends Visitor {
         Type rightType = typeInterpreter.getNodeType(rightNode);
         Type expected = new Type(Types.integer, false);
 
-        if (!leftType.equals(expected) || !rightType.equals(expected)) {
+        if (!isValidType(leftType, expected) || !isValidType(rightType, expected)) {
             reports.add(getReport(node, "Invalid arithmetic operation"));
             return false;
         }
 
         return true;
+    }
+
+    private Boolean isValidType(Type type, Type expected) {
+        return type.equals(expected) || type.getName().equals(Types.expected);
     }
 }

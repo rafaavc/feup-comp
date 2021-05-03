@@ -1,24 +1,18 @@
-
-import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
-import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.io.StringReader;
-import java.util.List;
-
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.specs.util.SpecsIo;
-import visitor.*;
-import utils.Logger;
+
+import java.io.File;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Main implements JmmParser {
 
@@ -83,8 +77,15 @@ public class Main implements JmmParser {
 			globalReports.addAll(semanticsResult.getReports());
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
-				OllirResult ollirResult = new OptimizationStage().toOllir(semanticsResult);
-				globalReports.addAll(ollirResult.getReports());
+				OllirResult ollirResult;
+				try {
+					ollirResult = new OptimizationStage().toOllir(semanticsResult);
+					globalReports.addAll(ollirResult.getReports());
+				} catch (Exception e) {
+					System.out.println("Error in OLLIR, caused by one of the following (these operations are not being taken into consideration for checkpoint 2):");
+					System.out.println("\t-Array access\n\t-If statement\n\t-While statement");
+					return;
+				}
 
 				if (!containsErrorReport(ollirResult.getReports())) {
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
