@@ -127,7 +127,7 @@ public class BackendStage implements JasminBackend {
     private String buildConstructor(String superClass) {
         return ".method " + getAccessType(classUnit.getClassAccessModifier()) + " <init>()V" + "\n" +
                 "\taload_0" + "\n" +
-                "\tinvokenonvirtual " + superClass + "/<init>()V" + "\n" +
+                "\tinvokespecial " + superClass + "/<init>()V" + "\n" +
                 "\treturn" + "\n" +
                 ".end method" + "\n";
     }
