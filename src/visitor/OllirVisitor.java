@@ -123,7 +123,7 @@ public class OllirVisitor extends Visitor {
                 Scope nodeScope = new ScopeVisitor(symbolTable).visit(returnIdentifier);
                 Type returnType = symbolTable.getReturnType(methodIdBuilder.buildMethodId(nodeScope.getMethodScope()));
 
-                IntermediateOllirRepresentation representation = getOllirRepresentation(returnIdentifier, returnType, false);
+                IntermediateOllirRepresentation representation = getOllirRepresentation(returnIdentifier, returnType, true);
 
                 ollirBuilder.add(representation.getBefore());
                 ollirBuilder.addReturn(representation.getCurrent(), returnType);
