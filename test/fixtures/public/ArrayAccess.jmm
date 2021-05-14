@@ -1,0 +1,9 @@
+import io;
+class ArrayAccess {
+    public static void main(String[] argv) {
+        int[] a;
+        a = new int[10];
+        //a[0] = 1;
+        //io.println(a[0]);
+    }
+}

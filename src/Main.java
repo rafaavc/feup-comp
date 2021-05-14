@@ -78,14 +78,14 @@ public class Main implements JmmParser {
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
 				OllirResult ollirResult;
-				try {
+				//try {
 					ollirResult = new OptimizationStage().toOllir(semanticsResult);
 					globalReports.addAll(ollirResult.getReports());
-				} catch (Exception e) {
-					System.out.println("Error in OLLIR, caused by one of the following (these operations are not being taken into consideration for checkpoint 2):");
-					System.out.println("\t-Array access\n\t-If statement\n\t-While statement");
-					return;
-				}
+				//} catch (Exception e) {
+					//System.out.println("Error in OLLIR, caused by one of the following (these operations are not being taken into consideration for checkpoint 2):");
+					//System.out.println("\t-Array access\n\t-If statement\n\t-While statement");
+					//return;
+				//}
 
 				if (!containsErrorReport(ollirResult.getReports())) {
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);

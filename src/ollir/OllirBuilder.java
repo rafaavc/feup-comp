@@ -89,6 +89,10 @@ public class OllirBuilder {
         return "new(" + name + ")." + name;
     }
 
+    public String getArrayInstantiation(String length) {
+        return "new(array, i32, " + length + ").array.i32";
+    }
+
     public String getClassInitCall(String varName, String className) {
         return "\t\tinvokespecial(" + varName + "." + className + ",\"<init>\").V\n";
     }

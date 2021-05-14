@@ -59,9 +59,12 @@ public class OllirVisitor extends Visitor {
             case NodeNames.newAlloc -> {
                 String name = node.get(Attributes.name);
                 if (name.equals(Types.integer)) {
-                    // TODO
-                    Logger.err("> array instantiation is not for checkpoint 2");
-                    yield null;
+                    JmmNode size = node.getChildren().get(0).getChildren().get(0);
+                    IntermediateOllirRepresentation length = getOllirRepresentation(size, typeInterpreter.getNodeType(size), true);
+                    Logger.log(length.toString());
+                    String current = ollirBuilder.getArrayInstantiation(length.getCurrent());
+
+                    yield new IntermediateOllirRepresentation(current, length.getBefore());
                 }
                 /*
                     A.myClass :=.myClass new(myClass).myClass;
