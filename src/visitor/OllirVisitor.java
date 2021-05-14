@@ -171,7 +171,16 @@ public class OllirVisitor extends Visitor {
         if (property.getKind().equals(NodeNames.objectMethod)) {
             return handleObjectMethod(node, type, expectedType, inline);
         } else if (property.getKind().equals(NodeNames.length)) {
-            //TODO: when considering arrays
+            String arrayLengthCall = ollirBuilder.getArrayLengthCall(node.getChildren().get(0));
+            if (!inline) {
+                return new IntermediateOllirRepresentation("\t\t" + arrayLengthCall + "\n", "");
+            } else {
+                String auxName = ollirBuilder.getNextAuxName();
+                String before = ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), arrayLengthCall);
+                String current = auxName + ollirBuilder.typeToCode(type);
+
+                return new IntermediateOllirRepresentation(current, before);
+            }
         }
 
         return new IntermediateOllirRepresentation("\t\tTODO in handleObjectProperty\n", "\t\tTODO in handleObjectProperty\n");

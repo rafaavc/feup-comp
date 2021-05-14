@@ -11,6 +11,7 @@ import table.BasicSymbol;
 import table.BasicSymbolTable;
 import table.MethodIdBuilder;
 import typeInterpreter.TypeInterpreter;
+import utils.Logger;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
 
@@ -90,7 +91,12 @@ public class OllirBuilder {
     }
 
     public String getArrayInstantiation(String length) {
-        return "new(array, i32, " + length + ").array.i32";
+        return "new(array, " + length + ").array.i32";
+    }
+
+    public String getArrayLengthCall(JmmNode identifier) {
+        String current = getOperandOllirRepresentation(identifier, new ScopeVisitor(table).visit(identifier), typeInterpreter.getNodeType(identifier)).getCurrent();
+        return "arraylength(" + current + ").i32";
     }
 
     public String getClassInitCall(String varName, String className) {
