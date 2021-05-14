@@ -62,7 +62,7 @@ public class OllirBuilder {
     private void addConstructor() {
         code.append("\t.construct ").append(table.getClassName());
         code.append("().V {\n");
-        code.append("\t\tinvokespecial(this, \"<init>\").V\n");
+        code.append("\t\t\tinvokespecial(this, \"<init>\").V\n");
         code.append("\t}\n");
     }
 
@@ -94,7 +94,7 @@ public class OllirBuilder {
     }
 
     public String getClassInitCall(String varName, String className) {
-        return "\t\tinvokespecial(" + varName + "." + className + ",\"<init>\").V\n";
+        return "\t\t\tinvokespecial(" + varName + "." + className + ",\"<init>\").V\n";
     }
 
     public String getStaticMethodCall(String identifier, JmmNode method, Type returnType, Type expected, List<String> parameters) {
@@ -132,8 +132,23 @@ public class OllirBuilder {
     public void addReturn(String returnOllirRep, Type returnType) {
         String returnTypeCode = typeToCode(returnType);
 
-        code.append("\t\tret").append(returnTypeCode);
+        code.append("\t\t\tret").append(returnTypeCode);
         code.append(" ").append(returnOllirRep).append("\n");
+    }
+
+    public void addLoop(IntermediateOllirRepresentation condition, int label) {
+        code.append("\t\tLoop").append(label).append(":\n");
+        
+        add(condition.getBefore());
+        // add(condition.getCurrent());
+        //add if go to
+        code.append("\t\t\tgoto End").append(label).append("\n");
+        code.append("\t\tBody").append(label).append(":\n");
+    }
+
+    public void addLoopEnd(int label) {
+        code.append("\t\t\tgoto Loop").append(label).append("\n");
+        code.append("\t\tEnd").append(label).append(":\n");
     }
 
     public String getAssignmentWithExpression(BasicSymbol symbol, String operatorName, String op1, String op2) {
@@ -214,21 +229,21 @@ public class OllirBuilder {
     }
 
     public String getAssignmentCustom(BasicSymbol symbol, String rightSide) {
-        return "\t\t" + symbol.getName() +
+        return "\t\t\t" + symbol.getName() +
                 typeToCode(symbol.getType()) +
                 equalsSign(symbol.getType()) +
                 rightSide + "\n";
     }
 
     public void addPutField(BasicSymbol symbol, String rightSide) {
-        code.append("\t\tputfield(this, ").append(symbol.getName());
+        code.append("\t\t\tputfield(this, ").append(symbol.getName());
         code.append(typeToCode(symbol.getType())).append(", ").append(rightSide);
         code.append(").V\n");
     }
 
     public String getCode() {
         String code = this.code.toString();
-        return code.replaceAll("(?<!})(?<!\\{)\n", ";\n") + "\t}\n}";
+        return code.replaceAll("(?<!})(?<!:)(?<!\\{)\n", ";\n") + "\t}\n}";
     }
 
     public String operatorNameToSymbol(String operatorName) {

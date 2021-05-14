@@ -29,4 +29,5 @@ public class NodeNames {
     public final static String returnStatement = "Return";
     public final static String condition = "Condition";
     public final static String ifElse = "IfElse";
+    public final static String whileLoop = "While";
 }
