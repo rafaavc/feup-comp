@@ -85,6 +85,10 @@ public class OllirBuilder {
         code.append(")").append(typeToCode(returnType)).append(" {\n");
     }
 
+    public void addIf(String conditionExpression) {
+        code.append("\t\tif (").append(conditionExpression).append(") goto else\n");
+    }
+
     public String getClassInstantiation(String name) {
         return "new(" + name + ")." + name;
     }

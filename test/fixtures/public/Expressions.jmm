@@ -39,7 +39,7 @@ class Simple {
     	s.add(test, 1);
         w = true && !q && !false && !(q && true);
         c = 10 + t *8 /10 - p;
-        w = true && !q && !false && !(q && true) && s.add(1, 2);
+        w = true && !q && !false && !(q && true);
         c = 10 + t *8 /10 + test;
         c = 0;
         c = 4;
