@@ -12,5 +12,6 @@ class Fac {
     public static void main(String[]args){
     	Fac fac;
     	fac = new Fac();
+    	io.println(fac.compFac(10));
     }
 }

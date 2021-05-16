@@ -170,11 +170,11 @@ public class OllirVisitor extends Visitor {
 
                 ollirBuilder.addIf(reverseRep.getCurrent());
                 for (JmmNode ifChild : ifStatement.getChildren()) visitNode(ifChild);
-                ollirBuilder.add("\t\tgoto endif\n");
+                ollirBuilder.add("\t\t\tgoto endif\n");
 
-		        ollirBuilder.add("\telse:\n");
+		        ollirBuilder.add("\t\telse:\n");
                 for (JmmNode elseChild : elseStatement.getChildren()) visitNode(elseChild);
-                ollirBuilder.add("\tendif:\n");
+                ollirBuilder.add("\t\tendif:\n");
 
                 return;
             }

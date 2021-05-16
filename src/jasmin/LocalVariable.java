@@ -27,7 +27,7 @@ public class LocalVariable {
         identifiers.put(identifier, localVariable);
     }
 
-    public int getCorrespondence(String identifier) {
+    public Integer getCorrespondence(String identifier) {
         return identifiers.get(identifier);
     }
 
