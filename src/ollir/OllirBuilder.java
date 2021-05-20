@@ -88,7 +88,14 @@ public class OllirBuilder {
     }
 
     public int addIf(String conditionExpression) {
-        code.append("\t\tif (").append(conditionExpression).append(") goto " + Ollir.ifBody + ++ifCount + "\n");
+        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
+
+        code.append("\t\tif (")
+                .append(conditionExpression)
+                .append(") goto " + Ollir.ifBody)
+                .append(++ifCount)
+                .append("\n");
+
         return ifCount;
     }
 
@@ -265,7 +272,7 @@ public class OllirBuilder {
             case NodeNames.mul -> " *.i32 ";
             case NodeNames.div -> " /.i32 ";
             case NodeNames.and -> " &&.bool ";
-            case NodeNames.not -> "!.bool ";
+            case NodeNames.not -> " !.bool ";
             case NodeNames.lessThan -> " <.i32 ";
             default -> null;
         };

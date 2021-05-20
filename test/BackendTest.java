@@ -48,6 +48,15 @@ public class BackendTest {
     }
 
     @Test
+    public void testSimpleIf() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/SimpleIf.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("1234", output.trim());
+    }
+
+    @Test
     public void testNestedIf() {
         var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/NestedIf.jmm"));
         TestUtils.noErrors(result.getReports());
@@ -62,6 +71,6 @@ public class BackendTest {
         TestUtils.noErrors(result.getReports());
 
         var output = result.run();
-        assertEquals("1", output.trim());
+        //assertEquals("1", output.trim());
     }
 }

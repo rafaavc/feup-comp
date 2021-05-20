@@ -1,0 +1,44 @@
+import io;
+class SimpleIf {
+	public boolean compare(int a, int b) {
+		return a < b;
+	}
+
+    public static void main(String[]args){
+    	int n;
+    	boolean b;
+		SimpleIf simpleIf;
+
+		simpleIf = new SimpleIf();
+    	b = false;
+    	n = 10;
+    	// CASE 1: not expression
+    	if (!b)
+    		n = 1;
+    	else
+    		n = 0;
+    	io.print(n);
+
+		// CASE 2: identifier of primitive type
+    	if (true)
+    		n = 2;
+    	else
+    		n = 0;
+    	io.print(n);
+
+		// CASE 3: identifier of variable
+    	b = true;
+    	if (b)
+    		n = 3;
+    	else
+    		n = 0;
+    	io.print(n);
+
+		// CASE 4: method call
+    	if (simpleIf.compare(10, 1000))
+			n = 4;
+		else
+			n = 0;
+		io.print(n);
+    }
+}

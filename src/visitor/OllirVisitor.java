@@ -41,7 +41,8 @@ public class OllirVisitor extends Visitor {
 
                 String current;
                 if (representations.size() == 1)
-                    current = ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(0).getCurrent();
+                    current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind())
+                            + representations.get(0).getCurrent();
                 else
                     current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind())
                             + representations.get(1).getCurrent();

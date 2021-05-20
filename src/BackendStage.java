@@ -270,10 +270,12 @@ public class BackendStage implements JasminBackend {
             }
             case BRANCH -> {
                 CondBranchInstruction condBranchInstruction = (CondBranchInstruction) i;
-                loadElement(condBranchInstruction.getLeftOperand(), localVariable, sb);
-                loadElement(condBranchInstruction.getRightOperand(), localVariable, sb);
 
                 Operation operation = condBranchInstruction.getCondOperation();
+                loadElement(condBranchInstruction.getLeftOperand(), localVariable, sb);
+                if (operation.getOpType() != OperationType.NOTB) {
+                    loadElement(condBranchInstruction.getRightOperand(), localVariable, sb);
+                }
                 sb.append(branchBuilder.buildBranchInstruction(operation));
             }
             case RETURN -> {
@@ -319,7 +321,7 @@ public class BackendStage implements JasminBackend {
             case UNARYOPER -> {
                 UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) i;
                 if (unaryOpInstruction.getUnaryOperation().getOpType() == OperationType.NOTB) {
-                    System.out.println("FOund NOTB!!!");
+                    System.out.println("------> Found NOTB!!!");
                     loadElement(unaryOpInstruction.getRightOperand(), localVariable, sb);
                     sb.append("\tldc 1\n");
                     sb.append("\tixor\n");

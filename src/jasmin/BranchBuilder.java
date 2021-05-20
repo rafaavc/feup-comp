@@ -15,7 +15,8 @@ public class BranchBuilder {
             case LTE -> "if_icmple";
             case GTE -> "if_icmpge";
             case ANDB -> "iand\n\tifne";
-            default -> "Operation in if condition not being taken into consideration!";
+            case NOTB -> "ifeq";
+            default -> "ERROR: Operation in if condition not being taken into consideration";
         };
         return "\t" + header + " " + Ollir.ifBody + ++ifCount + "\n";
     }
