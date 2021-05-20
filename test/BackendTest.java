@@ -37,4 +37,31 @@ public class BackendTest {
         var output = result.run();
         assertEquals("30", output.trim());
     }
+
+    @Test
+    public void testFac() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Fac.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("3628800", output.trim());
+    }
+
+    @Test
+    public void testNestedIf() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/NestedIf.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("2", output.trim());
+    }
+
+    @Test
+    public void testComplexExpressionIf() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/ComplexExpressionIf.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("1", output.trim());
+    }
 }

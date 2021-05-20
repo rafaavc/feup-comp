@@ -3,16 +3,13 @@ package visitor;
 import constants.Attributes;
 import constants.NodeNames;
 import constants.Types;
-import ollir.ExpressionReverser;
 import ollir.IntermediateOllirRepresentation;
 import ollir.OllirBuilder;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
-import table.BasicSymbolTable;
-import typeInterpreter.TypeInterpreter;
-import table.BasicSymbol;
-
 import pt.up.fe.comp.jmm.JmmNode;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import table.BasicSymbol;
+import table.BasicSymbolTable;
 import utils.Logger;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
@@ -48,7 +45,6 @@ public class OllirVisitor extends Visitor {
                 else
                     current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind())
                             + representations.get(1).getCurrent();
-
 
                 if (!inline) {
                     String auxName = ollirBuilder.getNextAuxName();
@@ -157,24 +153,18 @@ public class OllirVisitor extends Visitor {
             case NodeNames.ifElse -> {
                 JmmNode conditionExp = children.get(0).getChildren().get(0);
                 Type returnType = typeInterpreter.getNodeType(conditionExp);
-                System.out.println("Condition return type (should be boolean): " + returnType);
 
                 JmmNode ifStatement = children.get(1);
                 JmmNode elseStatement = children.get(2);
 
                 IntermediateOllirRepresentation conditionExpRep = getOllirRepresentation(conditionExp, returnType, true);
-                IntermediateOllirRepresentation reverseRep = new ExpressionReverser().reverse(conditionExp, conditionExpRep.getCurrent(), ollirBuilder);
+                if (!conditionExpRep.getBefore().equals("")) ollirBuilder.add("\t\t" + conditionExpRep.getBefore());
 
-                if (!conditionExpRep.getBefore().equals("")) ollirBuilder.add("\t\t" + conditionExpRep.getBefore() + "\n");
-                if (!reverseRep.getBefore().equals("")) ollirBuilder.add("\t\t" + reverseRep.getBefore() + "\n");
-
-                ollirBuilder.addIf(reverseRep.getCurrent());
-                for (JmmNode ifChild : ifStatement.getChildren()) visitNode(ifChild);
-                ollirBuilder.add("\t\t\tgoto endif\n");
-
-		        ollirBuilder.add("\t\telse:\n");
-                for (JmmNode elseChild : elseStatement.getChildren()) visitNode(elseChild);
-                ollirBuilder.add("\t\tendif:\n");
+                int ifCount = ollirBuilder.addIf(conditionExpRep.getCurrent());
+                for (JmmNode ifChild : elseStatement.getChildren()) visitNode(ifChild);
+                ollirBuilder.addIfTransition();
+                for (JmmNode elseChild : ifStatement.getChildren()) visitNode(elseChild);
+                ollirBuilder.addIfEnd(ifCount);
 
                 return;
             }
@@ -197,13 +187,9 @@ public class OllirVisitor extends Visitor {
             case NodeNames.and, NodeNames.not -> new Type(Types.bool, false);
             case NodeNames.objectMethod -> {
                 List<JmmNode> children = parent.getChildren();
-                System.out.println("## PARENT: " + parent);
                 for (int i = 0; i < children.size(); i++) {
-                    System.out.println("### CHILD: " + children.get(i));
                     if (children.get(i) == node) {
-                        System.out.println("#### EQUALS!!!");
                         List<Symbol> parameters = symbolTable.getParameters(typeInterpreter.buildMethodCallId(parent));
-                        System.out.println("##### PARAMETERS: " + parameters.size());
                         if (parameters.size() >= i + 1) {
                             Symbol parameter = parameters.get(i);
                             yield parameter != null ? parameter.getType() : null;

@@ -2,6 +2,7 @@ package ollir;
 
 import constants.Attributes;
 import constants.NodeNames;
+import constants.Ollir;
 import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
@@ -20,6 +21,7 @@ public class OllirBuilder {
     private final StringBuilder code = new StringBuilder();
     private final BasicSymbolTable table;
     private int nextAuxNumber = 1;
+    private int ifCount = 0;
     private boolean firstMethod = true;
     protected TypeInterpreter typeInterpreter;
     protected MethodIdBuilder methodIdBuilder = new MethodIdBuilder();
@@ -85,8 +87,18 @@ public class OllirBuilder {
         code.append(")").append(typeToCode(returnType)).append(" {\n");
     }
 
-    public void addIf(String conditionExpression) {
-        code.append("\t\tif (").append(conditionExpression).append(") goto else\n");
+    public int addIf(String conditionExpression) {
+        code.append("\t\tif (").append(conditionExpression).append(") goto " + Ollir.ifBody + ++ifCount + "\n");
+        return ifCount;
+    }
+
+    public void addIfTransition() {
+        add("\t\t\tgoto " + Ollir.endIf + ifCount + "\n");
+        add("\t\t" + Ollir.ifBody + ifCount + ":\n");
+    }
+
+    public void addIfEnd(int ifCount) {
+        add("\t\t" + Ollir.endIf + ifCount + ":\n");
     }
 
     public String getClassInstantiation(String name) {

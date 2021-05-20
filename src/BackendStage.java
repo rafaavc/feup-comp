@@ -33,6 +33,7 @@ public class BackendStage implements JasminBackend {
     private int nextLabel = 1;
     private ClassUnit classUnit = null;
     private SymbolTable symbolTable = null;
+    private BranchBuilder branchBuilder = new BranchBuilder();
 
     private String getNextLabel() {
         String tmp = "label" + nextLabel;
@@ -197,7 +198,7 @@ public class BackendStage implements JasminBackend {
     private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb, Method m) {
         i.show();
 
-        for (String s : m.getLabels(i)) sb.append("\t").append(s).append(":\n");
+        for (String s : m.getLabels(i)) sb.append(s).append(":\n");
 
         switch (i.getInstType()) {
             case ASSIGN -> {
@@ -273,7 +274,7 @@ public class BackendStage implements JasminBackend {
                 loadElement(condBranchInstruction.getRightOperand(), localVariable, sb);
 
                 Operation operation = condBranchInstruction.getCondOperation();
-                sb.append(new BranchBuilder().buildBranchInstruction(operation));
+                sb.append(branchBuilder.buildBranchInstruction(operation));
             }
             case RETURN -> {
                 ReturnInstruction returnInstruction = (ReturnInstruction) i;
@@ -333,9 +334,7 @@ public class BackendStage implements JasminBackend {
                 String typePrefix = getElementTypePrefix(binaryOpInstruction.getLeftOperand());
                 sb.append("\t");
                 switch (binaryOpInstruction.getUnaryOperation().getOpType()) {
-                    case ADD -> {
-                        sb.append(typePrefix).append("add");
-                    }
+                    case ADD -> sb.append(typePrefix).append("add");
                     case MUL -> sb.append(typePrefix).append("mul");
                     case SUB -> sb.append(typePrefix).append("sub");
                     case DIV -> sb.append(typePrefix).append("div");

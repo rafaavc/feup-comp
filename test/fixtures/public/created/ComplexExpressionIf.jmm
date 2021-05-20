@@ -1,9 +1,9 @@
 import io;
-class SimpleIf {
+class ComplexExpressionIf {
     public static void main(String[]args){
     	int n;
     	n = 10;
-    	if (n < 100)
+    	if (((n < 100) && (n < 20)) && true && !false)
     		n = 1;
     	else
     		n = 0;
