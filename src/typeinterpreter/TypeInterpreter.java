@@ -1,4 +1,4 @@
-package typeInterpreter;
+package typeinterpreter;
 
 import constants.Attributes;
 import constants.NodeNames;
@@ -46,17 +46,13 @@ public class TypeInterpreter {
     }
 
     public BasicSymbol getAssignableSymbol(JmmNode node) {
-        Logger.log("Received " + node.toString() + " kind = " + node.getKind());
-        // TODO
         switch (node.getKind()) {
             case NodeNames.identifier -> {
                 return getIdentifierSymbol(node);
             }
             case NodeNames.arrayAccessResult -> {
                 JmmNode leftNode = node.getChildren().get(0);
-                Logger.log("The left node is " + leftNode.toString());
                 Symbol idSymbol = getIdentifierSymbol(leftNode);
-                Logger.log("Returned symbol " + idSymbol);
                 String typeName = idSymbol.getType().getName();
                 Type newType = new Type(typeName, false);
                 return new BasicSymbol(newType, leftNode.get(Attributes.name) + "[" + "]");
@@ -73,15 +69,11 @@ public class TypeInterpreter {
     public BasicSymbol getIdentifierSymbol(JmmNode node) {
         Scope scope = scopeVisitor.visit(node);
         String nodeName = node.getOptional(Attributes.name).orElse(null);
-        Logger.log("Node name = " + nodeName);
         if (nodeName == null) return null;
 
         JmmNode methodScope = scope.getMethodScope();
         if (methodScope != null) {
-            Logger.log("Looking in method scope...");
             String methodId = methodIdBuilder.buildMethodId(methodScope);
-
-            Logger.log("Method id = '" + methodId + "', ");
 
             BasicSymbol parameter = symbolTable.getParameter(methodId, nodeName);
             if (parameter != null) return parameter;
