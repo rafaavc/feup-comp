@@ -22,6 +22,7 @@ public class OllirBuilder {
     private final BasicSymbolTable table;
     private int nextAuxNumber = 1;
     private int ifCount = 0;
+    private int whileCount = 0;
     private boolean firstMethod = true;
     protected TypeInterpreter typeInterpreter;
     protected MethodIdBuilder methodIdBuilder = new MethodIdBuilder();
@@ -87,27 +88,6 @@ public class OllirBuilder {
         code.append(")").append(typeToCode(returnType)).append(" {\n");
     }
 
-    public int addIf(String conditionExpression) {
-        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
-
-        code.append("\t\tif (")
-                .append(conditionExpression)
-                .append(") goto " + Ollir.ifBody)
-                .append(++ifCount)
-                .append("\n");
-
-        return ifCount;
-    }
-
-    public void addIfTransition() {
-        add("\t\t\tgoto " + Ollir.endIf + ifCount + "\n");
-        add("\t\t" + Ollir.ifBody + ifCount + ":\n");
-    }
-
-    public void addIfEnd(int ifCount) {
-        add("\t\t" + Ollir.endIf + ifCount + ":\n");
-    }
-
     public String getClassInstantiation(String name) {
         return "new(" + name + ")." + name;
     }
@@ -155,19 +135,46 @@ public class OllirBuilder {
         code.append(" ").append(returnOllirRep).append("\n");
     }
 
-    public void addLoop(IntermediateOllirRepresentation condition, int label) {
-        code.append("\t\tLoop").append(label).append(":\n");
-        
+    public int addLoop(IntermediateOllirRepresentation condition) {
+        String conditionExpression = condition.getCurrent();
+        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
+
+        code.append("\t\tLoop").append(++whileCount).append(":\n");
+
         add(condition.getBefore());
-        // add(condition.getCurrent());
-        //add if go to
-        code.append("\t\t\tgoto End").append(label).append("\n");
-        code.append("\t\tBody").append(label).append(":\n");
+        addIf(conditionExpression, true);
+
+        code.append("\t\t\tgoto End").append(whileCount).append("\n");
+        code.append("\t\tBody").append(whileCount).append(":\n");
+
+        return whileCount;
     }
 
     public void addLoopEnd(int label) {
         code.append("\t\t\tgoto Loop").append(label).append("\n");
         code.append("\t\tEnd").append(label).append(":\n");
+    }
+
+    public int addIf(String conditionExpression, boolean isLoop) {
+        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
+
+        code.append("\t\tif (")
+                .append(conditionExpression)
+                .append(") goto ");
+
+        if (isLoop) code.append("Body").append(whileCount).append("\n");
+        else code.append(Ollir.ifBody).append(++ifCount).append("\n");
+
+        return ifCount;
+    }
+
+    public void addIfTransition() {
+        add("\t\t\tgoto " + Ollir.endIf + ifCount + "\n");
+        add("\t\t" + Ollir.ifBody + ifCount + ":\n");
+    }
+
+    public void addIfEnd(int ifCount) {
+        add("\t\t" + Ollir.endIf + ifCount + ":\n");
     }
 
     public String getAssignmentWithExpression(BasicSymbol symbol, String operatorName, String op1, String op2) {
@@ -220,8 +227,7 @@ public class OllirBuilder {
 
                     before = getAssignmentCustom(new BasicSymbol(type, auxName), rightSide);
                     current = auxName + typeCode;
-                }
-                else
+                } else
                     current = operand.get(Attributes.name) + typeToCode(type);
 
                 yield new IntermediateOllirRepresentation(current, before);
@@ -241,7 +247,7 @@ public class OllirBuilder {
 
         for (Symbol field : fields) {
             if (field.getName().equals(name) &&
-                field.getType().equals(type))
+                    field.getType().equals(type))
                 return true;
         }
         return false;

@@ -15,6 +15,8 @@ import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 
+import static org.specs.comp.ollir.OperationType.NOTB;
+
 
 /**
  * Copyright 2021 SPeCS.
@@ -273,10 +275,10 @@ public class BackendStage implements JasminBackend {
 
                 Operation operation = condBranchInstruction.getCondOperation();
                 loadElement(condBranchInstruction.getLeftOperand(), localVariable, sb);
-                if (operation.getOpType() != OperationType.NOTB) {
+                if (operation.getOpType() != NOTB) {
                     loadElement(condBranchInstruction.getRightOperand(), localVariable, sb);
                 }
-                sb.append(branchBuilder.buildBranchInstruction(operation));
+                sb.append(branchBuilder.buildBranchInstruction(operation, condBranchInstruction.getLabel()));
             }
             case RETURN -> {
                 ReturnInstruction returnInstruction = (ReturnInstruction) i;
@@ -320,8 +322,7 @@ public class BackendStage implements JasminBackend {
             }
             case UNARYOPER -> {
                 UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) i;
-                if (unaryOpInstruction.getUnaryOperation().getOpType() == OperationType.NOTB) {
-                    System.out.println("------> Found NOTB!!!");
+                if (unaryOpInstruction.getUnaryOperation().getOpType() == NOTB) {
                     loadElement(unaryOpInstruction.getRightOperand(), localVariable, sb);
                     sb.append("\tldc 1\n");
                     sb.append("\tixor\n");
@@ -331,11 +332,16 @@ public class BackendStage implements JasminBackend {
             }
             case BINARYOPER -> {
                 BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) i;
+                OperationType type = binaryOpInstruction.getUnaryOperation().getOpType();
+
                 loadElement(binaryOpInstruction.getLeftOperand(), localVariable, sb);
-                loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
+                if (type != NOTB) {
+                    loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
+                    sb.append("\t");
+                }
+
                 String typePrefix = getElementTypePrefix(binaryOpInstruction.getLeftOperand());
-                sb.append("\t");
-                switch (binaryOpInstruction.getUnaryOperation().getOpType()) {
+                switch (type) {
                     case ADD -> sb.append(typePrefix).append("add");
                     case MUL -> sb.append(typePrefix).append("mul");
                     case SUB -> sb.append(typePrefix).append("sub");
@@ -350,6 +356,11 @@ public class BackendStage implements JasminBackend {
                                 .append(trueLabel).append(":\n")
                                 .append("\tldc 1\n")
                                 .append(continueLabel).append(":");
+                    }
+                    case NOTB -> {
+                        loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
+                        sb.append("\tldc 1\n");
+                        sb.append("\tixor");
                     }
                 }
                 sb.append("\n");
