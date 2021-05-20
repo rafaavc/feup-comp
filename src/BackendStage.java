@@ -1,5 +1,8 @@
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
+import jasmin.BranchBuilder;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import utils.Logger;
 import jasmin.LocalVariable;
@@ -30,6 +33,7 @@ public class BackendStage implements JasminBackend {
     private int nextLabel = 1;
     private ClassUnit classUnit = null;
     private SymbolTable symbolTable = null;
+    private BranchBuilder branchBuilder = new BranchBuilder();
 
     private String getNextLabel() {
         String tmp = "label" + nextLabel;
@@ -68,12 +72,12 @@ public class BackendStage implements JasminBackend {
 
     private void addField(Field field, StringBuilder sb) {
         sb.append(".field ")
-            .append(getAccessType(field.getFieldAccessModifier()))
-            .append(" ")
-            .append(field.getFieldName())
-            .append(" ")
-            .append(getElementType(field.getFieldType()))
-            .append("\n");
+                .append(getAccessType(field.getFieldAccessModifier()))
+                .append(" ")
+                .append(field.getFieldName())
+                .append(" ")
+                .append(getElementType(field.getFieldType()))
+                .append("\n");
     }
 
     private String getJasminCode() {
@@ -102,11 +106,11 @@ public class BackendStage implements JasminBackend {
             List<Instruction> instructions = m.getInstructions();
             for (Instruction i : instructions) {
                 StringBuilder sb = new StringBuilder();
-                buildInstruction(i, localVariable, sb);
+                buildInstruction(i, localVariable, sb, m);
                 code.append(sb);
             }
 
-            if (instructions.get(instructions.size()-1).getInstType() != InstructionType.RETURN) {
+            if (instructions.get(instructions.size() - 1).getInstType() != InstructionType.RETURN) {
                 code.append("\treturn\n");
             }
 
@@ -147,7 +151,8 @@ public class BackendStage implements JasminBackend {
         return declaration.toString();
     }
 
-    private void loadElement(Element element, LocalVariable localVariable, StringBuilder sb) {Type elementType = element.getType();
+    private void loadElement(Element element, LocalVariable localVariable, StringBuilder sb) {
+        Type elementType = element.getType();
         if (element.isLiteral()) {
             if (isPrimitive(elementType)) { //TODO: verify if is needed
                 sb.append("\tldc ").append(((LiteralElement) element).getLiteral()).append("\n");
@@ -190,21 +195,30 @@ public class BackendStage implements JasminBackend {
         return getClassNameWithImport(((ClassType) operand.getType()).getName());
     }
 
-    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb) {
+    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb, Method m) {
         i.show();
+
+        for (String s : m.getLabels(i)) sb.append(s).append(":\n");
+
         switch (i.getInstType()) {
             case ASSIGN -> {
                 AssignInstruction assignInstruction = (AssignInstruction) i;
-                int variable = localVariable.getNextLocalVariable();
                 String identifierName = ((Operand) assignInstruction.getDest()).getName();
-                localVariable.addCorrespondence(identifierName, variable);
-                System.out.println("Building " + assignInstruction.getRhs());
-                buildInstruction(assignInstruction.getRhs(), localVariable, sb);
-                if (assignInstruction.getRhs().getInstType() == InstructionType.CALL && ((CallInstruction)assignInstruction.getRhs()).getInvocationType() == CallType.NEW) {
-                    sb.append("\tdup\n");
+
+                Integer variable = localVariable.getCorrespondence(identifierName);
+                if (variable == null) {
+                    variable = localVariable.getNextLocalVariable();
+                    localVariable.addCorrespondence(identifierName, variable);
                 }
-                else {
-                    sb.append("\t").append(getElementTypePrefix(assignInstruction.getDest())).append("store ").append(variable).append("\n");
+
+                buildInstruction(assignInstruction.getRhs(), localVariable, sb, m);
+                if (assignInstruction.getRhs().getInstType() == InstructionType.CALL &&
+                        ((CallInstruction) assignInstruction.getRhs()).getInvocationType() == CallType.NEW) {
+                    sb.append("\tdup\n");
+                } else {
+                    sb.append("\t")
+                            .append(getElementTypePrefix(assignInstruction.getDest()))
+                            .append("store ").append(variable).append("\n");
                 }
             }
             case CALL -> {
@@ -215,7 +229,7 @@ public class BackendStage implements JasminBackend {
 
                 CallType invocationType = callInstruction.getInvocationType();
 
-                switch(invocationType) {
+                switch (invocationType) {
                     case ldc, arraylength -> Logger.err("Received ldc or arraylength in invocation type (not supposed)");
                     case NEW -> sb.append("\tnew ").append(getClassNameRepresentation(firstCallOperand)).append("\n");
                     case invokespecial -> {
@@ -250,7 +264,20 @@ public class BackendStage implements JasminBackend {
                     }
                 }
             }
-            case GOTO, BRANCH -> Logger.err("Not for checkpoint 2");
+            case GOTO -> {
+                GotoInstruction gotoInstruction = (GotoInstruction) i;
+                sb.append("\tgoto ").append(gotoInstruction.getLabel()).append("\n");
+            }
+            case BRANCH -> {
+                CondBranchInstruction condBranchInstruction = (CondBranchInstruction) i;
+
+                Operation operation = condBranchInstruction.getCondOperation();
+                loadElement(condBranchInstruction.getLeftOperand(), localVariable, sb);
+                if (operation.getOpType() != OperationType.NOTB) {
+                    loadElement(condBranchInstruction.getRightOperand(), localVariable, sb);
+                }
+                sb.append(branchBuilder.buildBranchInstruction(operation));
+            }
             case RETURN -> {
                 ReturnInstruction returnInstruction = (ReturnInstruction) i;
                 if (returnInstruction.hasReturnValue()) {
@@ -294,7 +321,7 @@ public class BackendStage implements JasminBackend {
             case UNARYOPER -> {
                 UnaryOpInstruction unaryOpInstruction = (UnaryOpInstruction) i;
                 if (unaryOpInstruction.getUnaryOperation().getOpType() == OperationType.NOTB) {
-                    System.out.println("FOund NOTB!!!");
+                    System.out.println("------> Found NOTB!!!");
                     loadElement(unaryOpInstruction.getRightOperand(), localVariable, sb);
                     sb.append("\tldc 1\n");
                     sb.append("\tixor\n");
@@ -309,9 +336,7 @@ public class BackendStage implements JasminBackend {
                 String typePrefix = getElementTypePrefix(binaryOpInstruction.getLeftOperand());
                 sb.append("\t");
                 switch (binaryOpInstruction.getUnaryOperation().getOpType()) {
-                    case ADD -> {
-                        sb.append(typePrefix).append("add");
-                    }
+                    case ADD -> sb.append(typePrefix).append("add");
                     case MUL -> sb.append(typePrefix).append("mul");
                     case SUB -> sb.append(typePrefix).append("sub");
                     case DIV -> sb.append(typePrefix).append("div");
@@ -350,7 +375,7 @@ public class BackendStage implements JasminBackend {
     }
 
     private String getElementTypePrefix(Element element) {
-        return switch(element.getType().getTypeOfElement()) {
+        return switch (element.getType().getTypeOfElement()) {
             case INT32 -> "i";
             case BOOLEAN -> "i";
             case ARRAYREF -> "a";

@@ -82,6 +82,7 @@ public class Main implements JmmParser {
 					ollirResult = new OptimizationStage().toOllir(semanticsResult);
 					globalReports.addAll(ollirResult.getReports());
 				} catch (Exception e) {
+					e.printStackTrace();
 					System.out.println("Error in OLLIR, caused by one of the following (these operations are not being taken into consideration for checkpoint 2):");
 					System.out.println("\t-Array access\n\t-If statement\n\t-While statement");
 					return;
