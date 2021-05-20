@@ -16,7 +16,6 @@ class ArrayAccess {
     public int test(int[] myArray) {
         int b;
         io.println(myArray.length);
-        myArray.length;
         b = myArray.length + 10 + myArray[1];
         io.println(b);
         myArray[0] = 1;

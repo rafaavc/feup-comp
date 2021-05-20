@@ -211,7 +211,7 @@ void BlockStatement() #Block : {}
 
 void IfElseStatement() #IfElse : {}
 {
-	<IF> Condition() Statement() <ELSE> Statement()
+	<IF> Condition() Statement() #If <ELSE> Statement() #Else
 }
 
 void WhileStatement() #While : {}
