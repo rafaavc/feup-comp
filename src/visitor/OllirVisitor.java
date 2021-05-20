@@ -61,10 +61,11 @@ public class OllirVisitor extends Visitor {
                 if (name.equals(Types.integer)) {
                     JmmNode size = node.getChildren().get(0).getChildren().get(0);
                     IntermediateOllirRepresentation length = getOllirRepresentation(size, typeInterpreter.getNodeType(size), true);
-                    Logger.log(length.toString());
-                    String current = ollirBuilder.getArrayInstantiation(length.getCurrent());
 
-                    yield new IntermediateOllirRepresentation(current, length.getBefore());
+                    IntermediateOllirRepresentation assignmentCustom = ollirBuilder.getAssignmentCustom(new Type(Types.integer, true), ollirBuilder.getArrayInstantiation(length.getCurrent()));
+                    String before = length.getBefore() + assignmentCustom.getBefore();
+
+                    yield new IntermediateOllirRepresentation(assignmentCustom.getCurrent(), before);
                 }
                 /*
                     A.myClass :=.myClass new(myClass).myClass;
@@ -114,17 +115,24 @@ public class OllirVisitor extends Visitor {
                 }
 
                 Type returnType = symbol == null ? new Type(Types.integer, false) : symbol.getType();
-                IntermediateOllirRepresentation representation = getOllirRepresentation(rightSideNode, returnType, true);
 
-                ollirBuilder.add(representation.getBefore());
                 if (symbol != null && ollirBuilder.isField(symbol))
+                {
+                    IntermediateOllirRepresentation representation = getOllirRepresentation(rightSideNode, returnType, false);
+                    ollirBuilder.add(representation.getBefore());
                     ollirBuilder.addPutField(symbol, representation.getCurrent());
-                else if (symbol != null)
-                    ollirBuilder.add(ollirBuilder.getAssignmentCustom(symbol, representation.getCurrent()));
-                else {
-                    assert leftSideRepresentation != null;
-                    ollirBuilder.add(leftSideRepresentation.getBefore());
-                    ollirBuilder.add(ollirBuilder.getAssignmentCustom(leftSideRepresentation.getCurrent(), returnType, representation.getCurrent()));
+                }
+                else
+                {
+                    IntermediateOllirRepresentation representation = getOllirRepresentation(rightSideNode, returnType, true);
+                    ollirBuilder.add(representation.getBefore());
+                    if (symbol != null)
+                        ollirBuilder.add(ollirBuilder.getAssignmentCustom(symbol, representation.getCurrent()));
+                    else {
+                        assert leftSideRepresentation != null;
+                        ollirBuilder.add(leftSideRepresentation.getBefore());
+                        ollirBuilder.add(ollirBuilder.getAssignmentCustom(leftSideRepresentation.getCurrent(), returnType, representation.getCurrent()));
+                    }
                 }
 
                 return;

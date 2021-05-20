@@ -89,10 +89,16 @@ public class Main implements JmmParser {
 				}*/
 
 				if (!containsErrorReport(ollirResult.getReports())) {
+					File ollirOutput = new File("tmp.ollir");
+					SpecsIo.write(ollirOutput, ollirResult.getOllirCode());
+
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
 					globalReports.addAll(jasminResult.getReports());
 
 					if (!containsErrorReport(jasminResult.getReports())) {
+						File jasminOutput = new File("tmp.jasmin");
+						SpecsIo.write(jasminOutput, jasminResult.getJasminCode());
+
 						success = true;
 						System.out.print("Jasmin result: ");
 						jasminResult.run();

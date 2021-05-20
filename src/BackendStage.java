@@ -32,8 +32,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 public class BackendStage implements JasminBackend {
     private int nextLabel = 1;
     private ClassUnit classUnit = null;
-    private SymbolTable symbolTable = null;
-    private BranchBuilder branchBuilder = new BranchBuilder();
+    private final BranchBuilder branchBuilder = new BranchBuilder();
 
     private String getNextLabel() {
         String tmp = "label" + nextLabel;
@@ -45,7 +44,7 @@ public class BackendStage implements JasminBackend {
     public JasminResult toJasmin(OllirResult ollirResult) {
         ClassUnit ollirClass = ollirResult.getOllirClass();
         classUnit = ollirClass;
-        symbolTable = ollirResult.getSymbolTable();
+        SymbolTable symbolTable = ollirResult.getSymbolTable();
         try {
 
             // Example of what you can do with the OLLIR class
@@ -365,11 +364,14 @@ public class BackendStage implements JasminBackend {
 
     private String getElementType(Type type) {
         return switch (type.getTypeOfElement()) {
-            case INT32 -> "I";
-            case BOOLEAN -> "I";
-            case THIS, STRING -> "whhaaat";
+            case INT32, BOOLEAN -> "I";
+            case THIS -> "whaaaat";
+            case STRING -> "Ljava/lang/String;";
             case CLASS, OBJECTREF -> "L" + getClassNameWithImport(((ClassType) type).getName()) + ";";
-            case ARRAYREF -> "[Ljava/lang/String;";  // TODO
+            case ARRAYREF -> {
+                ArrayType arrayType = (ArrayType) type;
+                yield "[" + getElementType(new Type(arrayType.getTypeOfElements()));
+            }
             case VOID -> "V";
         };
     }

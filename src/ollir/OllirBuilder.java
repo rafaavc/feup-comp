@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 
+import pt.up.fe.specs.util.SpecsIo;
 import table.BasicSymbol;
 import table.BasicSymbolTable;
 import table.MethodIdBuilder;
@@ -17,6 +18,7 @@ import visitor.OllirVisitor;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
 
+import java.io.File;
 import java.util.List;
 
 public class OllirBuilder {
@@ -283,6 +285,15 @@ public class OllirBuilder {
                 rightSide + "\n";
     }
 
+    public IntermediateOllirRepresentation getAssignmentCustom(Type type, String rightSide) {
+        String auxName = getNextAuxName();
+        String before = "\t\t\t" + auxName +
+                typeToCode(type) +
+                equalsSign(type) +
+                rightSide + "\n";
+        return new IntermediateOllirRepresentation(auxName + typeToCode(type), before);
+    }
+
     public String getAssignmentCustom(String leftSide, Type type, String rightSide) {
         return "\t\t" + leftSide +
                 equalsSign(type) +
@@ -297,7 +308,12 @@ public class OllirBuilder {
 
     public String getCode() {
         String code = this.code.toString();
-        return code.replaceAll("(?<!})(?<!:)(?<!\\{)\n", ";\n") + "\t}\n}";
+        code = code.replaceAll("(?<!})(?<!:)(?<!\\{)\n", ";\n") + "\t}\n}";
+
+        File ollirOutput = new File("tmp.ollir");
+        SpecsIo.write(ollirOutput, code);
+
+        return code;
     }
 
     public String operatorNameToSymbol(String operatorName) {
