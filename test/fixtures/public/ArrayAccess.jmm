@@ -2,9 +2,25 @@ import io;
 class ArrayAccess {
     public static void main(String[] argv) {
         int[] a;
-        a = new int[10];
-        io.println(a.length);
-        //a[0] = 1;
-        //io.println(a[0]);
+        int b;
+        ArrayAccess accesser;
+        accesser = new ArrayAccess();
+        a = new int[4];
+        a[0] = 1;
+        a[1] = 2;
+        a[2] = 3;
+        a[3] = 4;
+        accesser.test(a);
+    }
+
+    public int test(int[] myArray) {
+        int b;
+        io.println(myArray.length);
+        myArray.length;
+        b = myArray.length + 10 + myArray[1];
+        io.println(b);
+        myArray[0] = 1;
+        io.println(myArray[0]);
+        return 0;
     }
 }

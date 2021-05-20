@@ -309,9 +309,7 @@ public class BackendStage implements JasminBackend {
                 String typePrefix = getElementTypePrefix(binaryOpInstruction.getLeftOperand());
                 sb.append("\t");
                 switch (binaryOpInstruction.getUnaryOperation().getOpType()) {
-                    case ADD -> {
-                        sb.append(typePrefix).append("add");
-                    }
+                    case ADD -> sb.append(typePrefix).append("add");
                     case MUL -> sb.append(typePrefix).append("mul");
                     case SUB -> sb.append(typePrefix).append("sub");
                     case DIV -> sb.append(typePrefix).append("div");
@@ -351,10 +349,8 @@ public class BackendStage implements JasminBackend {
 
     private String getElementTypePrefix(Element element) {
         return switch(element.getType().getTypeOfElement()) {
-            case INT32 -> "i";
-            case BOOLEAN -> "i";
-            case ARRAYREF -> "a";
-            case OBJECTREF -> "a"; // ?
+            case INT32, BOOLEAN -> "i";
+            case ARRAYREF, OBJECTREF -> "a";
             default -> null;
         };
     }

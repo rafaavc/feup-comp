@@ -12,6 +12,7 @@ import table.BasicSymbolTable;
 import table.MethodIdBuilder;
 import typeInterpreter.TypeInterpreter;
 import utils.Logger;
+import visitor.OllirVisitor;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
 
@@ -20,14 +21,16 @@ import java.util.List;
 public class OllirBuilder {
     private final StringBuilder code = new StringBuilder();
     private final BasicSymbolTable table;
+    private final OllirVisitor visitor;
     private int nextAuxNumber = 1;
     private boolean firstMethod = true;
     protected TypeInterpreter typeInterpreter;
     protected MethodIdBuilder methodIdBuilder = new MethodIdBuilder();
 
-    public OllirBuilder(BasicSymbolTable table) {
+    public OllirBuilder(OllirVisitor visitor, BasicSymbolTable table) {
         this.table = table;
         this.typeInterpreter = new TypeInterpreter(table, new ScopeVisitor(table));
+        this.visitor = visitor;
 
         for (String importName : table.getImports()) {
             code.append("import ").append(importName).append("\n");
@@ -142,22 +145,6 @@ public class OllirBuilder {
         code.append(" ").append(returnOllirRep).append("\n");
     }
 
-    public String getAssignmentWithExpression(BasicSymbol symbol, String operatorName, String op1, String op2) {
-        // TODO check if identifiers used are in parameters (to add $1, $2, etc)
-
-        return symbol.getName() +
-                typeToCode(symbol.getType()) +
-                equalsSign(symbol.getType()) +
-                op1 +
-                " " +
-                typeToCode(symbol.getType()) +
-                operatorNameToSymbol(operatorName) +
-                " " +
-                op2 +
-                typeToCode(symbol.getType()) +
-                "\n";
-    }
-
     /**
      * Gets the ollir representation of array access, integer, bool, identifier
      *
@@ -198,7 +185,29 @@ public class OllirBuilder {
 
                 yield new IntermediateOllirRepresentation(current, before);
             }
-            case NodeNames.arrayAccessResult -> null;
+            case NodeNames.arrayAccessResult -> {
+                JmmNode identifier = operand.getChildren().get(0);
+                JmmNode arrayAccessContents = operand.getChildren().get(1).getChildren().get(0);
+
+                IntermediateOllirRepresentation repr = getOperandOllirRepresentation(identifier, scope, new Type(typeInterpreter.getNodeType(identifier).getName(), false));
+                StringBuilder current = new StringBuilder(repr.getCurrent());
+                String before = repr.getBefore();
+
+                IntermediateOllirRepresentation arrayAccessContentRepresentation;
+                if (arrayAccessContents.getKind().equals(NodeNames.integer)) {
+                    String auxName = getNextAuxName();
+                    String rightSide = arrayAccessContents.get(Attributes.value) + ".i32";
+                    String beforeContents = getAssignmentCustom(new BasicSymbol(new Type(Types.integer, false), auxName), rightSide);
+                    String currentContents = auxName + ".i32";
+                    arrayAccessContentRepresentation = new IntermediateOllirRepresentation(currentContents, beforeContents);
+                }
+                else arrayAccessContentRepresentation = visitor.getOllirRepresentation(arrayAccessContents, typeInterpreter.getNodeType(arrayAccessContents), false);
+
+                before += arrayAccessContentRepresentation.getBefore();
+                current.insert(current.length() - 4, "[" + arrayAccessContentRepresentation.getCurrent() + "]");
+
+                yield new IntermediateOllirRepresentation(current.toString(), before);
+            }
             default -> null;
         };
     }
@@ -223,6 +232,12 @@ public class OllirBuilder {
         return "\t\t" + symbol.getName() +
                 typeToCode(symbol.getType()) +
                 equalsSign(symbol.getType()) +
+                rightSide + "\n";
+    }
+
+    public String getAssignmentCustom(String leftSide, Type type, String rightSide) {
+        return "\t\t" + leftSide +
+                equalsSign(type) +
                 rightSide + "\n";
     }
 
