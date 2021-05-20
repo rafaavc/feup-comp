@@ -2,6 +2,7 @@ package ollir;
 
 import constants.Attributes;
 import constants.NodeNames;
+import constants.Ollir;
 import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
@@ -20,6 +21,7 @@ public class OllirBuilder {
     private final StringBuilder code = new StringBuilder();
     private final BasicSymbolTable table;
     private int nextAuxNumber = 1;
+    private int ifCount = 0;
     private boolean firstMethod = true;
     protected TypeInterpreter typeInterpreter;
     protected MethodIdBuilder methodIdBuilder = new MethodIdBuilder();
@@ -83,6 +85,27 @@ public class OllirBuilder {
 
         code.append(methodName).append("(").append(parameters);
         code.append(")").append(typeToCode(returnType)).append(" {\n");
+    }
+
+    public int addIf(String conditionExpression) {
+        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
+
+        code.append("\t\tif (")
+                .append(conditionExpression)
+                .append(") goto " + Ollir.ifBody)
+                .append(++ifCount)
+                .append("\n");
+
+        return ifCount;
+    }
+
+    public void addIfTransition() {
+        add("\t\t\tgoto " + Ollir.endIf + ifCount + "\n");
+        add("\t\t" + Ollir.ifBody + ifCount + ":\n");
+    }
+
+    public void addIfEnd(int ifCount) {
+        add("\t\t" + Ollir.endIf + ifCount + ":\n");
     }
 
     public String getClassInstantiation(String name) {
@@ -249,7 +272,7 @@ public class OllirBuilder {
             case NodeNames.mul -> " *.i32 ";
             case NodeNames.div -> " /.i32 ";
             case NodeNames.and -> " &&.bool ";
-            case NodeNames.not -> "!.bool ";
+            case NodeNames.not -> " !.bool ";
             case NodeNames.lessThan -> " <.i32 ";
             default -> null;
         };

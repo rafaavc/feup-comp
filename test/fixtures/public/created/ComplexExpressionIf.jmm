@@ -1,0 +1,12 @@
+import io;
+class ComplexExpressionIf {
+    public static void main(String[]args){
+    	int n;
+    	n = 10;
+    	if (((n < 100) && (n < 20)) && true && !false)
+    		n = 1;
+    	else
+    		n = 0;
+    	io.println(n);
+    }
+}

@@ -5,13 +5,11 @@ import constants.NodeNames;
 import constants.Types;
 import ollir.IntermediateOllirRepresentation;
 import ollir.OllirBuilder;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
-import table.BasicSymbolTable;
-import typeInterpreter.TypeInterpreter;
-import table.BasicSymbol;
-
 import pt.up.fe.comp.jmm.JmmNode;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import table.BasicSymbol;
+import table.BasicSymbolTable;
 import utils.Logger;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
@@ -43,11 +41,11 @@ public class OllirVisitor extends Visitor {
 
                 String current;
                 if (representations.size() == 1)
-                    current = ollirBuilder.operatorNameToSymbol(node.getKind()) + representations.get(0).getCurrent();
+                    current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind())
+                            + representations.get(0).getCurrent();
                 else
                     current = representations.get(0).getCurrent() + ollirBuilder.operatorNameToSymbol(node.getKind())
                             + representations.get(1).getCurrent();
-
 
                 if (!inline) {
                     String auxName = ollirBuilder.getNextAuxName();
@@ -152,6 +150,25 @@ public class OllirVisitor extends Visitor {
 
                 return;
             }
+
+            case NodeNames.ifElse -> {
+                JmmNode conditionExp = children.get(0).getChildren().get(0);
+                Type returnType = typeInterpreter.getNodeType(conditionExp);
+
+                JmmNode ifStatement = children.get(1);
+                JmmNode elseStatement = children.get(2);
+
+                IntermediateOllirRepresentation conditionExpRep = getOllirRepresentation(conditionExp, returnType, true);
+                if (!conditionExpRep.getBefore().equals("")) ollirBuilder.add("\t\t" + conditionExpRep.getBefore());
+
+                int ifCount = ollirBuilder.addIf(conditionExpRep.getCurrent());
+                for (JmmNode ifChild : elseStatement.getChildren()) visitNode(ifChild);
+                ollirBuilder.addIfTransition();
+                for (JmmNode elseChild : ifStatement.getChildren()) visitNode(elseChild);
+                ollirBuilder.addIfEnd(ifCount);
+
+                return;
+            }
         }
 
         for (JmmNode child : children) visitNode(child);
@@ -161,7 +178,7 @@ public class OllirVisitor extends Visitor {
         JmmNode property = node.getChildren().get(1);
         JmmNode parent = node.getParent();
 
-        Type expectedType = switch(parent.getKind()) {
+        Type expectedType = switch (parent.getKind()) {
             case NodeNames.returnStatement -> {
                 Scope nodeScope = new ScopeVisitor(symbolTable).visit(parent);
                 yield symbolTable.getReturnType(methodIdBuilder.buildMethodId(nodeScope.getMethodScope()));
@@ -172,9 +189,9 @@ public class OllirVisitor extends Visitor {
             case NodeNames.objectMethod -> {
                 List<JmmNode> children = parent.getChildren();
                 for (int i = 0; i < children.size(); i++) {
-                    if (children.get(i) == node ) {
+                    if (children.get(i) == node) {
                         List<Symbol> parameters = symbolTable.getParameters(typeInterpreter.buildMethodCallId(parent));
-                        if (parameters.size() >= i+1) {
+                        if (parameters.size() >= i + 1) {
                             Symbol parameter = parameters.get(i);
                             yield parameter != null ? parameter.getType() : null;
                         }
@@ -198,7 +215,7 @@ public class OllirVisitor extends Visitor {
 
     public boolean isExpression(JmmNode node) {
         String kind = node.getKind();
-        return switch(kind) {
+        return switch (kind) {
             case NodeNames.and, NodeNames.lessThan, NodeNames.not, NodeNames.sum, NodeNames.sub, NodeNames.mul, NodeNames.div -> true;
             default -> false;
         };
@@ -216,7 +233,7 @@ public class OllirVisitor extends Visitor {
 
         for (int i = 0; i < parameters.size(); i++) {
             JmmNode parameter = parameters.get(i);
-            Type nodeType = realParameters.size() >= i+1 ? realParameters.get(i).getType() : typeInterpreter.getNodeType(parameter);
+            Type nodeType = realParameters.size() >= i + 1 ? realParameters.get(i).getType() : typeInterpreter.getNodeType(parameter);
 
             IntermediateOllirRepresentation representation = getOllirRepresentation(parameter, nodeType, !isExpression(parameter));
             before.append(representation.getBefore());
@@ -224,7 +241,6 @@ public class OllirVisitor extends Visitor {
         }
 
         String methodCallOllir;
-
         if (typeInterpreter.isImportedClassInstance(identifier)) {
             String identifierName = identifier.getOptional(Attributes.name).orElse(null);
             if (identifierName == null)
@@ -234,6 +250,7 @@ public class OllirVisitor extends Visitor {
         } else if (identifier.getKind().equals(NodeNames.thisName)) {
             methodCallOllir = ollirBuilder.getVirtualMethodCall("this", property, type, expectedType, parametersRep);
         } else {
+            //TODO: error when new Obj().func() (identifier is new)
             BasicSymbol symbol = typeInterpreter.getIdentifierSymbol(identifier);
             methodCallOllir = ollirBuilder.getVirtualMethodCall(symbol.getName(), symbol.getType(), property, type, expectedType, parametersRep);
         }

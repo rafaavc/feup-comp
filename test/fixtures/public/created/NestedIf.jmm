@@ -1,0 +1,17 @@
+import io;
+class NestedIf {
+    public static void main(String[]args){
+    	int n;
+    	n = 10;
+    	if (n < 100) {
+    		n = 1;
+    		if (n < 2)
+    			n = 2;
+    		else
+    			n = 3;
+    	}
+    	else
+    		n = 0;
+    	io.println(n);
+    }
+}
