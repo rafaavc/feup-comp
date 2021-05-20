@@ -7,6 +7,7 @@ import ollir.IntermediateOllirRepresentation;
 import ollir.OllirBuilder;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import table.BasicSymbolTable;
+import typeInterpreter.TypeInterpreter;
 import table.BasicSymbol;
 
 import pt.up.fe.comp.jmm.JmmNode;
@@ -20,6 +21,7 @@ import java.util.List;
 
 public class OllirVisitor extends Visitor {
     private final OllirBuilder ollirBuilder;
+    private int label = 0;
 
     public OllirVisitor(BasicSymbolTable table, OllirBuilder ollirBuilder) {
         super(table);
@@ -114,6 +116,26 @@ public class OllirVisitor extends Visitor {
 
                 ollirBuilder.add(representation.getBefore());
                 ollirBuilder.add(representation.getCurrent());
+
+                return;
+            }
+
+            case NodeNames.whileLoop -> {
+                JmmNode condition = children.get(0);
+                JmmNode body = children.get(1);
+                Scope nodeScope = new ScopeVisitor(symbolTable).visit(condition);
+
+                IntermediateOllirRepresentation conditionRepresentation = getOllirRepresentation(condition.getChildren().get(0), typeInterpreter.getNodeType(condition.getChildren().get(0)), false);
+
+
+                ollirBuilder.addLoop(conditionRepresentation, label);
+
+                for (JmmNode n : body.getChildren()) {
+                    visitNode(n);
+                }
+
+                ollirBuilder.addLoopEnd(label);
+                label++;
 
                 return;
             }
