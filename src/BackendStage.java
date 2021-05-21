@@ -415,7 +415,7 @@ public class BackendStage implements JasminBackend {
                                 .append(continueLabel).append(":");
                     }
                     case NOTB -> {
-                        loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
+                        //loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
                         sb.append("\tldc 1\n");
                         sb.append("\tixor");
                     }
