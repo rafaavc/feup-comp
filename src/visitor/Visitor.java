@@ -8,7 +8,7 @@ import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import table.BasicSymbolTable;
 import table.MethodIdBuilder;
-import typeInterpreter.TypeInterpreter;
+import typeinterpreter.TypeInterpreter;
 import visitor.scopes.ScopeVisitor;
 
 import java.util.List;
