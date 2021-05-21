@@ -251,7 +251,6 @@ public class BackendStage implements JasminBackend {
                         buildInstruction(assignInstruction.getRhs(), localVariable, sb, m);
 
                         sb.append("\tiastore\n");
-                        Logger.log("Finished writing arrayAccess");
                     } catch (Exception e) {
                         Logger.err(e.getMessage() + "\n");
                         e.printStackTrace();
@@ -418,8 +417,24 @@ public class BackendStage implements JasminBackend {
             }
             case NOPER -> {
                 SingleOpInstruction singleOpInstruction = (SingleOpInstruction) i;
-                System.out.println("TYPE: " + singleOpInstruction.getSingleOperand().getType());
-                loadElement(singleOpInstruction.getSingleOperand(), localVariable, sb);
+                Element el = singleOpInstruction.getSingleOperand();
+
+                try {  // if it's array access
+                    ArrayOperand operand = (ArrayOperand) el;
+                    Logger.log("\n\n\n\n\n");
+                    try {
+                        operand.setType(new Type(ElementType.ARRAYREF));
+                        loadElement(operand, localVariable, sb);
+                        loadElement(operand.getIndexOperands().get(0), localVariable, sb);
+                        sb.append("\tiaload\n");
+                    } catch (Exception e) {
+                        Logger.err(e.getMessage() + "\n");
+                        e.printStackTrace();
+                    }
+                } catch (Exception ignore) {
+                    loadElement(singleOpInstruction.getSingleOperand(), localVariable, sb);
+                }
+
             }
         }
 

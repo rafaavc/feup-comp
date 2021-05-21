@@ -16,10 +16,11 @@ class ArrayAccess {
     public int test(int[] myArray) {
         int b;
         io.println(myArray.length);
-        //b = 10 + myArray[1];
-        //io.println(b);
-        //myArray[0] = 1;
-        //io.println(myArray[0]);
+        b = 10 + myArray[1];
+        io.println(b);
+        io.println(myArray[0]);
+        myArray[0] = 5;
+        io.println(myArray[0]);
         return 0;
     }
 }
