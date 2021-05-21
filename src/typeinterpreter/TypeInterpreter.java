@@ -1,13 +1,15 @@
-package typeInterpreter;
+package typeinterpreter;
 
 import constants.Attributes;
 import constants.NodeNames;
 import constants.Types;
 import pt.up.fe.comp.jmm.JmmNode;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import table.BasicSymbol;
 import table.BasicSymbolTable;
 import table.MethodIdBuilder;
+import utils.Logger;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
 
@@ -50,11 +52,10 @@ public class TypeInterpreter {
             }
             case NodeNames.arrayAccessResult -> {
                 JmmNode leftNode = node.getChildren().get(0);
-                BasicSymbol symbol = getIdentifierSymbol(leftNode);
-
-                String typeName = symbol.getType().getName();
-                Type type = new Type(typeName, false);
-                return new BasicSymbol(type, symbol.getName());
+                Symbol idSymbol = getIdentifierSymbol(leftNode);
+                String typeName = idSymbol.getType().getName();
+                Type newType = new Type(typeName, false);
+                return new BasicSymbol(newType, leftNode.get(Attributes.name) + "[" + "]");
             }
         }
         return null;

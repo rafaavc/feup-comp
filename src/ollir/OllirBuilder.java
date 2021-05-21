@@ -8,27 +8,33 @@ import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 
+import pt.up.fe.specs.util.SpecsIo;
 import table.BasicSymbol;
 import table.BasicSymbolTable;
 import table.MethodIdBuilder;
-import typeInterpreter.TypeInterpreter;
+import typeinterpreter.TypeInterpreter;
+import visitor.OllirVisitor;
 import visitor.scopes.Scope;
 import visitor.scopes.ScopeVisitor;
 
+import java.io.File;
 import java.util.List;
 
 public class OllirBuilder {
     private final StringBuilder code = new StringBuilder();
     private final BasicSymbolTable table;
+    private final OllirVisitor visitor;
     private int nextAuxNumber = 1;
     private int ifCount = 0;
+    private int whileCount = 0;
     private boolean firstMethod = true;
     protected TypeInterpreter typeInterpreter;
     protected MethodIdBuilder methodIdBuilder = new MethodIdBuilder();
 
-    public OllirBuilder(BasicSymbolTable table) {
+    public OllirBuilder(OllirVisitor visitor, BasicSymbolTable table) {
         this.table = table;
         this.typeInterpreter = new TypeInterpreter(table, new ScopeVisitor(table));
+        this.visitor = visitor;
 
         for (String importName : table.getImports()) {
             code.append("import ").append(importName).append("\n");
@@ -87,29 +93,17 @@ public class OllirBuilder {
         code.append(")").append(typeToCode(returnType)).append(" {\n");
     }
 
-    public int addIf(String conditionExpression) {
-        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
-
-        code.append("\t\tif (")
-                .append(conditionExpression)
-                .append(") goto " + Ollir.ifBody)
-                .append(++ifCount)
-                .append("\n");
-
-        return ifCount;
-    }
-
-    public void addIfTransition() {
-        add("\t\t\tgoto " + Ollir.endIf + ifCount + "\n");
-        add("\t\t" + Ollir.ifBody + ifCount + ":\n");
-    }
-
-    public void addIfEnd(int ifCount) {
-        add("\t\t" + Ollir.endIf + ifCount + ":\n");
-    }
-
     public String getClassInstantiation(String name) {
         return "new(" + name + ")." + name;
+    }
+
+    public String getArrayInstantiation(String length) {
+        return "new(array, " + length + ").array.i32";
+    }
+
+    public String getArrayLengthCall(JmmNode identifier) {
+        String current = getOperandOllirRepresentation(identifier, new ScopeVisitor(table).visit(identifier), typeInterpreter.getNodeType(identifier)).getCurrent();
+        return "arraylength(" + current + ").i32";
     }
 
     public String getClassInitCall(String varName, String className) {
@@ -155,14 +149,19 @@ public class OllirBuilder {
         code.append(" ").append(returnOllirRep).append("\n");
     }
 
-    public void addLoop(IntermediateOllirRepresentation condition, int label) {
-        code.append("\t\tLoop").append(label).append(":\n");
-        
+    public int addLoop(IntermediateOllirRepresentation condition) {
+        String conditionExpression = condition.getCurrent();
+        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
+
+        code.append("\t\tLoop").append(++whileCount).append(":\n");
+
         add(condition.getBefore());
-        // add(condition.getCurrent());
-        //add if go to
-        code.append("\t\t\tgoto End").append(label).append("\n");
-        code.append("\t\tBody").append(label).append(":\n");
+        addIf(conditionExpression, true);
+
+        code.append("\t\t\tgoto End").append(whileCount).append("\n");
+        code.append("\t\tBody").append(whileCount).append(":\n");
+
+        return whileCount;
     }
 
     public void addLoopEnd(int label) {
@@ -170,20 +169,30 @@ public class OllirBuilder {
         code.append("\t\tEnd").append(label).append(":\n");
     }
 
-    public String getAssignmentWithExpression(BasicSymbol symbol, String operatorName, String op1, String op2) {
-        // TODO check if identifiers used are in parameters (to add $1, $2, etc)
+    public int addIf(String conditionExpression, boolean isLoop) {
+        if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
 
-        return symbol.getName() +
-                typeToCode(symbol.getType()) +
-                equalsSign(symbol.getType()) +
-                op1 +
-                " " +
-                typeToCode(symbol.getType()) +
-                operatorNameToSymbol(operatorName) +
-                " " +
-                op2 +
-                typeToCode(symbol.getType()) +
-                "\n";
+        code.append("\t\tif (")
+                .append(conditionExpression)
+                .append(") goto ");
+
+        if (isLoop) code.append("Body").append(whileCount).append("\n");
+        else code.append(Ollir.ifBody).append(++ifCount).append("\n");
+
+        return ifCount;
+    }
+
+    public void addIfTransition(int ifCount) {
+        add("\t\t\tgoto " + Ollir.endIf + ifCount + "\n");
+        add("\t\t" + Ollir.ifBody + ifCount + ":\n");
+    }
+
+    public void addIfEnd(int ifCount) {
+        add("\t\t" + Ollir.endIf + ifCount + ":\n");
+    }
+
+    public IntermediateOllirRepresentation getOperandOllirRepresentation(JmmNode operand, Scope scope, Type type) {
+        return getOperandOllirRepresentation(operand, scope, type, true);
     }
 
     /**
@@ -192,7 +201,7 @@ public class OllirBuilder {
      * @param operand - JmmNode to represent
      * @return the ollir representation
      */
-    public IntermediateOllirRepresentation getOperandOllirRepresentation(JmmNode operand, Scope scope, Type type) {
+    public IntermediateOllirRepresentation getOperandOllirRepresentation(JmmNode operand, Scope scope, Type type, boolean inline) {
         return switch (operand.getKind()) {
             case NodeNames.integer -> new IntermediateOllirRepresentation(operand.get(Attributes.value) + ".i32", "");
             case NodeNames.bool -> new IntermediateOllirRepresentation((operand.get(Attributes.value).equals("true") ? "1" : "0") + ".bool", "");
@@ -220,13 +229,40 @@ public class OllirBuilder {
 
                     before = getAssignmentCustom(new BasicSymbol(type, auxName), rightSide);
                     current = auxName + typeCode;
-                }
-                else
+                } else
                     current = operand.get(Attributes.name) + typeToCode(type);
 
                 yield new IntermediateOllirRepresentation(current, before);
             }
-            case NodeNames.arrayAccessResult -> null;
+            case NodeNames.arrayAccessResult -> {
+                JmmNode identifier = operand.getChildren().get(0);
+                JmmNode arrayAccessContents = operand.getChildren().get(1).getChildren().get(0);
+
+                IntermediateOllirRepresentation repr = getOperandOllirRepresentation(identifier, scope, new Type(typeInterpreter.getNodeType(identifier).getName(), false));
+                StringBuilder current = new StringBuilder(repr.getCurrent());
+                String before = repr.getBefore();
+
+                IntermediateOllirRepresentation arrayAccessContentRepresentation;
+                if (arrayAccessContents.getKind().equals(NodeNames.integer)) {
+                    String auxName = getNextAuxName();
+                    String rightSide = arrayAccessContents.get(Attributes.value) + ".i32";
+                    String beforeContents = getAssignmentCustom(new BasicSymbol(new Type(Types.integer, false), auxName), rightSide);
+                    String currentContents = auxName + ".i32";
+                    arrayAccessContentRepresentation = new IntermediateOllirRepresentation(currentContents, beforeContents);
+                }
+                else arrayAccessContentRepresentation = visitor.getOllirRepresentation(arrayAccessContents, typeInterpreter.getNodeType(arrayAccessContents), false);
+
+                before += arrayAccessContentRepresentation.getBefore();
+                current.insert(current.length() - 4, "[" + arrayAccessContentRepresentation.getCurrent() + "]");
+
+                if (!inline) {
+                    String auxName = getNextAuxName();
+                    before += getAssignmentCustom(new BasicSymbol(new Type(Types.integer, false), auxName), current.toString());
+                    current = new StringBuilder(auxName + ".i32");
+                }
+
+                yield new IntermediateOllirRepresentation(current.toString(), before);
+            }
             default -> null;
         };
     }
@@ -241,7 +277,7 @@ public class OllirBuilder {
 
         for (Symbol field : fields) {
             if (field.getName().equals(name) &&
-                field.getType().equals(type))
+                    field.getType().equals(type))
                 return true;
         }
         return false;
@@ -254,6 +290,21 @@ public class OllirBuilder {
                 rightSide + "\n";
     }
 
+    public IntermediateOllirRepresentation getAssignmentCustom(Type type, String rightSide) {
+        String auxName = getNextAuxName();
+        String before = "\t\t\t" + auxName +
+                typeToCode(type) +
+                equalsSign(type) +
+                rightSide + "\n";
+        return new IntermediateOllirRepresentation(auxName + typeToCode(type), before);
+    }
+
+    public String getAssignmentCustom(String leftSide, Type type, String rightSide) {
+        return "\t\t" + leftSide +
+                equalsSign(type) +
+                rightSide + "\n";
+    }
+
     public void addPutField(BasicSymbol symbol, String rightSide) {
         code.append("\t\t\tputfield(this, ").append(symbol.getName());
         code.append(typeToCode(symbol.getType())).append(", ").append(rightSide);
@@ -262,7 +313,12 @@ public class OllirBuilder {
 
     public String getCode() {
         String code = this.code.toString();
-        return code.replaceAll("(?<!})(?<!:)(?<!\\{)\n", ";\n") + "\t}\n}";
+        code = code.replaceAll("(?<!})(?<!:)(?<!\\{)\n", ";\n") + "\t}\n}";
+
+        File ollirOutput = new File("tmp.ollir");
+        SpecsIo.write(ollirOutput, code);
+
+        return code;
     }
 
     public String operatorNameToSymbol(String operatorName) {

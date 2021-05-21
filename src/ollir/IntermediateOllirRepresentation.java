@@ -15,4 +15,9 @@ public class IntermediateOllirRepresentation {
     public String getBefore() {
         return before;
     }
+
+    @Override
+    public String toString() {
+        return "\n# BEFORE:\n" + before + "\n\n# CURRENT:\n" + current + "\n";
+    }
 }

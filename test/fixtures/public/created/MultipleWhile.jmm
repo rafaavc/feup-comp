@@ -16,9 +16,11 @@ class Simple {
             b = b + 1;
         }
 
-        while (a < 20) {
+        while (b < 20) {
             a = a - 1;
             b = b + 1;
         }
+
+        io.print(a+b);
     }
 }

@@ -38,6 +38,15 @@ public class BackendTest {
         assertEquals("30", output.trim());
     }
 
+    /*@Test
+    public void testArrayAccess() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/ArrayAccess.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("1", output.trim());
+    }*/
+
     @Test
     public void testFac() {
         var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Fac.jmm"));
@@ -71,6 +80,33 @@ public class BackendTest {
         TestUtils.noErrors(result.getReports());
 
         var output = result.run();
-        //assertEquals("1", output.trim());
+        assertEquals("1", output.trim());
+    }
+
+    @Test
+    public void testSimpleWhile() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/SimpleWhile.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("10", output.trim());
+    }
+
+    @Test
+    public void testMultipleWhile() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/MultipleWhile.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("20", output.trim());
+    }
+
+    @Test
+    public void testNestedWhile() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/NestedWhile.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("100", output.trim());
     }
 }

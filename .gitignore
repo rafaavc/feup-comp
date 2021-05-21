@@ -11,3 +11,5 @@ tree.json
 *.dot
 .classpath
 .project
+tmp.ollir
+tmp.jasmin
