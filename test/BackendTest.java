@@ -38,14 +38,14 @@ public class BackendTest {
         assertEquals("30", output.trim());
     }
 
-    /*@Test
+    @Test
     public void testArrayAccess() {
-        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/ArrayAccess.jmm"));
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/ArrayAccess.jmm"));
         TestUtils.noErrors(result.getReports());
 
         var output = result.run();
-        assertEquals("1", output.trim());
-    }*/
+        assertEquals("4\n12\n1\n5", output.trim());
+    }
 
     @Test
     public void testFac() {

@@ -20,7 +20,7 @@ class ArrayAccess {
         io.println(b);
         io.println(myArray[0]);
         myArray[0] = 5;
-        io.println(myArray[0]);
+        io.print(myArray[0]);
         return 0;
     }
 }

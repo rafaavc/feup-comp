@@ -128,7 +128,7 @@ public class BackendStage implements JasminBackend {
             code.append(buildMethodDeclaration(m)).append("\n");
 
             code.append("\t.limit locals 99\n");
-            code.append("\t.limit stack 99\n");
+            code.append("\t.limit stack 105\n");
 
             LocalVariable localVariable = new LocalVariable(m.getParams());
             List<Instruction> instructions = m.getInstructions();
@@ -281,10 +281,6 @@ public class BackendStage implements JasminBackend {
                     case ldc -> Logger.err("Received ldc or arraylength in invocation type (not supposed)");
                     case NEW -> {
                         if (firstCallOperand.getType().getTypeOfElement() == ElementType.ARRAYREF) {
-                            /*for (Element op : callInstruction.getListOfOperands()) {
-                                Logger.log("OPERAND OF ARRAY NEW" + op.toString());
-                            }
-                            Logger.log("FRIST CALL OPERAND AND SECOND CALL OPERAND" +firstCallOperand.toString() + "\n" + secondCallOperand);*/
                             loadElement(callInstruction.getListOfOperands().get(0), localVariable, sb);
                             sb.append("\tnewarray int\n");
                         } else {
@@ -432,7 +428,6 @@ public class BackendStage implements JasminBackend {
 
                 try {  // if it's array access
                     ArrayOperand operand = (ArrayOperand) el;
-                    Logger.log("\n\n\n\n\n");
                     try {
                         operand.setType(new Type(ElementType.ARRAYREF));
                         loadElement(operand, localVariable, sb);
