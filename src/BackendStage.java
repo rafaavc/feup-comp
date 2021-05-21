@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.List;
 
@@ -41,7 +42,15 @@ public class BackendStage implements JasminBackend {
     }
 
     private String getConst(int value) {
-        return "\ticonst" + (value >= -1 && value <= 5 ? " " : " ") + (value == -1 ? "m1" : value) + "\n";
+        if (value >= -1 && value <= 5) return "\ticonst_" + (value == -1 ? "m1" : value) + "\n";
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        byteBuffer.putInt(value);
+
+        if ((value >> 7) == 0) {
+            Logger.log(value + " is less than 1 byte");
+            return "\tbipush " + value + "\n";
+        }
+        return "\tldc " + value + "\n";
     }
 
     private String getLoad(String typePrefix, int variable) {
