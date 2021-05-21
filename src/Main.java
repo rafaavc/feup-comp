@@ -102,6 +102,7 @@ public class Main implements JmmParser {
 						success = true;
 						System.out.print("Jasmin result: ");
 						jasminResult.run();
+						System.out.println();
 					}
 				}
 			}
