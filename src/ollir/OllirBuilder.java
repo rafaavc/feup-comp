@@ -146,7 +146,9 @@ public class OllirBuilder {
         String returnTypeCode = typeToCode(returnType);
 
         code.append("\t\t\tret").append(returnTypeCode);
-        code.append(" ").append(returnOllirRep).append("\n");
+        code.append(" ").append(returnOllirRep);
+
+        if (returnOllirRep.charAt(returnOllirRep.length() - 1) != '\n') code.append("\n");
     }
 
     public int addLoop(IntermediateOllirRepresentation condition) {
