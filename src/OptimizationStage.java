@@ -31,10 +31,10 @@ public class OptimizationStage implements JmmOptimization {
         JmmNode node = semanticsResult.getRootNode();
 
         // Convert the AST to a String containing the equivalent OLLIR code
-        OllirBuilder ollirBuilder = new OllirBuilder((BasicSymbolTable) semanticsResult.getSymbolTable());
-        new OllirVisitor((BasicSymbolTable) semanticsResult.getSymbolTable(), ollirBuilder).visitNode(node);
+        OllirVisitor visitor = new OllirVisitor((BasicSymbolTable) semanticsResult.getSymbolTable());
+        visitor.visitNode(node);
 
-        String ollirCode = ollirBuilder.getCode();
+        String ollirCode = visitor.getOllirBuilder().getCode();
 
         System.out.println("## Got the ollir code:\n\n" + ollirCode);
 

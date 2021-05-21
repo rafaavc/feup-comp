@@ -78,21 +78,27 @@ public class Main implements JmmParser {
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
 				OllirResult ollirResult;
-				try {
+				//try {
 					ollirResult = new OptimizationStage().toOllir(semanticsResult);
 					globalReports.addAll(ollirResult.getReports());
-				} catch (Exception e) {
+				/*} catch (Exception e) {
 					e.printStackTrace();
 					System.out.println("Error in OLLIR, caused by one of the following (these operations are not being taken into consideration for checkpoint 2):");
 					System.out.println("\t-Array access\n\t-If statement\n\t-While statement");
 					return;
-				}
+				}*/
 
 				if (!containsErrorReport(ollirResult.getReports())) {
+					File ollirOutput = new File("tmp.ollir");
+					SpecsIo.write(ollirOutput, ollirResult.getOllirCode());
+
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
 					globalReports.addAll(jasminResult.getReports());
 
 					if (!containsErrorReport(jasminResult.getReports())) {
+						File jasminOutput = new File("tmp.jasmin");
+						SpecsIo.write(jasminOutput, jasminResult.getJasminCode());
+
 						success = true;
 						System.out.print("Jasmin result: ");
 						jasminResult.run();

@@ -38,6 +38,15 @@ public class BackendTest {
         assertEquals("30", output.trim());
     }
 
+    /*@Test
+    public void testArrayAccess() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/ArrayAccess.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("1", output.trim());
+    }*/
+
     @Test
     public void testFac() {
         var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Fac.jmm"));
@@ -90,5 +99,14 @@ public class BackendTest {
 
         var output = result.run();
         assertEquals("20", output.trim());
+    }
+
+    @Test
+    public void testNestedWhile() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/NestedWhile.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("100", output.trim());
     }
 }

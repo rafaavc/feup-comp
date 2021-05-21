@@ -1,0 +1,27 @@
+import io;
+class NestedWhile {
+	int test;
+	boolean newNode;
+	Simple t;
+
+    public static void main(String[] args){
+        int b;
+        int a;
+        int c;
+
+        b = 0;
+        a = 0;
+        c = 0;
+
+        while (b < 10) {
+			b = b + 1;
+            while (a < 10) {
+				c = c + 1;
+				a = a + 1;
+			}
+			a = 0;
+        }
+
+        io.print(c);
+    }
+}
