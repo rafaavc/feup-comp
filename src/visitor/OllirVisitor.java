@@ -148,21 +148,15 @@ public class OllirVisitor extends Visitor {
             }
 
             case NodeNames.whileLoop -> {
-                JmmNode condition = children.get(0);
+                JmmNode conditionExp = children.get(0).getChildren().get(0);
+                Type returnType = typeInterpreter.getNodeType(conditionExp);
                 JmmNode body = children.get(1);
-                Scope nodeScope = new ScopeVisitor(symbolTable).visit(condition);
 
-                IntermediateOllirRepresentation conditionRepresentation = getOllirRepresentation(condition.getChildren().get(0), typeInterpreter.getNodeType(condition.getChildren().get(0)), false);
+                IntermediateOllirRepresentation conditionRepresentation = getOllirRepresentation(conditionExp, returnType, true);
 
-
-                ollirBuilder.addLoop(conditionRepresentation, label);
-
-                for (JmmNode n : body.getChildren()) {
-                    visitNode(n);
-                }
-
-                ollirBuilder.addLoopEnd(label);
-                label++;
+                int whileCount = ollirBuilder.addLoop(conditionRepresentation);
+                for (JmmNode n : body.getChildren()) visitNode(n);
+                ollirBuilder.addLoopEnd(whileCount);
 
                 return;
             }
@@ -187,12 +181,12 @@ public class OllirVisitor extends Visitor {
                 JmmNode ifStatement = children.get(1);
                 JmmNode elseStatement = children.get(2);
 
-                IntermediateOllirRepresentation conditionExpRep = getOllirRepresentation(conditionExp, returnType, true);
-                if (!conditionExpRep.getBefore().equals("")) ollirBuilder.add("\t\t" + conditionExpRep.getBefore());
+                IntermediateOllirRepresentation conditionRepresentation = getOllirRepresentation(conditionExp, returnType, true);
+                if (!conditionRepresentation.getBefore().equals("")) ollirBuilder.add("\t\t" + conditionRepresentation.getBefore());
 
-                int ifCount = ollirBuilder.addIf(conditionExpRep.getCurrent());
+                int ifCount = ollirBuilder.addIf(conditionRepresentation.getCurrent(), false);
                 for (JmmNode ifChild : elseStatement.getChildren()) visitNode(ifChild);
-                ollirBuilder.addIfTransition();
+                ollirBuilder.addIfTransition(ifCount);
                 for (JmmNode elseChild : ifStatement.getChildren()) visitNode(elseChild);
                 ollirBuilder.addIfEnd(ifCount);
 

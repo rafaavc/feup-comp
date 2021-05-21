@@ -1,12 +1,10 @@
 package jasmin;
 
-import constants.Ollir;
 import org.specs.comp.ollir.Operation;
 
 public class BranchBuilder {
-    private int ifCount = 0;
 
-    public String buildBranchInstruction(Operation operation) {
+    public String buildBranchInstruction(Operation operation, String label) {
         String header = switch (operation.getOpType()) {
             case LTH -> "if_icmplt";
             case GTH -> "if_icmpgt";
@@ -18,6 +16,6 @@ public class BranchBuilder {
             case NOTB -> "ifeq";
             default -> "ERROR: Operation in if condition not being taken into consideration";
         };
-        return "\t" + header + " " + Ollir.ifBody + ++ifCount + "\n";
+        return "\t" + header + " " + label + "\n";
     }
 }
