@@ -211,10 +211,13 @@ public class BackendStage implements JasminBackend {
 //        }
 
 
+
+
         System.out.println("Loading element from local variables...");
         localVariable.log();
         System.out.println("Is operand, name = " + operand.getName());
         String typePrefix = getElementTypePrefix(element);
+        Logger.log("Trying to find " + operand.getName());
         sb.append(getLoad(typePrefix, localVariable.getCorrespondence(operand.getName())));
 
     }

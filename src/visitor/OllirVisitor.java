@@ -122,7 +122,7 @@ public class OllirVisitor extends Visitor {
 
                 if (symbol != null && ollirBuilder.isField(symbol))
                 {
-                    IntermediateOllirRepresentation representation = getOllirRepresentation(rightSideNode, returnType, false);
+                    IntermediateOllirRepresentation representation = getOllirRepresentation(rightSideNode, returnType, rightSideNode.getKind().equals(NodeNames.objectProperty));
                     ollirBuilder.add(representation.getBefore());
                     ollirBuilder.addPutField(symbol, representation.getCurrent());
                 }
@@ -161,6 +161,11 @@ public class OllirVisitor extends Visitor {
                 int whileCount = ollirBuilder.addLoop(conditionRepresentation);
                 for (JmmNode n : body.getChildren()) visitNode(n);
                 ollirBuilder.addLoopEnd(whileCount);
+
+                List<JmmNode> parentChildren = node.getParent().getChildren();
+                if (parentChildren.get(parentChildren.size() - 1) == node) {  // means that this is the last node in the method
+                    ollirBuilder.add("\t\tret.V\n");
+                }
 
                 return;
             }
