@@ -4,6 +4,7 @@ import constants.Attributes;
 import constants.NodeNames;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.ReportType;
 import table.BasicSymbol;
 import table.BasicSymbolTable;
 import visitor.scopes.Scope;
@@ -26,7 +27,7 @@ public class IdentifierVisitor extends Visitor {
 
         if (symbol == null) return true;
         if (!symbol.isInit() && !isParameter(node)) {
-            reports.add(getReport(node, "Variable not initialized"));
+            reports.add(getReport(ReportType.WARNING, node, "Variable not initialized"));
             return false;
         }
         return true;

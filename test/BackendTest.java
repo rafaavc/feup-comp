@@ -156,6 +156,15 @@ public class BackendTest {
     }
 
 //    @Test
+//    public void testTuring() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/private/Turing.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("", output.trim());
+//    }
+
+//    @Test
 //    public void testTicTacToe() {
 //        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/TickTackToe.jmm"));
 //        TestUtils.noErrors(result.getReports());

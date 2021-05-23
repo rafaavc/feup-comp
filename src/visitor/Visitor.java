@@ -35,6 +35,10 @@ public abstract class Visitor extends PreorderJmmVisitor<List<Report>, Boolean> 
     }
 
     public Report getReport(JmmNode node, String msg) {
-        return new Report(ReportType.ERROR, Stage.SEMANTIC, Integer.parseInt(node.get(Attributes.line)), Integer.parseInt(node.get(Attributes.column)), msg);
+        return getReport(ReportType.ERROR, node, msg);
+    }
+
+    public Report getReport(ReportType type, JmmNode node, String msg) {
+        return new Report(type, Stage.SEMANTIC, Integer.parseInt(node.get(Attributes.line)), Integer.parseInt(node.get(Attributes.column)), msg);
     }
 }

@@ -290,8 +290,13 @@ public class OllirVisitor extends Visitor {
         } else if (identifier.getKind().equals(NodeNames.thisName)) {
             methodCallOllir = ollirBuilder.getVirtualMethodCall("this", property, type, expectedType, parametersRep);
         } else {
-            //TODO: error when new Obj().func() (identifier is new)
             BasicSymbol symbol = typeInterpreter.getIdentifierSymbol(identifier);
+            if (symbol == null) { // right after instantiation
+                Type instType = new Type(identifier.get(Attributes.name), false);
+                IntermediateOllirRepresentation representation = getOllirRepresentation(identifier, instType, true);
+                before.append(representation.getBefore());
+                symbol = new BasicSymbol(instType, representation.getCurrent().split("\\.")[0]);
+            }
             methodCallOllir = ollirBuilder.getVirtualMethodCall(symbol.getName(), symbol.getType(), property, type, expectedType, parametersRep);
         }
 
