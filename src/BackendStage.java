@@ -200,19 +200,6 @@ public class BackendStage implements JasminBackend {
         }
         Operand operand = (Operand) element;
 
-//        TODO remove this if not needed
-//        for (Field field : classUnit.getFields()) {
-//            if (field.getFieldName().equals(operand.getName()) && field.getFieldType().equals(operand.getType())) {
-//                Logger.log("Found class field while loading element!!!");
-//                GetFieldInstruction instruction = new GetFieldInstruction(new Operand("this", new Type(ElementType.OBJECTREF)), operand, operand.getType());
-//                buildInstruction(instruction, localVariable, sb);
-//                return;
-//            }
-//        }
-
-
-
-
         System.out.println("Loading element from local variables...");
         localVariable.log();
         System.out.println("Is operand, name = " + operand.getName());

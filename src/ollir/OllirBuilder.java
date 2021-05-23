@@ -218,11 +218,15 @@ public class OllirBuilder {
                     }
                 }
 
+                boolean inLocalScope = false;
+                if (table.getLocalVariable(methodIdBuilder.buildMethodId(scope.getMethodScope()), operandName) != null) inLocalScope = true;
+
+
                 String current;
                 String before = "";
                 if (inParameter != 0)
                     current = "$" + inParameter + "." + operand.get(Attributes.name) + typeToCode(type);
-                else if (isField(operandName, type)) {
+                else if (isField(operandName, type) && !inLocalScope) {
                     String auxName = getNextAuxName();
                     String typeCode = typeToCode(type);
                     String rightSide = "";
