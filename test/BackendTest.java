@@ -178,7 +178,7 @@ public class BackendTest {
     }
 
     @Test
-    public void testWhileAndIF() {
+    public void testWhileAndIf() {
         var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/WhileAndIF.jmm"));
         TestUtils.noErrors(result.getReports());
 

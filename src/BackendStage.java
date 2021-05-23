@@ -1,20 +1,19 @@
-import java.awt.*;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.List;
-
 import jasmin.BranchBuilder;
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
-import utils.Logger;
+import jasmin.LimitCalculator;
 import jasmin.LocalVariable;
-
 import org.specs.comp.ollir.*;
-
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.jasmin.JasminBackend;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
+import utils.Logger;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.specs.comp.ollir.OperationType.NOTB;
 
@@ -36,6 +35,7 @@ public class BackendStage implements JasminBackend {
     private int nextLabel = 1;
     private ClassUnit classUnit = null;
     private final BranchBuilder branchBuilder = new BranchBuilder();
+    private final LimitCalculator limitCalculator = new LimitCalculator();
 
     private String getNextLabel() {
         String tmp = "label" + nextLabel;
@@ -125,10 +125,14 @@ public class BackendStage implements JasminBackend {
                 code.append(buildConstructor(getClassNameWithImport(superClass)));
                 continue;
             }
-            code.append(buildMethodDeclaration(m)).append("\n");
 
-            code.append("\t.limit locals 110\n");
-            code.append("\t.limit stack 110\n");
+            StringBuilder methodCode = new StringBuilder();
+            methodCode.append(buildMethodDeclaration(m)).append("\n");
+
+            methodCode.append("\t.limit locals ").
+                    append(limitCalculator.limitLocals(m)).
+                    append("\n");
+            methodCode.append("\t.limit stack 0\n");
 
             LocalVariable localVariable = new LocalVariable(m.getParams());
             List<Instruction> instructions = m.getInstructions();
@@ -136,14 +140,16 @@ public class BackendStage implements JasminBackend {
                 StringBuilder sb = new StringBuilder();
                 for (String s : m.getLabels(i)) sb.append(s).append(":\n");
                 buildInstruction(i, localVariable, sb, false);
-                code.append(sb);
+                methodCode.append(sb);
             }
 
             if (instructions.get(instructions.size() - 1).getInstType() != InstructionType.RETURN) {
-                code.append("\treturn\n");
+                methodCode.append("\treturn\n");
             }
 
-            code.append(".end method\n");
+            methodCode.append(".end method\n");
+            String jasminMethodCode = limitCalculator.limitStack(methodCode.toString());
+            code.append(jasminMethodCode);
         }
 
         System.out.println("Printing jasmin..");
@@ -257,7 +263,7 @@ public class BackendStage implements JasminBackend {
                         Logger.err(e.getMessage() + "\n");
                         e.printStackTrace();
                     }
-                } catch(Exception ignored) {
+                } catch (Exception ignored) {
                     buildInstruction(assignInstruction.getRhs(), localVariable, sb, true);
 
                     if (assignInstruction.getRhs().getInstType() == InstructionType.CALL &&
@@ -466,7 +472,7 @@ public class BackendStage implements JasminBackend {
     }
 
     private String getElementTypePrefix(Element element) {
-        return switch(element.getType().getTypeOfElement()) {
+        return switch (element.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> "i";
             case ARRAYREF, OBJECTREF -> "a";
             default -> null;
