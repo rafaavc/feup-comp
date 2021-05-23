@@ -146,14 +146,14 @@ public class BackendTest {
 //        assertEquals("100", output.trim());
 //    }
 
-//    @Test
-//    public void testQuickSort() {
-//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/QuickSort.jmm"));
-//        TestUtils.noErrors(result.getReports());
-//
-//        var output = result.run();
-//        assertEquals("100", output.trim());
-//    }
+    @Test
+    public void testQuickSort() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/QuickSort.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("1\n2\n3\n4\n5\n6\n7\n8\n9\n10", output.trim());
+    }
 
 //    @Test
 //    public void testTicTacToe() {

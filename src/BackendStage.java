@@ -135,7 +135,7 @@ public class BackendStage implements JasminBackend {
             for (Instruction i : instructions) {
                 StringBuilder sb = new StringBuilder();
                 for (String s : m.getLabels(i)) sb.append(s).append(":\n");
-                buildInstruction(i, localVariable, sb);
+                buildInstruction(i, localVariable, sb, false);
                 code.append(sb);
             }
 
@@ -238,7 +238,7 @@ public class BackendStage implements JasminBackend {
         return getClassNameWithImport(((ClassType) operand.getType()).getName());
     }
 
-    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb) {
+    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb, boolean isRightSideOfAssignment) {
         i.show();
 
         switch (i.getInstType()) {
@@ -260,7 +260,7 @@ public class BackendStage implements JasminBackend {
                         sb.append(getLoad("a", variable));
                         loadElement(arrayOperand.getIndexOperands().get(0), localVariable, sb);
 
-                        buildInstruction(assignInstruction.getRhs(), localVariable, sb);
+                        buildInstruction(assignInstruction.getRhs(), localVariable, sb, true);
 
                         sb.append("\tiastore\n");
                     } catch (Exception e) {
@@ -268,7 +268,7 @@ public class BackendStage implements JasminBackend {
                         e.printStackTrace();
                     }
                 } catch(Exception ignored) {
-                    buildInstruction(assignInstruction.getRhs(), localVariable, sb);
+                    buildInstruction(assignInstruction.getRhs(), localVariable, sb, true);
 
                     if (assignInstruction.getRhs().getInstType() == InstructionType.CALL &&
                             ((CallInstruction) assignInstruction.getRhs()).getInvocationType() == CallType.NEW &&
@@ -330,6 +330,11 @@ public class BackendStage implements JasminBackend {
                         sb.append("(");
                         for (Element el : callInstruction.getListOfOperands()) sb.append(getElementType(el.getType()));
                         sb.append(")").append(getElementType(callInstruction.getReturnType())).append("\n");
+
+                        if (callInstruction.getReturnType().getTypeOfElement() != ElementType.VOID
+                                && !isRightSideOfAssignment) {
+                            sb.append("\tpop\n");  // pops the return value off the stack
+                        }
                     }
                 }
             }
