@@ -199,12 +199,12 @@ public class BackendStage implements JasminBackend {
             }
             return;
         }
+        Operand operand = (Operand) element;
 
-        if (element.getType().getTypeOfElement() == ElementType.THIS) {
+        if (element.getType().getTypeOfElement() == ElementType.THIS || operand.getName().equals("this")) {
             sb.append(getLoadThis());
             return;
         }
-        Operand operand = (Operand) element;
 
         System.out.println("Loading element from local variables...");
         localVariable.log();

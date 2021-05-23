@@ -39,6 +39,24 @@ public class BackendTest {
     }
 
     @Test
+    public void testMethodCalls() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/MethodCalls.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("520", output.trim());
+    }
+
+    @Test
+    public void testComplexExpressions() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/ComplexExpressions.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("10971", output.trim());
+    }
+
+    @Test
     public void testArrayAccess() {
         var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/ArrayAccess.jmm"));
         TestUtils.noErrors(result.getReports());
@@ -120,7 +138,7 @@ public class BackendTest {
     }
 
     @Test
-    public void testLazysort() throws Exception {
+    public void testLazysort() {
         var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Lazysort.jmm"));
         TestUtils.noErrors(result.getReports());
 
@@ -136,6 +154,15 @@ public class BackendTest {
         // is entering an infinite loop?
 //        var output = result.run("1\n1\n1\n1\n");
 //        assertEquals("100", output.trim());
+    }
+
+    @Test
+    public void testModifiedLife() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/ModifiedLife.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run(SpecsIo.getResource("fixtures/public/created/ModifiedLife.input"));
+        assertEquals(SpecsIo.getResource("fixtures/public/created/ModifiedLife.txt"), output.trim());
     }
 
     @Test
@@ -157,14 +184,14 @@ public class BackendTest {
         assertEquals(SpecsIo.getResource("fixtures/public/QuickSort.txt"), output.trim());
     }
 
-//    @Test
-//    public void testTuring() {
-//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/private/Turing.jmm"));
-//        TestUtils.noErrors(result.getReports());
-//
-//        var output = result.run();
-//        assertEquals("", output.trim());
-//    }
+    @Test
+    public void testTuring() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/private/Turing.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run(SpecsIo.getResource("fixtures/private/Turing.input"));
+        assertEquals(SpecsIo.getResource("fixtures/private/Turing.txt"), output.trim());
+    }
 
     @Test
     public void testTicTacToe() {

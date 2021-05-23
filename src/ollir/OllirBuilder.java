@@ -254,7 +254,7 @@ public class OllirBuilder {
                     String currentContents = auxName + ".i32";
                     arrayAccessContentRepresentation = new IntermediateOllirRepresentation(currentContents, beforeContents);
                 }
-                else arrayAccessContentRepresentation = visitor.getOllirRepresentation(arrayAccessContents, typeInterpreter.getNodeType(arrayAccessContents), false);
+                else arrayAccessContentRepresentation = visitor.getOllirRepresentation(arrayAccessContents, typeInterpreter.getNodeType(arrayAccessContents), arrayAccessContents.getKind().equals(NodeNames.objectProperty));
 
                 before += arrayAccessContentRepresentation.getBefore();
                 current.insert(current.length() - 4, "[" + arrayAccessContentRepresentation.getCurrent() + "]");
@@ -271,6 +271,7 @@ public class OllirBuilder {
 
                 yield new IntermediateOllirRepresentation(currentString, before);
             }
+            case NodeNames.thisName -> new IntermediateOllirRepresentation("this" + typeToCode(type), "");
             default -> null;
         };
     }

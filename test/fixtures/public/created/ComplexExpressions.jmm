@@ -1,0 +1,36 @@
+import io;
+class Simple {
+    int a;
+    int b;
+    int c;
+
+    public int add(int a, int b){
+        return a + b;
+    }
+
+    public int setValues(int a, int b, int c) {
+        a = a;
+        b = b;
+        c = c;
+        return 0;
+    }
+
+    public static void main(String[] args){
+        int a;
+        int b;
+        int c;
+        int d;
+        Simple s;
+        a = 20;
+        b = 10;
+        c = 50;
+        s = new Simple();
+        s.setValues(a, b, c);
+        d = s.changeTheWorld();
+        io.println(d);
+    }
+
+    public int changeTheWorld() {
+        return this.add(a/2 + 10000/b*10 + (c/5 - 500) / 10, 10) + 500*10/5;
+    }
+}

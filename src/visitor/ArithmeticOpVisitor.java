@@ -35,6 +35,6 @@ public class ArithmeticOpVisitor extends Visitor {
     }
 
     private Boolean isValidType(Type type, Type expected) {
-        return type.equals(expected) || type.getName().equals(Types.expected);
+        return type != null && (type.equals(expected) || type.getName().equals(Types.expected));
     }
 }
