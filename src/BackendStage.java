@@ -452,7 +452,8 @@ public class BackendStage implements JasminBackend {
 
     private String getElementType(Type type) {
         return switch (type.getTypeOfElement()) {
-            case INT32, BOOLEAN -> "I";
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
             case THIS -> "whaaaat";
             case STRING -> "Ljava/lang/String;";
             case CLASS, OBJECTREF -> "L" + getClassNameWithImport(((ClassType) type).getName()) + ";";

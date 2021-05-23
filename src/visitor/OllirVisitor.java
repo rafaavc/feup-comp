@@ -36,8 +36,15 @@ public class OllirVisitor extends Visitor {
                     Logger.err("> Invalid node in IntermediateOllirRepresentation!");
 
                 List<IntermediateOllirRepresentation> representations = new ArrayList<>();
+
+                Type expectedType = switch(node.getKind()) {
+                    case NodeNames.sum, NodeNames.mul, NodeNames.sub, NodeNames.div, NodeNames.lessThan -> new Type(Types.integer, false);
+                    case NodeNames.and, NodeNames.not -> new Type(Types.bool, false);
+                    default -> null;
+                };
+
                 for (JmmNode child : node.getChildren())
-                    representations.add(getOllirRepresentation(child, type, child.getKind().equals(NodeNames.objectProperty)));
+                    representations.add(getOllirRepresentation(child, expectedType, child.getKind().equals(NodeNames.objectProperty)));
 
                 StringBuilder before = new StringBuilder();
                 for (IntermediateOllirRepresentation rep : representations) before.append(rep.getBefore());
@@ -235,6 +242,7 @@ public class OllirVisitor extends Visitor {
             }
             default -> null;
         };
+
 
         if (property.getKind().equals(NodeNames.objectMethod)) {
             return handleObjectMethod(node, type, expectedType, inline || isReturn);

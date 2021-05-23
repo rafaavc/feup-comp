@@ -1,6 +1,5 @@
 import MathUtils; //lowerLimit,upperLimit
 import Quicksort;
-import io;
 
 class Lazysort extends Quicksort {
     public static void main(String[] a) {
@@ -21,18 +20,6 @@ class Lazysort extends Quicksort {
 
         q.quicksort(L);
         d = q.printL(L);
-    }
-
-    public boolean printL(int[] L) {
-        int i;
-        i = 0;
-        while (i < L.length) {
-            io.println(L[i]);
-            i = i + 1;
-        }
-
-        return true;
-
     }
 
     public boolean quicksort(int[] L) {

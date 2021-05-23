@@ -220,7 +220,6 @@ public class OllirBuilder {
 
                 boolean inLocalScope = isInLocalScope(scope, operandName);
 
-
                 String current;
                 String before = "";
                 if (inParameter != 0)
