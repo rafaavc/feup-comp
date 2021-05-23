@@ -240,7 +240,7 @@ public class OllirBuilder {
                 JmmNode identifier = operand.getChildren().get(0);
                 JmmNode arrayAccessContents = operand.getChildren().get(1).getChildren().get(0);
 
-                IntermediateOllirRepresentation repr = getOperandOllirRepresentation(identifier, scope, new Type(typeInterpreter.getNodeType(identifier).getName(), false));
+                IntermediateOllirRepresentation repr = getOperandOllirRepresentation(identifier, scope, typeInterpreter.getNodeType(identifier));
                 StringBuilder current = new StringBuilder(repr.getCurrent());
                 String before = repr.getBefore();
 
@@ -257,13 +257,17 @@ public class OllirBuilder {
                 before += arrayAccessContentRepresentation.getBefore();
                 current.insert(current.length() - 4, "[" + arrayAccessContentRepresentation.getCurrent() + "]");
 
+
+                // despite the type being array, we want the assignment to not be array
+                String currentString = current.toString().replace(".array", "");
+
                 if (!inline) {
                     String auxName = getNextAuxName();
-                    before += getAssignmentCustom(new BasicSymbol(new Type(Types.integer, false), auxName), current.toString());
-                    current = new StringBuilder(auxName + ".i32");
+                    before += getAssignmentCustom(new BasicSymbol(new Type(Types.integer, false), auxName), currentString);
+                    currentString = auxName + ".i32";
                 }
 
-                yield new IntermediateOllirRepresentation(current.toString(), before);
+                yield new IntermediateOllirRepresentation(currentString, before);
             }
             default -> null;
         };

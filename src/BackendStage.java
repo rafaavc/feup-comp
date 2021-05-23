@@ -57,7 +57,7 @@ public class BackendStage implements JasminBackend {
 
     private String getLoad(String typePrefix, int variable) {
         assert variable >= 0;
-        return "\t" + typePrefix + "load" + (variable <= 3 ? " " : " ") + variable + "\n";
+        return "\t" + typePrefix + "load" + (variable <= 3 ? "_" : " ") + variable + "\n";
     }
 
     private String getLoadThis() {
@@ -66,7 +66,7 @@ public class BackendStage implements JasminBackend {
 
     private String getStore(String typePrefix, int variable) {
         assert variable >= 0;
-        return "\t" + typePrefix + "store" + (variable <= 3 ? " " : " ") + variable + "\n";
+        return "\t" + typePrefix + "store" + (variable <= 3 ? "_" : " ") + variable + "\n";
     }
 
     @Override
@@ -134,7 +134,8 @@ public class BackendStage implements JasminBackend {
             List<Instruction> instructions = m.getInstructions();
             for (Instruction i : instructions) {
                 StringBuilder sb = new StringBuilder();
-                buildInstruction(i, localVariable, sb, m);
+                for (String s : m.getLabels(i)) sb.append(s).append(":\n");
+                buildInstruction(i, localVariable, sb);
                 code.append(sb);
             }
 
@@ -197,8 +198,19 @@ public class BackendStage implements JasminBackend {
             sb.append(getLoadThis());
             return;
         }
-
         Operand operand = (Operand) element;
+
+//        TODO remove this if not needed
+//        for (Field field : classUnit.getFields()) {
+//            if (field.getFieldName().equals(operand.getName()) && field.getFieldType().equals(operand.getType())) {
+//                Logger.log("Found class field while loading element!!!");
+//                GetFieldInstruction instruction = new GetFieldInstruction(new Operand("this", new Type(ElementType.OBJECTREF)), operand, operand.getType());
+//                buildInstruction(instruction, localVariable, sb);
+//                return;
+//            }
+//        }
+
+
         System.out.println("Loading element from local variables...");
         localVariable.log();
         System.out.println("Is operand, name = " + operand.getName());
@@ -226,10 +238,8 @@ public class BackendStage implements JasminBackend {
         return getClassNameWithImport(((ClassType) operand.getType()).getName());
     }
 
-    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb, Method m) {
+    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb) {
         i.show();
-
-        for (String s : m.getLabels(i)) sb.append(s).append(":\n");
 
         switch (i.getInstType()) {
             case ASSIGN -> {
@@ -250,7 +260,7 @@ public class BackendStage implements JasminBackend {
                         sb.append(getLoad("a", variable));
                         loadElement(arrayOperand.getIndexOperands().get(0), localVariable, sb);
 
-                        buildInstruction(assignInstruction.getRhs(), localVariable, sb, m);
+                        buildInstruction(assignInstruction.getRhs(), localVariable, sb);
 
                         sb.append("\tiastore\n");
                     } catch (Exception e) {
@@ -258,7 +268,7 @@ public class BackendStage implements JasminBackend {
                         e.printStackTrace();
                     }
                 } catch(Exception ignored) {
-                    buildInstruction(assignInstruction.getRhs(), localVariable, sb, m);
+                    buildInstruction(assignInstruction.getRhs(), localVariable, sb);
 
                     if (assignInstruction.getRhs().getInstType() == InstructionType.CALL &&
                             ((CallInstruction) assignInstruction.getRhs()).getInvocationType() == CallType.NEW &&
@@ -415,7 +425,6 @@ public class BackendStage implements JasminBackend {
                                 .append(continueLabel).append(":");
                     }
                     case NOTB -> {
-                        //loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
                         sb.append("\tldc 1\n");
                         sb.append("\tixor");
                     }

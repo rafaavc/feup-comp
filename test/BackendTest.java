@@ -109,4 +109,67 @@ public class BackendTest {
         var output = result.run();
         assertEquals("100", output.trim());
     }
+
+    @Test
+    public void testFindMaximum() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/FindMaximum.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("Result: 28", output.trim());
+    }
+
+//    @Test
+//    public void testLazysort() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Lazysort.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("100", output.trim());
+//    }
+
+//    @Test
+//    public void testLife() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Life.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("100", output.trim());
+//    }
+
+//    @Test
+//    public void testMonteCarloPi() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/MonteCarloPi.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("100", output.trim());
+//    }
+
+//    @Test
+//    public void testQuickSort() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/QuickSort.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("100", output.trim());
+//    }
+
+//    @Test
+//    public void testTicTacToe() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/TickTackToe.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("100", output.trim());
+//    }
+
+//    @Test
+//    public void testWhileAndIF() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/WhileAndIF.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("100", output.trim());
+//    }
 }
