@@ -111,15 +111,16 @@ public class OllirVisitor extends Visitor {
 
                 BasicSymbol symbol = null;
                 IntermediateOllirRepresentation leftSideRepresentation = null;
+                Scope leftSideNodeScope = new ScopeVisitor(symbolTable).visit(leftSideNode);
                 if (leftSideNode.getKind().equals(NodeNames.arrayAccessResult)) {
-                    leftSideRepresentation = ollirBuilder.getOperandOllirRepresentation(leftSideNode, new ScopeVisitor(symbolTable).visit(leftSideNode), null);
+                    leftSideRepresentation = ollirBuilder.getOperandOllirRepresentation(leftSideNode, leftSideNodeScope, null);
                 } else {
                     symbol = typeInterpreter.getIdentifierSymbol(leftSideNode);
                 }
 
                 Type returnType = symbol == null ? new Type(Types.integer, false) : symbol.getType();
 
-                if (symbol != null && ollirBuilder.isField(symbol))
+                if (symbol != null && ollirBuilder.isField(symbol) && !ollirBuilder.isInLocalScope(leftSideNodeScope, leftSideNode.get(Attributes.name)))
                 {
                     IntermediateOllirRepresentation representation = getOllirRepresentation(rightSideNode, returnType, rightSideNode.getKind().equals(NodeNames.objectProperty));
                     ollirBuilder.add(representation.getBefore());

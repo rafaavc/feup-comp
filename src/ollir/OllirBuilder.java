@@ -218,8 +218,7 @@ public class OllirBuilder {
                     }
                 }
 
-                boolean inLocalScope = false;
-                if (table.getLocalVariable(methodIdBuilder.buildMethodId(scope.getMethodScope()), operandName) != null) inLocalScope = true;
+                boolean inLocalScope = isInLocalScope(scope, operandName);
 
 
                 String current;
@@ -280,6 +279,10 @@ public class OllirBuilder {
     public boolean isField(Symbol symbol) {
         if (symbol == null) return false;
         return isField(symbol.getName(), symbol.getType());
+    }
+
+    public boolean isInLocalScope(Scope scope, String name) {
+        return table.getLocalVariable(methodIdBuilder.buildMethodId(scope.getMethodScope()), name) != null;
     }
 
     private boolean isField(String name, Type type) {

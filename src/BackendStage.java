@@ -101,9 +101,9 @@ public class BackendStage implements JasminBackend {
     private void addField(Field field, StringBuilder sb) {
         sb.append(".field ")
                 .append(getAccessType(field.getFieldAccessModifier()))
-                .append(" ")
+                .append(" '")
                 .append(field.getFieldName())
-                .append(" ")
+                .append("' ")
                 .append(getElementType(field.getFieldType()))
                 .append("\n");
     }
@@ -127,8 +127,8 @@ public class BackendStage implements JasminBackend {
             }
             code.append(buildMethodDeclaration(m)).append("\n");
 
-            code.append("\t.limit locals 105\n");
-            code.append("\t.limit stack 105\n");
+            code.append("\t.limit locals 110\n");
+            code.append("\t.limit stack 110\n");
 
             LocalVariable localVariable = new LocalVariable(m.getParams());
             List<Instruction> instructions = m.getInstructions();

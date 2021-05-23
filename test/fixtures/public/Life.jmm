@@ -9,7 +9,7 @@ class Life {
 
     int xMax;
     int yMax;
-    int[] fields;
+    int[] field;
 
     public static void main(String[] a) {
 		Life l;
@@ -40,17 +40,17 @@ class Life {
         LOOPS_PER_MS = 225000;
 
         /* Instance variables */
-        fields = this.field(lineLenA);
+        field = this.field(lineLenA);
         lineLen = lineLenA[0];
 
         xMax = lineLen - 1;
-        yMax = fields.length / lineLen - 1;
+        yMax = field.length / lineLen - 1;
 
         return true;
     }
 
-    /* Change this! 
-     * (might want to write a script 
+    /* Change this!
+     * (might want to write a script
      * to autogenerate every assignment...)
      *
      * lineLen is "pass by reference",
@@ -174,13 +174,13 @@ class Life {
         boolean goodPop;
         int[] newField;
 
-        newField = new int[fields.length];
+        newField = new int[field.length];
 
         i = 0;
-        while (i < fields.length) {
-            cur = fields[i];
+        while (i < field.length) {
+            cur = field[i];
             neighN = this.getLiveNeighborN(i);
-            
+
 
             // Live cell
             if (!(cur < 1)) {
@@ -188,7 +188,7 @@ class Life {
                 if (!goodPop) {
                     newField[i] = 0;
                 } else {
-                    newField[i] = fields[i];
+                    newField[i] = field[i];
                 }
             }
             // Dead cell
@@ -196,14 +196,14 @@ class Life {
                 if (this.eq(neighN,REPRODUCE_NUM)) {
                     newField[i] = 1;
                 } else {
-                    newField[i] = fields[i];
+                    newField[i] = field[i];
                 }
             }
 
             i = i + 1;
         }
 
-        fields = newField;
+        field = newField;
         return true;
 
     }
@@ -215,13 +215,13 @@ class Life {
 
         i = 0;
         j = 0;
-        while (i < fields.length) {
+        while (i < field.length) {
             if (this.gt(j,xMax)) {
                 io.println();
                 j = 0;
             }
             else {}
-            io.print(fields[i]);
+            io.print(field[i]);
 
             i = i + 1;
             j = j + 1;
@@ -320,7 +320,7 @@ class Life {
 
         i = 0;
         while (i < neigh.length) {
-            if (this.ne(fields[neigh[i]],0))
+            if (this.ne(field[neigh[i]],0))
                 result = result + 1;
             else {
             }
