@@ -173,12 +173,12 @@ public class BackendTest {
 //        assertEquals("100", output.trim());
 //    }
 
-//    @Test
-//    public void testWhileAndIF() {
-//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/WhileAndIF.jmm"));
-//        TestUtils.noErrors(result.getReports());
-//
-//        var output = result.run();
-//        assertEquals("100", output.trim());
-//    }
+    @Test
+    public void testWhileAndIF() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/WhileAndIF.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("10\n10\n10\n10\n10\n10\n10\n10\n10\n10", output.trim());
+    }
 }

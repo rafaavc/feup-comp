@@ -9,7 +9,7 @@ class Life {
 
     int xMax;
     int yMax;
-    int[] field;
+    int[] fields;
 
     public static void main(String[] a) {
 		Life l;
@@ -40,11 +40,11 @@ class Life {
         LOOPS_PER_MS = 225000;
 
         /* Instance variables */
-        field = this.field(lineLenA);
+        fields = this.field(lineLenA);
         lineLen = lineLenA[0];
 
         xMax = lineLen - 1;
-        yMax = field.length / lineLen - 1;
+        yMax = fields.length / lineLen - 1;
 
         return true;
     }
@@ -174,11 +174,11 @@ class Life {
         boolean goodPop;
         int[] newField;
 
-        newField = new int[field.length];
+        newField = new int[fields.length];
 
         i = 0;
-        while (i < field.length) {
-            cur = field[i];
+        while (i < fields.length) {
+            cur = fields[i];
             neighN = this.getLiveNeighborN(i);
             
 
@@ -188,7 +188,7 @@ class Life {
                 if (!goodPop) {
                     newField[i] = 0;
                 } else {
-                    newField[i] = field[i];
+                    newField[i] = fields[i];
                 }
             }
             // Dead cell
@@ -196,14 +196,14 @@ class Life {
                 if (this.eq(neighN,REPRODUCE_NUM)) {
                     newField[i] = 1;
                 } else {
-                    newField[i] = field[i];
+                    newField[i] = fields[i];
                 }
             }
 
             i = i + 1;
         }
 
-        field = newField;
+        fields = newField;
         return true;
 
     }
@@ -215,13 +215,13 @@ class Life {
 
         i = 0;
         j = 0;
-        while (i < field.length) {
+        while (i < fields.length) {
             if (this.gt(j,xMax)) {
                 io.println();
                 j = 0;
             }
             else {}
-            io.print(field[i]);
+            io.print(fields[i]);
 
             i = i + 1;
             j = j + 1;
@@ -320,7 +320,7 @@ class Life {
 
         i = 0;
         while (i < neigh.length) {
-            if (this.ne(field[neigh[i]],0))
+            if (this.ne(fields[neigh[i]],0))
                 result = result + 1;
             else {
             }

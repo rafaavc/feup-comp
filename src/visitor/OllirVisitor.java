@@ -19,7 +19,6 @@ import java.util.List;
 
 public class OllirVisitor extends Visitor {
     private final OllirBuilder ollirBuilder;
-    private int label = 0;
 
     public OllirVisitor(BasicSymbolTable table) {
         super(table);
@@ -239,12 +238,12 @@ public class OllirVisitor extends Visitor {
         if (property.getKind().equals(NodeNames.objectMethod)) {
             return handleObjectMethod(node, type, expectedType, inline || isReturn);
         } else if (property.getKind().equals(NodeNames.length)) {
-            String arrayLengthCall = ollirBuilder.getArrayLengthCall(node.getChildren().get(0));
+            IntermediateOllirRepresentation arrayLengthCall = ollirBuilder.getArrayLengthCall(node.getChildren().get(0));
             if (!inline) {
-                return new IntermediateOllirRepresentation("\t\t" + arrayLengthCall + "\n", "");
+                return new IntermediateOllirRepresentation("\t\t" + arrayLengthCall.getCurrent() + "\n", arrayLengthCall.getBefore());
             } else {
                 String auxName = ollirBuilder.getNextAuxName();
-                String before = ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), arrayLengthCall);
+                String before = arrayLengthCall.getBefore() + ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), arrayLengthCall.getCurrent());
                 String current = auxName + ollirBuilder.typeToCode(type);
 
                 return new IntermediateOllirRepresentation(current, before);

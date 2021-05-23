@@ -127,7 +127,7 @@ public class BackendStage implements JasminBackend {
             }
             code.append(buildMethodDeclaration(m)).append("\n");
 
-            code.append("\t.limit locals 99\n");
+            code.append("\t.limit locals 105\n");
             code.append("\t.limit stack 105\n");
 
             LocalVariable localVariable = new LocalVariable(m.getParams());

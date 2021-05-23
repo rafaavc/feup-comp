@@ -101,9 +101,9 @@ public class OllirBuilder {
         return "new(array, " + length + ").array.i32";
     }
 
-    public String getArrayLengthCall(JmmNode identifier) {
-        String current = getOperandOllirRepresentation(identifier, new ScopeVisitor(table).visit(identifier), typeInterpreter.getNodeType(identifier)).getCurrent();
-        return "arraylength(" + current + ").i32";
+    public IntermediateOllirRepresentation getArrayLengthCall(JmmNode identifier) {
+        IntermediateOllirRepresentation representation = getOperandOllirRepresentation(identifier, new ScopeVisitor(table).visit(identifier), typeInterpreter.getNodeType(identifier));
+        return new IntermediateOllirRepresentation("arraylength(" + representation.getCurrent() + ").i32", representation.getBefore());
     }
 
     public String getClassInitCall(String varName, String className) {
