@@ -38,14 +38,14 @@ public class BackendTest {
         assertEquals("30", output.trim());
     }
 
-    /*@Test
+    @Test
     public void testArrayAccess() {
-        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/ArrayAccess.jmm"));
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/created/ArrayAccess.jmm"));
         TestUtils.noErrors(result.getReports());
 
         var output = result.run();
-        assertEquals("1", output.trim());
-    }*/
+        assertEquals("4\n12\n1\n5", output.trim());
+    }
 
     @Test
     public void testFac() {
@@ -108,5 +108,81 @@ public class BackendTest {
 
         var output = result.run();
         assertEquals("100", output.trim());
+    }
+
+    @Test
+    public void testFindMaximum() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/FindMaximum.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("Result: 28", output.trim());
+    }
+
+    @Test
+    public void testLazysort() throws Exception {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Lazysort.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run().split("\n");
+        assertEquals(output.length, 10);
+    }
+
+    @Test
+    public void testLife() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/Life.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        // is entering an infinite loop?
+//        var output = result.run("1\n1\n1\n1\n");
+//        assertEquals("100", output.trim());
+    }
+
+    @Test
+    public void testMonteCarloPi() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/MonteCarloPi.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run("100000\n").trim();
+
+        assertEquals(314, Integer.parseInt(output.substring(output.length() - 3)), 5);
+    }
+
+    @Test
+    public void testQuickSort() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/QuickSort.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals(SpecsIo.getResource("fixtures/public/QuickSort.txt"), output.trim());
+    }
+
+//    @Test
+//    public void testTuring() {
+//        var result = TestUtils.backend(SpecsIo.getResource("fixtures/private/Turing.jmm"));
+//        TestUtils.noErrors(result.getReports());
+//
+//        var output = result.run();
+//        assertEquals("", output.trim());
+//    }
+
+    @Test
+    public void testTicTacToe() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/TicTacToe.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run(SpecsIo.getResource("fixtures/public/TicTacToe.input"));
+        assertEquals(SpecsIo.getResource("fixtures/public/TicTacToe.txt")
+                        .replace("\n", "").replace(" ", ""),
+                        output.trim().replace("\n", "").replace(" ", ""));
+    }
+
+    @Test
+    public void testWhileAndIF() {
+        var result = TestUtils.backend(SpecsIo.getResource("fixtures/public/WhileAndIF.jmm"));
+        TestUtils.noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals(SpecsIo.getResource("fixtures/public/WhileAndIF.txt"), output.trim());
     }
 }

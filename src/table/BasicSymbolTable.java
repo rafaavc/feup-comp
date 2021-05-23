@@ -87,7 +87,12 @@ public class BasicSymbolTable implements SymbolTable {
 
     public BasicSymbol getLocalVariable(String methodName, String variableName) {
         ClassScope classScope = global.getClassScope();
-        List<BasicSymbol> localVariables = classScope.getMethod(methodName).getLocalVariables();
+        MethodScope method = classScope.getMethod(methodName);
+        if (method == null) {
+            Logger.err("Couldn't find method " + methodName);
+            return null;
+        }
+        List<BasicSymbol> localVariables = method.getLocalVariables();
         for (BasicSymbol localVariable : localVariables)
             if (variableName.equals(localVariable.getName())) return localVariable;
         return null;

@@ -49,8 +49,8 @@ class Life {
         return true;
     }
 
-    /* Change this! 
-     * (might want to write a script 
+    /* Change this!
+     * (might want to write a script
      * to autogenerate every assignment...)
      *
      * lineLen is "pass by reference",
@@ -180,7 +180,7 @@ class Life {
         while (i < field.length) {
             cur = field[i];
             neighN = this.getLiveNeighborN(i);
-            
+
 
             // Live cell
             if (!(cur < 1)) {

@@ -57,7 +57,7 @@ public class BackendStage implements JasminBackend {
 
     private String getLoad(String typePrefix, int variable) {
         assert variable >= 0;
-        return "\t" + typePrefix + "load" + (variable <= 3 ? " " : " ") + variable + "\n";
+        return "\t" + typePrefix + "load" + (variable <= 3 ? "_" : " ") + variable + "\n";
     }
 
     private String getLoadThis() {
@@ -66,7 +66,7 @@ public class BackendStage implements JasminBackend {
 
     private String getStore(String typePrefix, int variable) {
         assert variable >= 0;
-        return "\t" + typePrefix + "store" + (variable <= 3 ? " " : " ") + variable + "\n";
+        return "\t" + typePrefix + "store" + (variable <= 3 ? "_" : " ") + variable + "\n";
     }
 
     @Override
@@ -101,9 +101,9 @@ public class BackendStage implements JasminBackend {
     private void addField(Field field, StringBuilder sb) {
         sb.append(".field ")
                 .append(getAccessType(field.getFieldAccessModifier()))
-                .append(" ")
+                .append(" '")
                 .append(field.getFieldName())
-                .append(" ")
+                .append("' ")
                 .append(getElementType(field.getFieldType()))
                 .append("\n");
     }
@@ -127,14 +127,15 @@ public class BackendStage implements JasminBackend {
             }
             code.append(buildMethodDeclaration(m)).append("\n");
 
-            code.append("\t.limit locals 99\n");
-            code.append("\t.limit stack 99\n");
+            code.append("\t.limit locals 110\n");
+            code.append("\t.limit stack 110\n");
 
             LocalVariable localVariable = new LocalVariable(m.getParams());
             List<Instruction> instructions = m.getInstructions();
             for (Instruction i : instructions) {
                 StringBuilder sb = new StringBuilder();
-                buildInstruction(i, localVariable, sb, m);
+                for (String s : m.getLabels(i)) sb.append(s).append(":\n");
+                buildInstruction(i, localVariable, sb, false);
                 code.append(sb);
             }
 
@@ -184,6 +185,7 @@ public class BackendStage implements JasminBackend {
         if (element.isLiteral()) {
             if (isPrimitive(elementType)) {
                 // There are only int primitives
+                assert element instanceof LiteralElement;
                 LiteralElement literalElement = (LiteralElement) element;
                 sb.append(getConst(Integer.parseInt(literalElement.getLiteral())));
             } else {
@@ -196,12 +198,13 @@ public class BackendStage implements JasminBackend {
             sb.append(getLoadThis());
             return;
         }
-
         Operand operand = (Operand) element;
+
         System.out.println("Loading element from local variables...");
         localVariable.log();
         System.out.println("Is operand, name = " + operand.getName());
         String typePrefix = getElementTypePrefix(element);
+        Logger.log("Trying to find " + operand.getName());
         sb.append(getLoad(typePrefix, localVariable.getCorrespondence(operand.getName())));
 
     }
@@ -225,15 +228,14 @@ public class BackendStage implements JasminBackend {
         return getClassNameWithImport(((ClassType) operand.getType()).getName());
     }
 
-    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb, Method m) {
+    private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb, boolean isRightSideOfAssignment) {
         i.show();
-
-        for (String s : m.getLabels(i)) sb.append(s).append(":\n");
 
         switch (i.getInstType()) {
             case ASSIGN -> {
                 AssignInstruction assignInstruction = (AssignInstruction) i;
-                String identifierName = ((Operand) assignInstruction.getDest()).getName();
+                Operand destOperand = (Operand) assignInstruction.getDest();
+                String identifierName = destOperand.getName();
 
                 Integer variable = localVariable.getCorrespondence(identifierName);
                 if (variable == null) {
@@ -241,12 +243,30 @@ public class BackendStage implements JasminBackend {
                     localVariable.addCorrespondence(identifierName, variable);
                 }
 
-                buildInstruction(assignInstruction.getRhs(), localVariable, sb, m);
-                if (assignInstruction.getRhs().getInstType() == InstructionType.CALL &&
-                        ((CallInstruction) assignInstruction.getRhs()).getInvocationType() == CallType.NEW) {
-                    sb.append("\tdup\n");
-                } else {
-                    sb.append(getStore(getElementTypePrefix(assignInstruction.getDest()), variable));
+                try {
+                    // best way I found to do array assign
+                    ArrayOperand arrayOperand = (ArrayOperand) destOperand;
+                    try {
+                        sb.append(getLoad("a", variable));
+                        loadElement(arrayOperand.getIndexOperands().get(0), localVariable, sb);
+
+                        buildInstruction(assignInstruction.getRhs(), localVariable, sb, true);
+
+                        sb.append("\tiastore\n");
+                    } catch (Exception e) {
+                        Logger.err(e.getMessage() + "\n");
+                        e.printStackTrace();
+                    }
+                } catch(Exception ignored) {
+                    buildInstruction(assignInstruction.getRhs(), localVariable, sb, true);
+
+                    if (assignInstruction.getRhs().getInstType() == InstructionType.CALL &&
+                            ((CallInstruction) assignInstruction.getRhs()).getInvocationType() == CallType.NEW &&
+                            ((CallInstruction) assignInstruction.getRhs()).getFirstArg().getType().getTypeOfElement() != ElementType.ARRAYREF) { // checking if it's not array instantiation
+                        sb.append("\tdup\n");
+                    } else {
+                        sb.append(getStore(getElementTypePrefix(assignInstruction.getDest()), variable));
+                    }
                 }
             }
             case CALL -> {
@@ -258,12 +278,10 @@ public class BackendStage implements JasminBackend {
                 CallType invocationType = callInstruction.getInvocationType();
 
                 switch (invocationType) {
-                    case ldc, arraylength -> Logger.err("Received ldc or arraylength in invocation type (not supposed)");
+                    case ldc -> Logger.err("Received ldc or arraylength in invocation type (not supposed)");
                     case NEW -> {
                         if (firstCallOperand.getType().getTypeOfElement() == ElementType.ARRAYREF) {
-                            ArrayOperand arrayOperand = (ArrayOperand) firstCallOperand;
-
-                            // TODO load the array size
+                            loadElement(callInstruction.getListOfOperands().get(0), localVariable, sb);
                             sb.append("\tnewarray int\n");
                         } else {
                             sb.append("\tnew ").append(getClassNameRepresentation(firstCallOperand)).append("\n");
@@ -279,6 +297,10 @@ public class BackendStage implements JasminBackend {
                         sb.append(")").append(getElementType(callInstruction.getReturnType())).append("\n");
 
                         sb.append(getStore("a", localVariable.getCorrespondence(firstCallOperand.getName())));
+                    }
+                    case arraylength -> {
+                        loadElement(firstCallOperand, localVariable, sb);
+                        sb.append("\tarraylength\n");
                     }
                     default -> {
                         if (firstCallOperand.getType().getTypeOfElement() == ElementType.OBJECTREF)
@@ -298,6 +320,11 @@ public class BackendStage implements JasminBackend {
                         sb.append("(");
                         for (Element el : callInstruction.getListOfOperands()) sb.append(getElementType(el.getType()));
                         sb.append(")").append(getElementType(callInstruction.getReturnType())).append("\n");
+
+                        if (callInstruction.getReturnType().getTypeOfElement() != ElementType.VOID
+                                && !isRightSideOfAssignment) {
+                            sb.append("\tpop\n");  // pops the return value off the stack
+                        }
                     }
                 }
             }
@@ -393,7 +420,6 @@ public class BackendStage implements JasminBackend {
                                 .append(continueLabel).append(":");
                     }
                     case NOTB -> {
-                        loadElement(binaryOpInstruction.getRightOperand(), localVariable, sb);
                         sb.append("\tldc 1\n");
                         sb.append("\tixor");
                     }
@@ -402,8 +428,23 @@ public class BackendStage implements JasminBackend {
             }
             case NOPER -> {
                 SingleOpInstruction singleOpInstruction = (SingleOpInstruction) i;
-                System.out.println("TYPE: " + singleOpInstruction.getSingleOperand().getType());
-                loadElement(singleOpInstruction.getSingleOperand(), localVariable, sb);
+                Element el = singleOpInstruction.getSingleOperand();
+
+                try {  // if it's array access
+                    ArrayOperand operand = (ArrayOperand) el;
+                    try {
+                        operand.setType(new Type(ElementType.ARRAYREF));
+                        loadElement(operand, localVariable, sb);
+                        loadElement(operand.getIndexOperands().get(0), localVariable, sb);
+                        sb.append("\tiaload\n");
+                    } catch (Exception e) {
+                        Logger.err(e.getMessage() + "\n");
+                        e.printStackTrace();
+                    }
+                } catch (Exception ignore) {
+                    loadElement(singleOpInstruction.getSingleOperand(), localVariable, sb);
+                }
+
             }
         }
 
@@ -411,7 +452,8 @@ public class BackendStage implements JasminBackend {
 
     private String getElementType(Type type) {
         return switch (type.getTypeOfElement()) {
-            case INT32, BOOLEAN -> "I";
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
             case THIS -> "whaaaat";
             case STRING -> "Ljava/lang/String;";
             case CLASS, OBJECTREF -> "L" + getClassNameWithImport(((ClassType) type).getName()) + ";";

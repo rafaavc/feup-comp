@@ -101,9 +101,9 @@ public class OllirBuilder {
         return "new(array, " + length + ").array.i32";
     }
 
-    public String getArrayLengthCall(JmmNode identifier) {
-        String current = getOperandOllirRepresentation(identifier, new ScopeVisitor(table).visit(identifier), typeInterpreter.getNodeType(identifier)).getCurrent();
-        return "arraylength(" + current + ").i32";
+    public IntermediateOllirRepresentation getArrayLengthCall(JmmNode identifier) {
+        IntermediateOllirRepresentation representation = getOperandOllirRepresentation(identifier, new ScopeVisitor(table).visit(identifier), typeInterpreter.getNodeType(identifier));
+        return new IntermediateOllirRepresentation("arraylength(" + representation.getCurrent() + ").i32", representation.getBefore());
     }
 
     public String getClassInitCall(String varName, String className) {
@@ -146,7 +146,9 @@ public class OllirBuilder {
         String returnTypeCode = typeToCode(returnType);
 
         code.append("\t\t\tret").append(returnTypeCode);
-        code.append(" ").append(returnOllirRep).append("\n");
+        code.append(" ").append(returnOllirRep);
+
+        if (returnOllirRep.charAt(returnOllirRep.length() - 1) != '\n') code.append("\n");
     }
 
     public int addLoop(IntermediateOllirRepresentation condition) {
@@ -216,11 +218,13 @@ public class OllirBuilder {
                     }
                 }
 
+                boolean inLocalScope = isInLocalScope(scope, operandName);
+
                 String current;
                 String before = "";
                 if (inParameter != 0)
                     current = "$" + inParameter + "." + operand.get(Attributes.name) + typeToCode(type);
-                else if (isField(operandName, type)) {
+                else if (isField(operandName, type) && !inLocalScope) {
                     String auxName = getNextAuxName();
                     String typeCode = typeToCode(type);
                     String rightSide = "";
@@ -238,7 +242,7 @@ public class OllirBuilder {
                 JmmNode identifier = operand.getChildren().get(0);
                 JmmNode arrayAccessContents = operand.getChildren().get(1).getChildren().get(0);
 
-                IntermediateOllirRepresentation repr = getOperandOllirRepresentation(identifier, scope, new Type(typeInterpreter.getNodeType(identifier).getName(), false));
+                IntermediateOllirRepresentation repr = getOperandOllirRepresentation(identifier, scope, typeInterpreter.getNodeType(identifier));
                 StringBuilder current = new StringBuilder(repr.getCurrent());
                 String before = repr.getBefore();
 
@@ -255,13 +259,17 @@ public class OllirBuilder {
                 before += arrayAccessContentRepresentation.getBefore();
                 current.insert(current.length() - 4, "[" + arrayAccessContentRepresentation.getCurrent() + "]");
 
+
+                // despite the type being array, we want the assignment to not be array
+                String currentString = current.toString().replace(".array", "");
+
                 if (!inline) {
                     String auxName = getNextAuxName();
-                    before += getAssignmentCustom(new BasicSymbol(new Type(Types.integer, false), auxName), current.toString());
-                    current = new StringBuilder(auxName + ".i32");
+                    before += getAssignmentCustom(new BasicSymbol(new Type(Types.integer, false), auxName), currentString);
+                    currentString = auxName + ".i32";
                 }
 
-                yield new IntermediateOllirRepresentation(current.toString(), before);
+                yield new IntermediateOllirRepresentation(currentString, before);
             }
             default -> null;
         };
@@ -270,6 +278,10 @@ public class OllirBuilder {
     public boolean isField(Symbol symbol) {
         if (symbol == null) return false;
         return isField(symbol.getName(), symbol.getType());
+    }
+
+    public boolean isInLocalScope(Scope scope, String name) {
+        return table.getLocalVariable(methodIdBuilder.buildMethodId(scope.getMethodScope()), name) != null;
     }
 
     private boolean isField(String name, Type type) {
