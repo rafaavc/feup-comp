@@ -13,19 +13,20 @@ class Life {
 
     public static void main(String[] a) {
 		Life l;
-		int unused;
+		int steps;
+		int count;
 
 		l = new Life();
 		l.init();
 
+		steps = io.read();
+		count = 0;
 
-
-        while (true) {
+        while (count < steps) {
             l.printField();
             l.update();
-            unused = io.read();
+            count = count + 1;
         }
-
     }
 
     public boolean init() {
@@ -336,38 +337,38 @@ class Life {
     public boolean busyWait(int ms) {
         int i;
         int n;
-        
+
         n = ms * LOOPS_PER_MS;
-        
+
         // Try optimizing this away!
         i = 0;
         while (i < n) {
             i = i + 1;
         }
-        
+
         return true;
     }
-    
+
     public boolean eq(int a, int b) {
 		return (!this.lt(a, b) && !this.lt(b, a));
 	}
-	
+
 	public boolean ne(int a, int b) {
 		return (!this.eq(a, b));
 	}
-	
+
     public boolean lt(int a, int b) {
 		return (a < b);
     }
-    
+
     public boolean le(int a, int b) {
 		return !(!this.lt(a, b) && !this.eq(a, b));
     }
-    
+
     public boolean gt(int a, int b) {
 		return (!this.le(a, b));
     }
-    
+
     public boolean ge(int a, int b) {
 		return !(!this.gt(a, b) && !this.eq(a, b));
 	}
