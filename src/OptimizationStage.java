@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import optimization.Liveness;
+import optimization.LivenessResult;
+import org.specs.comp.ollir.Instruction;
+import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
@@ -51,7 +55,13 @@ public class OptimizationStage implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
-        // THIS IS JUST FOR CHECKPOINT 3
+        List<Method> methods = ollirResult.getOllirClass().getMethods();
+        for (Method method : methods) {
+            Liveness liveness = new Liveness(method);
+            LivenessResult livenessResult = liveness.get();
+
+
+        }
         return ollirResult;
     }
 
