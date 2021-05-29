@@ -1,3 +1,5 @@
+import org.specs.comp.ollir.Instruction;
+import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;

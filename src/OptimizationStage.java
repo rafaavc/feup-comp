@@ -10,6 +10,7 @@ import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
+import utils.Logger;
 import visitor.OllirVisitor;
 import table.BasicSymbolTable;
 import ollir.OllirBuilder;
@@ -44,7 +45,7 @@ public class OptimizationStage implements JmmOptimization {
 
         // More reports from this stage
         List<Report> reports = new ArrayList<>();
-        return new OllirResult(semanticsResult, ollirCode, reports);
+        return optimize(new OllirResult(semanticsResult, ollirCode, reports));
     }
 
     @Override
@@ -55,12 +56,16 @@ public class OptimizationStage implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
-        List<Method> methods = ollirResult.getOllirClass().getMethods();
-        for (Method method : methods) {
-            Liveness liveness = new Liveness(method);
-            LivenessResult livenessResult = liveness.get();
-
-
+        try {
+            List<Method> methods = ollirResult.getOllirClass().getMethods();
+            for (Method method : methods) {
+                Liveness liveness = new Liveness(method);
+                System.out.println(liveness);
+                LivenessResult livenessResult = liveness.get();
+            }
+        } catch(Exception e) {
+            Logger.err("Ollir optimization failed!");
+            e.printStackTrace();
         }
         return ollirResult;
     }
