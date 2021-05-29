@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import optimization.ConstantPropagation;
+import optimization.WhileOptimization;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
@@ -52,6 +54,12 @@ public class OptimizationStage implements JmmOptimization {
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
         // THIS IS JUST FOR CHECKPOINT 3
+        return ollirResult;
+    }
+
+    public OllirResult optimizeO(OllirResult ollirResult) {
+        ollirResult = new ConstantPropagation().optimize(ollirResult);
+        ollirResult = new WhileOptimization().optimize(ollirResult);
         return ollirResult;
     }
 

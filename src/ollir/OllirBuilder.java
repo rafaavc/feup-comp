@@ -155,20 +155,20 @@ public class OllirBuilder {
         String conditionExpression = condition.getCurrent();
         if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
 
-        code.append("\t\tLoop").append(++whileCount).append(":\n");
+        code.append("\t\t").append(Ollir.loop).append(++whileCount).append(":\n");
 
         add(condition.getBefore());
         addIf(conditionExpression, true);
 
-        code.append("\t\t\tgoto End").append(whileCount).append("\n");
-        code.append("\t\tBody").append(whileCount).append(":\n");
+        code.append("\t\t\tgoto ").append(Ollir.loopEnd).append(whileCount).append("\n");
+        code.append("\t\t").append(Ollir.loopBody).append(whileCount).append(":\n");
 
         return whileCount;
     }
 
     public void addLoopEnd(int label) {
-        code.append("\t\t\tgoto Loop").append(label).append("\n");
-        code.append("\t\tEnd").append(label).append(":\n");
+        code.append("\t\t\tgoto ").append(Ollir.loop).append(label).append("\n");
+        code.append("\t\t").append(Ollir.loopEnd).append(label).append(":\n");
     }
 
     public int addIf(String conditionExpression, boolean isLoop) {
@@ -178,7 +178,7 @@ public class OllirBuilder {
                 .append(conditionExpression)
                 .append(") goto ");
 
-        if (isLoop) code.append("Body").append(whileCount).append("\n");
+        if (isLoop) code.append(Ollir.loopBody).append(whileCount).append("\n");
         else code.append(Ollir.ifBody).append(++ifCount).append("\n");
 
         return ifCount;
