@@ -174,7 +174,7 @@ public class OllirBuilder {
     public int addIf(String conditionExpression, boolean isLoop) {
         if (!conditionExpression.contains(" ")) conditionExpression += " ==.bool 1.bool";
 
-        code.append("\t\tif (")
+        code.append("\t\t\tif (")
                 .append(conditionExpression)
                 .append(") goto ");
 

@@ -23,7 +23,7 @@ public class WhileOptimization {
 
         for (int i = 0; i < ollirCode.length(); i++) {
             loopId = isLoopStart(ollirCode, i);
-            if (loopId != -1) {
+            if (!isInLoop && loopId != -1) {
                 loopIdSafe = loopId;
                 isInLoop = true;
                 ollirLoopCode.append("\t\t").append(ollirCode.charAt(i));
@@ -42,6 +42,7 @@ public class WhileOptimization {
     }
 
     private String updateLoop(String ollirLoopCode, Integer loopId) {
+        System.out.println("LOOP " + loopId);
         StringBuilder code = new StringBuilder();
         String[] instructions = ollirLoopCode.split("\n");
         String ifInstruction = getIfInstruction(instructions);
@@ -70,18 +71,20 @@ public class WhileOptimization {
         boolean add = false;
         String body = Ollir.loopBody + loopId + ":";
         String gotoLoop = "goto " + Ollir.loop + loopId + ";";
+        String bodyHeader = "";
 
         // 1st instruction is loop label; last is loop end label
         for (int i = 1; i < instructions.length - 1; i++) {
             String instruction = instructions[i];
-            if (instruction.contains(gotoLoop)) return bodyInstruction.toString();
+            if (instruction.contains(gotoLoop)) return bodyHeader + findAndUpdateLoop(bodyInstruction.toString());
             if (add) bodyInstruction.append(instruction).append("\n");
             else if (instruction.contains(body)) {
                 add = true;
-                bodyInstruction.append(instruction).append("\n");
+                bodyHeader = instruction + "\n";
             }
         }
-        return bodyInstruction.toString();
+
+        return bodyHeader + findAndUpdateLoop(bodyInstruction.toString());
     }
 
     private int isLoopStart(String ollirCode, int pos) {
@@ -113,9 +116,9 @@ public class WhileOptimization {
             pos++;
         }
 
-        if (ollirCode.charAt(pos) == ':') {
+        if (ollirCode.charAt(pos) == ':' && loopId == Integer.parseInt(gotLoopId.toString())) {
             ollirLoopCode.append(Ollir.loopEnd).append(loopId).append(":");
-            return loopId == Integer.parseInt(gotLoopId.toString());
+            return true;
         }
         return false;
     }
