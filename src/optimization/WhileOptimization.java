@@ -1,15 +1,17 @@
 package optimization;
 
 import constants.Ollir;
+import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 
 import static java.lang.Character.isDigit;
 
 public class WhileOptimization {
-    public OllirResult optimize(OllirResult ollirResult) {
-        System.out.println("WHILE OPTIMIZE");
-        System.out.println(findAndUpdateLoop(ollirResult.getOllirCode()));
-        return ollirResult;
+    public OllirResult optimize(JmmSemanticsResult semanticsResult, OllirResult ollirResult) {
+        String optimizedCode = findAndUpdateLoop(ollirResult.getOllirCode());
+        System.out.println("## Got the ollir code after while loop optimization:\n");
+        System.out.println(optimizedCode);
+        return new OllirResult(semanticsResult, optimizedCode, semanticsResult.getReports());
     }
 
     private String findAndUpdateLoop(String ollirCode) {
@@ -24,10 +26,11 @@ public class WhileOptimization {
             if (loopId != -1) {
                 loopIdSafe = loopId;
                 isInLoop = true;
-                ollirLoopCode.append(ollirCode.charAt(i));
-            } else if (isInLoop && isLoopEnd(ollirCode, i, loopIdSafe)) {
+                ollirLoopCode.append("\t\t").append(ollirCode.charAt(i));
+            } else if (isInLoop && isLoopEnd(ollirCode, i, loopIdSafe, ollirLoopCode)) {
                 isInLoop = false;
-                newOllirCode.append(updateLoop(ollirLoopCode.toString()));
+                newOllirCode.append(updateLoop(ollirLoopCode.toString(), loopIdSafe));
+                while (ollirCode.charAt(i) != '\n') i++;
             } else if (isInLoop) {
                 ollirLoopCode.append(ollirCode.charAt(i));
             } else {
@@ -38,11 +41,47 @@ public class WhileOptimization {
         return newOllirCode.toString();
     }
 
-    private String updateLoop(String ollirLoopCode) {
-        System.out.println("LOOP");
-        System.out.println(ollirLoopCode);
-        System.out.println("ENDLOOP");
-        return "";
+    private String updateLoop(String ollirLoopCode, Integer loopId) {
+        StringBuilder code = new StringBuilder();
+        String[] instructions = ollirLoopCode.split("\n");
+        String ifInstruction = getIfInstruction(instructions);
+        String bodyInstruction = getBodyInstruction(instructions, loopId);
+
+        code.append("\tgoto ").append(Ollir.loopEnd).append(loopId).append(";\n");
+        code.append(bodyInstruction);
+        code.append("\t\t").append(Ollir.loopEnd).append(loopId).append(":\n");
+        code.append(ifInstruction);
+        return code.toString();
+    }
+
+    private String getIfInstruction(String[] instructions) {
+        StringBuilder ifInstruction = new StringBuilder();
+
+        // 1st instruction is loop label; last is loop end label
+        for (int i = 1; i < instructions.length - 1; i++) {
+            ifInstruction.append(instructions[i]).append("\n");
+            if (instructions[i].contains("if")) return ifInstruction.toString();
+        }
+        return ifInstruction.toString();
+    }
+
+    private String getBodyInstruction(String[] instructions, Integer loopId) {
+        StringBuilder bodyInstruction = new StringBuilder();
+        boolean add = false;
+        String body = Ollir.loopBody + loopId + ":";
+        String gotoLoop = "goto " + Ollir.loop + loopId + ";";
+
+        // 1st instruction is loop label; last is loop end label
+        for (int i = 1; i < instructions.length - 1; i++) {
+            String instruction = instructions[i];
+            if (instruction.contains(gotoLoop)) return bodyInstruction.toString();
+            if (add) bodyInstruction.append(instruction).append("\n");
+            else if (instruction.contains(body)) {
+                add = true;
+                bodyInstruction.append(instruction).append("\n");
+            }
+        }
+        return bodyInstruction.toString();
     }
 
     private int isLoopStart(String ollirCode, int pos) {
@@ -62,7 +101,7 @@ public class WhileOptimization {
         return -1;
     }
 
-    private boolean isLoopEnd(String ollirCode, int pos, int loopId) {
+    private boolean isLoopEnd(String ollirCode, int pos, int loopId, StringBuilder ollirLoopCode) {
         if (pos + Ollir.loopEnd.length() > ollirCode.length()) return false;
 
         for (char c : Ollir.loopEnd.toCharArray()) {
@@ -74,9 +113,10 @@ public class WhileOptimization {
             pos++;
         }
 
-        System.out.println("ID: " + loopId + " LOOP ID: " + gotLoopId);
-        if (ollirCode.charAt(pos) == ':')
+        if (ollirCode.charAt(pos) == ':') {
+            ollirLoopCode.append(Ollir.loopEnd).append(loopId).append(":");
             return loopId == Integer.parseInt(gotLoopId.toString());
+        }
         return false;
     }
 }
