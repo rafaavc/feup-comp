@@ -10,6 +10,10 @@ public class LivenessResult {
     private final List<Set<String>> in, out;
     private final int iterations;
 
+    public Map<String, LivenessRange> getVariables() {
+        return variables;
+    }
+
     public int getIterations() {
         return iterations;
     }
