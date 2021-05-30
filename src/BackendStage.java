@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.specs.comp.ollir.OperationType.NOTB;
+import static org.specs.comp.ollir.OperationType.*;
 
 
 /**
@@ -237,6 +237,68 @@ public class BackendStage implements JasminBackend {
         return getClassNameWithImport(((ClassType) operand.getType()).getName());
     }
 
+    private boolean canIInc (int leftVar, LocalVariable localVariable, BinaryOpInstruction i) {
+        OperationType type = i.getUnaryOperation().getOpType();
+        boolean intermediate = (type == ADD &&
+                                    ((i.getRightOperand().isLiteral() && !i.getLeftOperand().isLiteral())
+                                            || (!i.getRightOperand().isLiteral() && i.getLeftOperand().isLiteral()))) ||
+                                (type == SUB && i.getRightOperand().isLiteral() && !i.getLeftOperand().isLiteral());  // subtraction only works if the value is the negative part
+        if (!intermediate) return false;
+        try
+        {
+            int value = getIIncValue(i);
+            int variable = getIIncVariable(localVariable, i);
+            return (value >> 7) == 0 && variable == leftVar;
+        }
+        catch(Exception ignored)
+        {
+            return false;
+        }
+    }
+
+    private int getIIncVariable(LocalVariable localVariable, BinaryOpInstruction i) throws Exception {
+        try
+        {
+            Operand left = (Operand) i.getLeftOperand();
+            return localVariable.getCorrespondence(left.getName());
+        }
+        catch(Exception ignored)
+        {
+            try
+            {
+                Operand right = (Operand) i.getRightOperand();
+                return localVariable.getCorrespondence(right.getName());
+            }
+            catch(Exception e)
+            {
+                throw new Exception("Not iincable!! Should never have gotten here!");
+            }
+        }
+    }
+
+    private int getIIncValue(BinaryOpInstruction i) throws Exception {
+        int multiplier = i.getUnaryOperation().getOpType() == SUB ? -1 : 1;
+        try
+        {
+            LiteralElement el = (LiteralElement) i.getRightOperand();
+            return multiplier * Integer.parseInt(el.getLiteral());
+        }
+        catch(Exception ignored)
+        {
+            try
+            {
+                LiteralElement el = (LiteralElement) i.getLeftOperand();
+                if (multiplier == -1) throw new Exception(); // invalid
+                return multiplier * Integer.parseInt(el.getLiteral());
+
+            }
+            catch(Exception e)
+            {
+                throw new Exception("Not iincable!! Should never have gotten here!");
+            }
+        }
+    }
+
     private void buildInstruction(Instruction i, LocalVariable localVariable, StringBuilder sb, boolean isRightSideOfAssignment) {
         i.show();
 
@@ -250,6 +312,18 @@ public class BackendStage implements JasminBackend {
                 if (variable == null) {
                     variable = localVariable.getNextLocalVariable();
                     localVariable.addCorrespondence(identifierName, variable);
+                }
+
+                if (assignInstruction.getRhs().getInstType() == InstructionType.BINARYOPER) {
+                    BinaryOpInstruction binaryOpInstruction = (BinaryOpInstruction) assignInstruction.getRhs();
+                    if (canIInc(variable, localVariable, binaryOpInstruction)) {
+                        try {
+                            int value = getIIncValue(binaryOpInstruction);
+
+                            sb.append("\tiinc ").append(variable).append(" ").append(value).append("\n");
+                            return;
+                        } catch(Exception ignored) {}
+                    }
                 }
 
                 try {
