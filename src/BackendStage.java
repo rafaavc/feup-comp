@@ -48,10 +48,13 @@ public class BackendStage implements JasminBackend {
         ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putInt(value);
 
-        if ((value >> 7) == 0) {
-            Logger.log(value + " is less than 1 byte");
+        /* only need to account for positive numbers */
+        if ((value >> 7) == 0)
             return "\tbipush " + value + "\n";
-        }
+
+        if ((value >> 15) == 0)
+            return "\tsipush " + value + "\n";
+
         return "\tldc " + value + "\n";
     }
 
