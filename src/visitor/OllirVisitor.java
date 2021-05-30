@@ -136,7 +136,6 @@ public class OllirVisitor extends Visitor {
                 else
                 {
                     IntermediateOllirRepresentation representation = getOllirRepresentation(rightSideNode, returnType, true);
-                    Logger.err("\n\nTrying to find representation of " + rightSideNode + "\n\n, got " + representation);
 
                     ollirBuilder.add(representation.getBefore());
                     if (symbol != null)

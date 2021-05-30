@@ -46,6 +46,8 @@ public class ConstantPropagation {
         List<String> constants = findConstants(method);
         if (constants.size() == 0) return "";
 
+        for (String constant : constants) System.out.println(constant);
+
         return "";
     }
 
