@@ -2,12 +2,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import optimization.Liveness;
-import optimization.LivenessResult;
-import optimization.RegisterAllocator;
+import optimization.*;
 
 import org.specs.comp.ollir.Instruction;
 import org.specs.comp.ollir.Method;
+import org.specs.comp.ollir.Operand;
 import pt.up.fe.comp.jmm.JmmNode;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
@@ -73,7 +72,7 @@ public class OptimizationStage implements JmmOptimization {
                 System.out.println(livenessResult);
 
                 RegisterAllocator allocator = new RegisterAllocator(livenessResult.getVariables());
-                int k = 3;
+                int k = 1;
                 if (allocator.colorGraph(k))
                 {
                     System.out.println(allocator.getColoredGraph());
@@ -86,7 +85,18 @@ public class OptimizationStage implements JmmOptimization {
 
                 Map<String, Integer> graph = allocator.getColoredGraph();
 
-
+                List<Instruction> instructions = method.getInstructions();
+                for (int i = 0; i < instructions.size(); i++) {
+                    OllirVariableFinder.findInstruction(method, (FinderAlert alert) -> {
+                        if (alert.getType() == FinderAlert.FinderAlertType.USE || alert.getType() == FinderAlert.FinderAlertType.DEF) {
+                            String name = OllirVariableFinder.getIdentifier(alert.getElement());
+                            if (name != null && graph.containsKey(name)) {
+                                Operand operand = (Operand) alert.getElement();
+                                operand.setName("k" + graph.get(name));
+                            }
+                        }
+                    }, instructions.get(i), i, i == instructions.size() - 1);
+                }
             }
         } catch(Exception e) {
             Logger.err("Ollir optimization failed!");

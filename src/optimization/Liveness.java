@@ -98,19 +98,14 @@ public class Liveness {
         return new LivenessResult(count, in, out);
     }
 
-    private String getIdentifier(Element element) {
-        if (element.isLiteral()) return null;
-
-        Operand operand = (Operand) element;
-
-        if (element.getType().getTypeOfElement() == ElementType.THIS || operand.getName().equals("this")) return null;
-
-        return operand.getName();
+    public boolean isParameter(String name) {
+        for (Element parameter : method.getParams()) if (name.equals(((Operand) parameter).getName())) return true;
+        return false;
     }
 
     public void addToInstructionSet(Element element, Set<String> set) {
-        String name = getIdentifier(element);
-        if (name != null) set.add(name);
+        String name = OllirVariableFinder.getIdentifier(element);
+        if (name != null && !isParameter(name)) set.add(name);
     }
 
     public void fillSets() throws Exception {

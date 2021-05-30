@@ -19,6 +19,16 @@ public class OllirVariableFinder {
         throw new Exception("Couldn't find instruction with label " + label);
     }
 
+    public static String getIdentifier(Element element) {
+        if (element.isLiteral()) return null;
+
+        Operand operand = (Operand) element;
+
+        if (element.getType().getTypeOfElement() == ElementType.THIS || operand.getName().equals("this")) return null;
+
+        return operand.getName();
+    }
+
     public static void findInstruction(Method method, Consumer<FinderAlert> consumer, Instruction i, int idx, boolean last) throws Exception {
         if (findInstruction(method, consumer, i) && !last)
             consumer.accept(new FinderAlert(idx + 1));
@@ -36,14 +46,19 @@ public class OllirVariableFinder {
                 AssignInstruction assignInstruction = (AssignInstruction) i;
                 Operand destOperand = (Operand) assignInstruction.getDest();
 
-                consumer.accept(new FinderAlert(destOperand, FinderAlert.FinderAlertType.DEF));
 
                 try {
                     // best way I found to do array assign
                     ArrayOperand arrayOperand = (ArrayOperand) destOperand;
                     consumer.accept(new FinderAlert(arrayOperand.getIndexOperands().get(0), FinderAlert.FinderAlertType.USE));
 
-                } catch (Exception ignored) {}
+                    Logger.log("Array first index operand (" + destOperand.getName() + ") = " + arrayOperand.getIndexOperands().get(0));
+
+                    consumer.accept(new FinderAlert(destOperand, FinderAlert.FinderAlertType.USE));
+
+                } catch (Exception ignored) {
+                    consumer.accept(new FinderAlert(destOperand, FinderAlert.FinderAlertType.DEF));
+                }
 
                 findInstruction(method, consumer, assignInstruction.getRhs());
             }
