@@ -3,6 +3,8 @@ import java.util.List;
 
 import optimization.Liveness;
 import optimization.LivenessResult;
+import optimization.RegisterAllocator;
+
 import org.specs.comp.ollir.Instruction;
 import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.JmmNode;
@@ -63,6 +65,9 @@ public class OptimizationStage implements JmmOptimization {
                 System.out.println(liveness);
                 LivenessResult livenessResult = liveness.getResult();
                 System.out.println(livenessResult);
+                RegisterAllocator allocator = new RegisterAllocator(livenessResult.getVariables());
+                if (allocator.colorGraph(3)) System.out.println(allocator.getColoredGraph());
+                else System.out.println("Could not color graph!");
             }
         } catch(Exception e) {
             Logger.err("Ollir optimization failed!");
