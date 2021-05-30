@@ -17,7 +17,7 @@ public class LivenessResult {
         if (!variables.containsKey(variable)) variables.put(variable, new LivenessRange(index));
     }
 
-    public LivenessResult(int iterations, List<Set<String>> inInput, List<Set<String>> outInput) {
+    public LivenessResult(int iterations, List<Set<String>> inInput, List<Set<String>> outInput) throws Exception {
         this.iterations = iterations;
 
         List<Set<String>> in = SetManipulator.bidimensionalCopy(inInput);
@@ -38,17 +38,35 @@ public class LivenessResult {
 
             // end variables that are no longer live
             for (String variable : variables.keySet()) {
-                if (!variables.get(variable).hasEnd() && !inSet.contains(variable)) {
-                    Logger.err("Inset doesn't contain live variable in instruction " + i + "! (" + variable + ")");
+                LivenessRange range = variables.get(variable);
+                if (!range.hasEnd() && i > range.getStart()) {
+                    if (!inSet.contains(variable))  // doesn't have end yet and isn't on the in set
+                        range.setEnd(i - 1);
+                    else if (!outSet.contains(variable))  // doesn't have end yet and isn't on the out set
+                        range.setEnd(i);
                 }
-                if (!variables.get(variable).hasEnd() && !outSet.contains(variable)) {
-                    variables.get(variable).setEnd(i);
-                }
+                else if (range.hasEnd() && (outSet.contains(variable) || inSet.contains(variable)))  // has end but is in an in or out set
+                    range.removeEnd();
             }
         }
     }
 
     public LivenessRange getLivenessRange(String variable) {
         return variables.get(variable);
+    }
+
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("### Liveness Result:\n");
+
+        for (String variable : variables.keySet()) {
+            LivenessRange range = variables.get(variable);
+            builder.append(variable).append(" = ").append(range).append("\n");
+        }
+
+        builder.append("\n");
+
+        return builder.toString();
     }
 }

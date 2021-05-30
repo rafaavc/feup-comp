@@ -62,6 +62,7 @@ public class OptimizationStage implements JmmOptimization {
                 Liveness liveness = new Liveness(method);
                 System.out.println(liveness);
                 LivenessResult livenessResult = liveness.getResult();
+                System.out.println(livenessResult);
             }
         } catch(Exception e) {
             Logger.err("Ollir optimization failed!");

@@ -13,8 +13,13 @@ public class LivenessRange {
         this.end = end;
     }
 
-    public void setEnd(int end) {
+    public void setEnd(int end) throws Exception {
+        if (end < 0) throw new Exception("Trying to set end to a negative value");
         this.end = end;
+    }
+
+    public void removeEnd() {
+        this.end = -1;
     }
 
     public boolean hasEnd() {
@@ -28,5 +33,9 @@ public class LivenessRange {
 
     public int getStart() {
         return start;
+    }
+
+    public String toString() {
+        return start + ":" + end;
     }
 }
