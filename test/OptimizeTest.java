@@ -13,7 +13,10 @@
  */
 
 import optimization.Liveness;
+import optimization.LivenessRange;
 import optimization.LivenessResult;
+import optimization.RegisterAllocator;
+
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -21,12 +24,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.*;
 
 public class OptimizeTest {
-
-    @Test
-    public void testHelloWorld() {
-        //var result = TestUtils.optimize(SpecsIo.getResource("fixtures/public/HelloWorld.jmm"));
-        //TestUtils.noErrors(result.getReports());
-    }
 
     @Test
     public void testSlidesLiveness() throws Exception {
@@ -80,5 +77,20 @@ public class OptimizeTest {
         assertTrue(in.get(2).size() == 2 && in.get(2).containsAll(Arrays.asList("s", "i")));
         assertTrue(in.get(1).size() == 1 && in.get(1).contains("s"));
         assertEquals(0, in.get(0).size());
+    }
+
+    @Test
+    public void testRegistryAllocation() throws Exception {
+        Map<String, LivenessRange> variables = new HashMap<>();
+
+        variables.put("n", new LivenessRange(0, 9));
+        variables.put("aux2", new LivenessRange(1, 3));
+        variables.put("aux3", new LivenessRange(4, 5));
+        variables.put("simpleWhile", new LivenessRange(3, 8));
+
+        RegisterAllocator allocator = new RegisterAllocator(variables);
+
+        assertTrue(allocator.colorGraph(3));
+        assertTrue(!allocator.colorGraph(2));
     }
 }

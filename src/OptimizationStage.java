@@ -72,14 +72,14 @@ public class OptimizationStage implements JmmOptimization {
                 System.out.println(livenessResult);
 
                 RegisterAllocator allocator = new RegisterAllocator(livenessResult.getVariables());
-                int k = 1;
+                int k = 3;
                 if (allocator.colorGraph(k))
                 {
                     System.out.println(allocator.getColoredGraph());
-                    reports.add(new Report(ReportType.LOG, Stage.OPTIMIZATION, -1, "Optimized register allocation to use " + k + " registers."));
+                    ollirResult.addReport(new Report(ReportType.LOG, Stage.OPTIMIZATION, -1, "Optimized register allocation to use " + k + " registers."));
                 }
                 else {
-                    reports.add(new Report(ReportType.WARNING, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers."));
+                    ollirResult.addReport(new Report(ReportType.WARNING, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers."));
                     return ollirResult;
                 }
 

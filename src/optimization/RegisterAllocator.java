@@ -52,6 +52,8 @@ public class RegisterAllocator {
         boolean possible = simplify(k, graph);
         if (!possible) return false;
 
+        System.out.println("The stack is " + variableStack);
+
         while(!variableStack.isEmpty()) {
             String v = variableStack.pop();
             int color = getColor(k, v);
@@ -64,6 +66,8 @@ public class RegisterAllocator {
 
     private boolean simplify(int k, Map<String, List<String>> graph) {
         Map<String, List<String>> newGraph;
+        
+        System.out.println(graph);
 
         if (graph.isEmpty()) return true;
 
