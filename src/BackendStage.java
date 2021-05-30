@@ -76,7 +76,7 @@ public class BackendStage implements JasminBackend {
     public JasminResult toJasmin(OllirResult ollirResult) {
         ClassUnit ollirClass = ollirResult.getOllirClass();
         classUnit = ollirClass;
-        SymbolTable symbolTable = ollirResult.getSymbolTable();
+
         try {
 
             // Example of what you can do with the OLLIR class

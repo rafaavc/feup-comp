@@ -61,8 +61,4 @@ public class OllirResult {
     public List<Report> getReports() {
         return this.reports;
     }
-
-    public void addReport(Report report) {
-        this.reports.add(report);
-    }
 }

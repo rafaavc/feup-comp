@@ -29,6 +29,10 @@ public class OllirVariableFinder {
         return operand.getName();
     }
 
+    public static void findInstruction(Consumer<FinderAlert> consumer, Instruction i) throws Exception {
+        findInstruction(null, consumer, i);
+    }
+
     public static void findInstruction(Method method, Consumer<FinderAlert> consumer, Instruction i, int idx, boolean last) throws Exception {
         if (findInstruction(method, consumer, i) && !last)
             consumer.accept(new FinderAlert(idx + 1));
@@ -91,7 +95,7 @@ public class OllirVariableFinder {
             }
             case GOTO -> {
                 GotoInstruction gotoInstruction = (GotoInstruction) i;
-                consumer.accept(new FinderAlert(getIndexOfInstructionWithLabel(method, gotoInstruction.getLabel()))); // only has the jump successor
+                if (method != null) consumer.accept(new FinderAlert(getIndexOfInstructionWithLabel(method, gotoInstruction.getLabel()))); // only has the jump successor
                 return false; // so it doesn't add the next instruction as successor
             }
             case BRANCH -> {
@@ -104,7 +108,7 @@ public class OllirVariableFinder {
                     consumer.accept(new FinderAlert(condBranchInstruction.getRightOperand(), FinderAlert.FinderAlertType.USE));
                 }
                 String label = condBranchInstruction.getLabel();
-                consumer.accept(new FinderAlert(getIndexOfInstructionWithLabel(method, label)));
+                if (method != null) consumer.accept(new FinderAlert(getIndexOfInstructionWithLabel(method, label)));
             }
             case RETURN -> {
                 ReturnInstruction returnInstruction = (ReturnInstruction) i;

@@ -41,7 +41,9 @@ public class JasminResult {
     }
 
     public JasminResult(OllirResult ollirResult, String jasminCode, List<Report> reports) {
-        this(ollirResult.getOllirClass().getClassName(), jasminCode, reports);
+        this(ollirResult.getOllirClass().getClassName(), jasminCode,
+                SpecsCollections.concat(ollirResult.getReports(), reports)
+        );
     }
 
     public String getClassName() {

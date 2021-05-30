@@ -9,6 +9,7 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.specs.util.SpecsIo;
+import utils.Logger;
 
 import java.io.File;
 import java.io.StringReader;
@@ -70,25 +71,25 @@ public class Main implements JmmParser {
 		File output = new File("tree.json");
 		SpecsIo.write(output, parserResult.toJson());
 
-		List<Report> globalReports = new ArrayList<>(parserResult.getReports());
+		List<Report> globalReports = parserResult.getReports();
 
 		boolean success = false;
 		if (!containsErrorReport(parserResult.getReports())) {
 			AnalysisStage analysis = new AnalysisStage();
 			JmmSemanticsResult semanticsResult = analysis.semanticAnalysis(parserResult);
-			globalReports.addAll(semanticsResult.getReports());
+			globalReports = semanticsResult.getReports();
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
 				OllirResult ollirResult;
 				ollirResult = new OptimizationStage().toOllir(semanticsResult);
-				globalReports.addAll(ollirResult.getReports());
+				globalReports = ollirResult.getReports();
 
 				if (!containsErrorReport(ollirResult.getReports())) {
 					File ollirOutput = new File("tmp.ollir");
 					SpecsIo.write(ollirOutput, ollirResult.getOllirCode());
 
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
-					globalReports.addAll(jasminResult.getReports());
+					globalReports = jasminResult.getReports();
 
 					if (!containsErrorReport(jasminResult.getReports())) {
 						File jasminOutput = new File("tmp.jasmin");

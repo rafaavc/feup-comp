@@ -76,11 +76,11 @@ public class OptimizationStage implements JmmOptimization {
                 if (allocator.colorGraph(k))
                 {
                     System.out.println(allocator.getColoredGraph());
-                    ollirResult.addReport(new Report(ReportType.LOG, Stage.OPTIMIZATION, -1, "Optimized register allocation to use " + k + " registers."));
+                    ollirResult.getReports().add(new Report(ReportType.LOG, Stage.OPTIMIZATION, -1, "Optimized register allocation to use " + k + " registers in method " + method.getMethodName() + "."));
                 }
                 else {
-                    ollirResult.addReport(new Report(ReportType.WARNING, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers."));
-                    return ollirResult;
+                    ollirResult.getReports().add(new Report(ReportType.WARNING, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers in method " + method.getMethodName() + "."));
+                    continue;
                 }
 
                 Map<String, Integer> graph = allocator.getColoredGraph();

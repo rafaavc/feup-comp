@@ -18,10 +18,10 @@ import optimization.LivenessResult;
 import optimization.RegisterAllocator;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class OptimizeTest {
 
@@ -91,6 +91,6 @@ public class OptimizeTest {
         RegisterAllocator allocator = new RegisterAllocator(variables);
 
         assertTrue(allocator.colorGraph(3));
-        assertTrue(!allocator.colorGraph(2));
+        assertFalse(allocator.colorGraph(2));
     }
 }
