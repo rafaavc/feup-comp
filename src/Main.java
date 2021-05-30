@@ -62,8 +62,9 @@ public class Main implements JmmParser {
 			System.err.println("I need at least the path of the file you want to parse. If you want, you can also specify the maximum number of errors you want me to report in the second argument.");
 		}
 
-        int maxErrNo = args.length > 1 ? Integer.parseInt(args[1]) : 10;
-		String jmmCode = SpecsIo.read(args[0]);
+        int maxErrNo = 15;
+        ArgsParser argsParser = new ArgsParser(args);
+		String jmmCode = SpecsIo.read(argsParser.getFilename());
 
 		Main main = new Main();
 		JmmParserResult parserResult = main.parse(jmmCode);
@@ -80,8 +81,11 @@ public class Main implements JmmParser {
 			globalReports = semanticsResult.getReports();
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
-				OllirResult ollirResult;
-				ollirResult = new OptimizationStage().toOllir(semanticsResult);
+				OptimizationStage optimizationStage = new OptimizationStage();
+				OllirResult ollirResult = optimizationStage.toOllir(semanticsResult);
+				if (argsParser.isOptimizeO()) {
+					ollirResult = optimizationStage.optimizeO(semanticsResult, ollirResult);
+				}
 				globalReports = ollirResult.getReports();
 
 				if (!containsErrorReport(ollirResult.getReports())) {

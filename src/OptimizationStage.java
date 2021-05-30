@@ -1,9 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import optimization.*;
-
 import org.specs.comp.ollir.Instruction;
 import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.Operand;
@@ -14,10 +9,13 @@ import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
+import table.BasicSymbolTable;
 import utils.Logger;
 import visitor.OllirVisitor;
-import table.BasicSymbolTable;
-import ollir.OllirBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Copyright 2021 SPeCS.
@@ -104,6 +102,12 @@ public class OptimizationStage implements JmmOptimization {
             Logger.err("Ollir optimization failed!");
             e.printStackTrace();
         }
+        return ollirResult;
+    }
+
+    public OllirResult optimizeO(JmmSemanticsResult semanticsResult, OllirResult ollirResult) {
+        ollirResult = new ConstantPropagation().optimize(semanticsResult, ollirResult);
+        ollirResult = new WhileOptimization().optimize(semanticsResult, ollirResult);
         return ollirResult;
     }
 

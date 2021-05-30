@@ -14,7 +14,6 @@ import java.util.List;
 public class BasicSymbolTable implements SymbolTable {
     private final GlobalScope global = new GlobalScope();
 
-
     public GlobalScope getGlobalScope() {
         return global;
     }
