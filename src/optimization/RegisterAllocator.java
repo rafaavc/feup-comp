@@ -2,7 +2,6 @@ package optimization;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,8 +9,8 @@ import java.util.Stack;
 import java.util.Map.Entry;
 
 public class RegisterAllocator {
-    Map<String, LivenessRange> variables = new HashMap<>();
-    Set<String> variableNames = new HashSet<>();
+    Map<String, LivenessRange> variables;
+    Set<String> variableNames;
     Map<String, List<String>> interferenceGraph = new HashMap<>();
     Map<String, Integer> coloredGraph = new HashMap<>();
     Stack<String> variableStack = new Stack<>();
@@ -49,7 +48,7 @@ public class RegisterAllocator {
     }
 
     public boolean colorGraph(int k) {
-        Map<String, List<String>> graph = new HashMap<String, List<String>>(interferenceGraph);
+        Map<String, List<String>> graph = new HashMap<>(interferenceGraph);
         boolean possible = simplify(k, graph);
         if (!possible) return false;
 
@@ -64,7 +63,7 @@ public class RegisterAllocator {
     }
 
     private boolean simplify(int k, Map<String, List<String>> graph) {
-        Map<String, List<String>> newGraph = new HashMap<>();
+        Map<String, List<String>> newGraph;
 
         if (graph.isEmpty()) return true;
 
@@ -103,7 +102,7 @@ public class RegisterAllocator {
                 if (coloredGraph.get(aux) == i) used = true;
             }
             if (used) continue;
-            else return i;
+            return i;
         }
 
         return -1;

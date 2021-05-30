@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import optimization.Liveness;
 import optimization.LivenessResult;
@@ -12,6 +13,8 @@ import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.ReportType;
+import pt.up.fe.comp.jmm.report.Stage;
 import utils.Logger;
 import visitor.OllirVisitor;
 import table.BasicSymbolTable;
@@ -32,6 +35,8 @@ import ollir.OllirBuilder;
 
 public class OptimizationStage implements JmmOptimization {
 
+    private final List<Report> reports = new ArrayList<>();
+
     @Override
     public OllirResult toOllir(JmmSemanticsResult semanticsResult) {
 
@@ -46,7 +51,6 @@ public class OptimizationStage implements JmmOptimization {
         System.out.println("## Got the ollir code:\n\n" + ollirCode);
 
         // More reports from this stage
-        List<Report> reports = new ArrayList<>();
         return optimize(new OllirResult(semanticsResult, ollirCode, reports));
     }
 
@@ -60,14 +64,29 @@ public class OptimizationStage implements JmmOptimization {
     public OllirResult optimize(OllirResult ollirResult) {
         try {
             List<Method> methods = ollirResult.getOllirClass().getMethods();
-            for (Method method : methods) {
+            for (Method method : methods)
+            {
                 Liveness liveness = new Liveness(method);
+
                 System.out.println(liveness);
                 LivenessResult livenessResult = liveness.getResult();
                 System.out.println(livenessResult);
+
                 RegisterAllocator allocator = new RegisterAllocator(livenessResult.getVariables());
-                if (allocator.colorGraph(3)) System.out.println(allocator.getColoredGraph());
-                else System.out.println("Could not color graph!");
+                int k = 3;
+                if (allocator.colorGraph(k))
+                {
+                    System.out.println(allocator.getColoredGraph());
+                    reports.add(new Report(ReportType.LOG, Stage.OPTIMIZATION, -1, "Optimized register allocation to use " + k + " registers."));
+                }
+                else {
+                    reports.add(new Report(ReportType.WARNING, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers."));
+                    return ollirResult;
+                }
+
+                Map<String, Integer> graph = allocator.getColoredGraph();
+
+
             }
         } catch(Exception e) {
             Logger.err("Ollir optimization failed!");
