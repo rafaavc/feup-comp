@@ -16,6 +16,7 @@ import optimization.Liveness;
 import optimization.LivenessResult;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.*;
 
@@ -61,5 +62,23 @@ public class OptimizeTest {
         LivenessResult result = liveness.getResult();
 
         assertEquals(3, result.getIterations());
+
+        List<Set<String>> in = result.getIn(), out = result.getOut();
+
+        assertTrue(out.get(0).size() == 1 && out.get(0).contains("s"));
+        assertTrue(out.get(1).size() == 2 && out.get(1).containsAll(Arrays.asList("s", "i")));
+        assertTrue(out.get(2).size() == 2 && out.get(2).containsAll(Arrays.asList("s", "i")));
+        assertTrue(out.get(3).size() == 3 && out.get(3).containsAll(Arrays.asList("s", "t", "i")));
+        assertTrue(out.get(4).size() == 2 && out.get(4).containsAll(Arrays.asList("s", "i")));
+        assertTrue(out.get(5).size() == 2 && out.get(5).containsAll(Arrays.asList("s", "i")));
+        assertEquals(0, out.get(6).size());
+
+        assertTrue(in.get(6).size() == 1 && in.get(6).contains("s"));
+        assertTrue(in.get(5).size() == 2 && in.get(5).containsAll(Arrays.asList("s", "i")));
+        assertTrue(in.get(4).size() == 3 && in.get(4).containsAll(Arrays.asList("s", "t", "i")));
+        assertTrue(in.get(3).size() == 2 && in.get(3).containsAll(Arrays.asList("s", "i")));
+        assertTrue(in.get(2).size() == 2 && in.get(2).containsAll(Arrays.asList("s", "i")));
+        assertTrue(in.get(1).size() == 1 && in.get(1).contains("s"));
+        assertEquals(0, in.get(0).size());
     }
 }

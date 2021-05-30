@@ -7,10 +7,19 @@ import java.util.*;
 
 public class LivenessResult {
     private final Map<String, LivenessRange> variables = new HashMap<>();
+    private final List<Set<String>> in, out;
     private final int iterations;
 
     public int getIterations() {
         return iterations;
+    }
+
+    public List<Set<String>> getIn() {
+        return in;
+    }
+
+    public List<Set<String>> getOut() {
+        return out;
     }
 
     private void addVariable(int index, String variable) {
@@ -22,6 +31,9 @@ public class LivenessResult {
 
         List<Set<String>> in = SetManipulator.bidimensionalCopy(inInput);
         List<Set<String>> out = SetManipulator.bidimensionalCopy(outInput);
+
+        this.in = in;
+        this.out = out;
 
         Collections.reverse(in);
         Collections.reverse(out);
