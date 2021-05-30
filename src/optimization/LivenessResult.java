@@ -59,7 +59,7 @@ public class LivenessResult {
                     if (!inSet.contains(variable))  // doesn't have end yet and isn't on the in set
                         range.setEnd(i - 1);
                     else if (!outSet.contains(variable))  // doesn't have end yet and isn't on the out set
-                        range.setEnd(i);
+                        range.setEnd(i - 1);
                 }
                 else if (range.hasEnd() && (outSet.contains(variable) || inSet.contains(variable)))  // has end but is in an in or out set
                     range.removeEnd();
