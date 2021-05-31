@@ -14,6 +14,7 @@ import utils.Logger;
 import visitor.OllirVisitor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class OptimizationStage implements JmmOptimization {
         System.out.println("## Got the ollir code:\n\n" + ollirCode);
 
         // More reports from this stage
-        return optimize(new OllirResult(semanticsResult, ollirCode, reports));
+        return new OllirResult(semanticsResult, ollirCode, reports);
     }
 
     @Override
@@ -59,6 +60,32 @@ public class OptimizationStage implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
+        return ollirResult;
+    }
+
+    public int getMinimumPossible(List<Method> methods, int k) throws Exception {
+        int minK = k;
+        boolean success = false;
+
+        while (!success) {
+            minK++;
+            success = true;
+            for (Method method : methods) {
+                Liveness liveness = new Liveness(method);
+                LivenessResult livenessResult = liveness.getResult();
+
+                RegisterAllocator allocator = new RegisterAllocator(livenessResult.getVariables());
+
+                if (!allocator.colorGraph(minK)) {
+                    success = false;
+                    break;
+                }
+            }
+        }
+        return minK;
+    }
+
+    public OllirResult optimize(OllirResult ollirResult, int k) {
         try {
             List<Method> methods = ollirResult.getOllirClass().getMethods();
             for (Method method : methods)
@@ -70,7 +97,7 @@ public class OptimizationStage implements JmmOptimization {
                 System.out.println(livenessResult);
 
                 RegisterAllocator allocator = new RegisterAllocator(livenessResult.getVariables());
-                int k = 1;
+
                 if (allocator.colorGraph(k))
                 {
                     System.out.println(allocator.getColoredGraph());
@@ -79,7 +106,8 @@ public class OptimizationStage implements JmmOptimization {
                 else
                 {
                     // TODO error report and report minimum number of variables required
-                    ollirResult.getReports().add(new Report(ReportType.WARNING, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers in method " + method.getMethodName() + "."));
+                    int minK = getMinimumPossible(methods, k);
+                    ollirResult.getReports().add(new Report(ReportType.ERROR, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers in method " + method.getMethodName() + ". The minimum possible is " + minK + "!"));
                     continue;
                 }
 

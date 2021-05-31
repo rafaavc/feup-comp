@@ -1,3 +1,5 @@
+import utils.Logger;
+
 public class ArgsParser {
     final String filename;
     boolean optimizeO = false;
@@ -9,8 +11,13 @@ public class ArgsParser {
 
         for (int i = 1; i < args.length; i++) {
             if (args[i].equals("-o")) optimizeO = true;
-            else if (args[i].contains("-r"))
-                optimizeR = Integer.parseInt(args[i].split("=")[1]);
+            else if (args[i].contains("-r")) {
+                try {
+                    optimizeR = Integer.parseInt(args[i].split("=")[1]);
+                } catch(NumberFormatException e) {
+                    Logger.err("The value of -r must be an integer.");
+                }
+            }
         }
     }
 
@@ -20,6 +27,10 @@ public class ArgsParser {
 
     public boolean isOptimizeO() {
         return optimizeO;
+    }
+
+    public boolean isOptimizeR() {
+        return optimizeR > 0;
     }
 
     public int getOptimizeR() {

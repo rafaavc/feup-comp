@@ -83,9 +83,14 @@ public class Main implements JmmParser {
 			if (!containsErrorReport(semanticsResult.getReports())) {
 				OptimizationStage optimizationStage = new OptimizationStage();
 				OllirResult ollirResult = optimizationStage.toOllir(semanticsResult);
-				if (argsParser.isOptimizeO()) {
+
+				// Optimization
+				if (argsParser.isOptimizeO())
 					ollirResult = optimizationStage.optimizeO(semanticsResult, ollirResult);
-				}
+
+				if (argsParser.isOptimizeR())
+					ollirResult = optimizationStage.optimize(ollirResult, argsParser.getOptimizeR());
+
 				globalReports = ollirResult.getReports();
 
 				if (!containsErrorReport(ollirResult.getReports())) {

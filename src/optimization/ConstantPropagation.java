@@ -87,11 +87,7 @@ public class ConstantPropagation {
                         if (rightOperand == null) checkConstant = false;
                         else if (used) checkConstant = false;
                         else constValue = rightOperand;
-                    } else if (utilizada) {
-                        used = true;
                     }
-                } else if (utilizada) {
-                    used = true;
                 }
             }
 
