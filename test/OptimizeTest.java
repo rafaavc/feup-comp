@@ -111,7 +111,7 @@ public class OptimizeTest {
         noErrors(ollirResult.getReports());
 
         String output = jasmin.run();
-        assertEquals("1\n2\n2\n5\n5\n", output);
+        assertEquals("12255", output.trim().replace("\r\n", "").replace("\n", ""));
     }
 
     @Test
