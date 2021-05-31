@@ -18,6 +18,10 @@ import optimization.LivenessResult;
 import optimization.RegisterAllocator;
 
 import org.junit.Test;
+import pt.up.fe.comp.TestUtils;
+import pt.up.fe.comp.jmm.jasmin.JasminResult;
+import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.specs.util.SpecsIo;
 
 import java.util.*;
 
@@ -80,7 +84,7 @@ public class OptimizeTest {
     }
 
     @Test
-    public void testRegistryAllocation() throws Exception {
+    public void testRegistryAllocation() {
         Map<String, LivenessRange> variables = new HashMap<>();
 
         variables.put("n", new LivenessRange(0, 9));
@@ -92,5 +96,44 @@ public class OptimizeTest {
 
         assertTrue(allocator.colorGraph(3));
         assertFalse(allocator.colorGraph(2));
+    }
+
+    @Test
+    public void testROption() {
+        OllirResult ollirResult = TestUtils.optimize(SpecsIo.getResource("fixtures/public/created/ROption.jmm"));
+
+        OptimizationStage optimizationStage = new OptimizationStage();
+        JasminResult jasmin = TestUtils.backend(optimizationStage.optimize(ollirResult, 1));
+
+        TestUtils.noErrors(ollirResult.getReports());
+
+        String output = jasmin.run();
+        assertEquals("1\n2\n2\n5\n5\n", output);
+    }
+
+    @Test
+    public void testFindMaximum() {
+        OllirResult ollirResult = TestUtils.optimize(SpecsIo.getResource("fixtures/public/FindMaximum.jmm"));
+
+        OptimizationStage optimizationStage = new OptimizationStage();
+
+        optimizationStage.optimize(ollirResult, 1);
+        assertEquals(1, TestUtils.getNumErrors(ollirResult.getReports()));
+
+        ollirResult = TestUtils.optimize(SpecsIo.getResource("fixtures/public/FindMaximum.jmm"));
+
+        optimizationStage.optimize(ollirResult, 2);
+        assertEquals(1, TestUtils.getNumErrors(ollirResult.getReports()));
+
+        ollirResult = TestUtils.optimize(SpecsIo.getResource("fixtures/public/FindMaximum.jmm"));
+
+        optimizationStage.optimize(ollirResult, 3);
+        assertEquals(0, TestUtils.getNumErrors(ollirResult.getReports()));
+
+        JasminResult jasmin = TestUtils.backend(optimizationStage.optimize(ollirResult, 1));
+
+        var output = jasmin.run();
+
+        assertEquals("Result: 28", output.trim());
     }
 }

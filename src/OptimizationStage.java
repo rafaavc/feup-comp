@@ -105,10 +105,9 @@ public class OptimizationStage implements JmmOptimization {
                 }
                 else
                 {
-                    // TODO error report and report minimum number of variables required
                     int minK = getMinimumPossible(methods, k);
                     ollirResult.getReports().add(new Report(ReportType.ERROR, Stage.OPTIMIZATION, -1, "Couldn't optimize register allocation to use " + k + " registers in method " + method.getMethodName() + ". The minimum possible is " + minK + "!"));
-                    continue;
+                    return ollirResult;
                 }
 
                 Map<String, Integer> graph = allocator.getColoredGraph();

@@ -57,13 +57,15 @@ public class Main implements JmmParser {
 	}
 
 	public static void main(String[] args) {
-        System.out.println("Executing with args: " + Arrays.toString(args));
-        if (args.length < 1) {
-			System.err.println("I need at least the path of the file you want to parse. If you want, you can also specify the maximum number of errors you want me to report in the second argument.");
-		}
-
         int maxErrNo = 15;
-        ArgsParser argsParser = new ArgsParser(args);
+		ArgsParser argsParser;
+		try {
+			argsParser = new ArgsParser(args);
+		} catch(Exception e) {
+			argsParser = null;
+        	Logger.err(e.getMessage());
+        	System.exit(1);
+		}
 		String jmmCode = SpecsIo.read(argsParser.getFilename());
 
 		Main main = new Main();
