@@ -77,10 +77,6 @@ public class OllirVisitor extends Visitor {
 
                     yield new IntermediateOllirRepresentation(assignmentCustom.getCurrent(), before);
                 }
-                /*
-                    A.myClass :=.myClass new(myClass).myClass;
-                    invokespecial(A.myClass,"<init>").V;
-                 */
 
                 String auxName = ollirBuilder.getNextAuxName();
                 String instantiation = ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), ollirBuilder.getClassInstantiation(name)) + ollirBuilder.getClassInitCall(auxName, name);
@@ -317,7 +313,7 @@ public class OllirVisitor extends Visitor {
             String auxName = ollirBuilder.getNextAuxName();
             before.append(ollirBuilder.getAssignmentCustom(new BasicSymbol(type, auxName), methodCallOllir));
             methodCallOllir = auxName + ollirBuilder.typeToCode(type);
-        } else methodCallOllir = "\t\t" + methodCallOllir + "\n";
+        } else methodCallOllir = "\t\t\t" + methodCallOllir + "\n";
 
         return new IntermediateOllirRepresentation(methodCallOllir, before.toString());
     }

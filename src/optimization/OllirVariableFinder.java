@@ -54,7 +54,7 @@ public class OllirVariableFinder {
                 try {
                     // best way I found to do array assign
                     ArrayOperand arrayOperand = (ArrayOperand) destOperand;
-                    consumer.accept(new FinderAlert(arrayOperand.getIndexOperands().get(0), FinderAlert.FinderAlertType.USE));
+                    consumer.accept(new FinderAlert(arrayOperand.getIndexOperands().get(0), FinderAlert.FinderAlertType.USE, true));
 
                     Logger.log("Array first index operand (" + destOperand.getName() + ") = " + arrayOperand.getIndexOperands().get(0));
 
@@ -68,10 +68,7 @@ public class OllirVariableFinder {
             }
             case CALL -> {
                 CallInstruction callInstruction = (CallInstruction) i;
-
                 Operand firstCallOperand = (Operand) callInstruction.getFirstArg();
-                LiteralElement secondCallOperand = (LiteralElement) callInstruction.getSecondArg();
-
                 CallType invocationType = callInstruction.getInvocationType();
 
                 switch (invocationType) {
@@ -118,7 +115,6 @@ public class OllirVariableFinder {
             case PUTFIELD -> {
                 PutFieldInstruction putFieldInstruction = (PutFieldInstruction) i;
                 Operand firstPutFieldOperand = (Operand) putFieldInstruction.getFirstOperand();
-                Operand secondPutFieldOperand = (Operand) putFieldInstruction.getSecondOperand();
 
                 consumer.accept(new FinderAlert(firstPutFieldOperand, FinderAlert.FinderAlertType.USE));
                 consumer.accept(new FinderAlert(putFieldInstruction.getThirdOperand(), FinderAlert.FinderAlertType.USE));
@@ -126,7 +122,6 @@ public class OllirVariableFinder {
             case GETFIELD -> {
                 GetFieldInstruction getFieldInstruction = (GetFieldInstruction) i;
                 Operand firstGetFieldOperand = (Operand) getFieldInstruction.getFirstOperand();
-                Operand secondGetFieldOperand = (Operand) getFieldInstruction.getSecondOperand();
 
                 consumer.accept(new FinderAlert(firstGetFieldOperand, FinderAlert.FinderAlertType.USE));
             }
@@ -155,7 +150,7 @@ public class OllirVariableFinder {
                     ArrayOperand operand = (ArrayOperand) el;
 
                     consumer.accept(new FinderAlert(operand, FinderAlert.FinderAlertType.USE));
-                    consumer.accept(new FinderAlert(operand.getIndexOperands().get(0), FinderAlert.FinderAlertType.USE));
+                    consumer.accept(new FinderAlert(operand.getIndexOperands().get(0), FinderAlert.FinderAlertType.USE, true));
                 }
                 catch (Exception ignore)
                 {

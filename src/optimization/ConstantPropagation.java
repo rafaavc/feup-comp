@@ -1,54 +1,57 @@
 package optimization;
 
+import constants.Ollir;
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConstantPropagation {
     public OllirResult optimize(JmmSemanticsResult semanticsResult, OllirResult ollirResult) {
-        findAndReplaceConstants(ollirResult);
-        return ollirResult;
+        String newCode = String.join(".method", findAndReplaceConstants(ollirResult));
+
+        System.out.println("## Got the ollir code after constant propagation:\n");
+        System.out.println(newCode);
+
+        return new OllirResult(semanticsResult, newCode, semanticsResult.getReports());
     }
 
-    private List<String> findAndReplaceConstants(OllirResult ollirResult) {
-        List<String> constants = new ArrayList<>();
+    private String[] findAndReplaceConstants(OllirResult ollirResult) {
         String ollirCode = ollirResult.getOllirCode();
         ClassUnit ollirClass = ollirResult.getOllirClass();
 
-        // check first assignment to a constant
-        // check if variable is used until all the next cases where it is assigned
-        // remove assign instruction in method
-        // replace all instances of variable in method
-
         String[] methods = ollirCode.split(".method");
 
-        // first result of split is not a method
-        List<String> newMethods = new ArrayList<>();
         for (int i = 1; i < methods.length; i++) {
-            String processResult = "";
-            String result;
-            do {
+            String processResult;
+            String result = "";
+
+            while (true) {
+                processResult = processMethod(methods[i], ollirClass.getMethods().get(i));
+                if (processResult.equals("")) break;
+
+                methods[i] = processResult;
+                String newCode = String.join(".method", methods);
+
+                System.out.println("## NEW CODE\n");
+                System.out.println(newCode);
+
+                ollirResult = new OllirResult(newCode);
+                ollirClass = ollirResult.getOllirClass();
                 result = processResult;
-                processResult = processMethod(methods[i], ollirClass.getMethods().get(i - 1));
-            } while (!processResult.equals(""));
-            if (!result.equals("")) newMethods.add(result);
-            newMethods.add(methods[i]);
+            }
+            if (!result.equals("")) methods[i] = result;
         }
 
-        return constants;
+        return methods;
     }
 
     private String processMethod(String methodCode, Method method) {
         List<String> constants = findConstants(method);
         if (constants.size() == 0) return "";
-
-        for (String constant : constants) System.out.println(constant);
-
-        return "";
+        return removeConstants(methodCode, constants);
     }
 
     private Operand getAssignLeftOperand(AssignInstruction assignInstruction) {
@@ -69,34 +72,100 @@ public class ConstantPropagation {
         HashMap<String, Descriptor> varTable = method.getVarTable();
         ArrayList<Instruction> listOfInstr = method.getInstructions();
         List<String> constants = new ArrayList<>();
+        HashMap<String, Element> locals = findLocalVars(method);
 
-        for (String varName : varTable.keySet()) {
-            ElementType elementType = varTable.get(varName).getVarType().getTypeOfElement();
+        if (shouldEnd(method)) return constants;
+
+        for (String varName : locals.keySet()) {
+            Element var = locals.get(varName);
+
+            ElementType elementType = var.getType().getTypeOfElement();
             if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) continue;
-            boolean used = false;
-            boolean checkConstant = true;
+            AtomicBoolean used = new AtomicBoolean(false);
+            AtomicBoolean checkConstant = new AtomicBoolean(true);
             String constValue = "";
 
             for (Instruction instruction : listOfInstr) {
+                try {
+                    OllirVariableFinder.findInstruction((FinderAlert alert) -> {
+                        String name = OllirVariableFinder.getIdentifier(alert.getElement());
+                        if (name == null) return;
+                        FinderAlert.FinderAlertType type = alert.getType();
+                        if (type == FinderAlert.FinderAlertType.USE && name.equals(varName)) {
+                            used.set(true);
+                            if (alert.isArrayAccess()) checkConstant.set(false);
+                        }
+                    }, instruction);
+                } catch (Exception ignored) {
+                }
+
                 if (instruction.getInstType() == InstructionType.ASSIGN) {
                     AssignInstruction assignInstruction = (AssignInstruction) instruction;
                     String rightOperand = getAssignRightOperand(assignInstruction);
                     Operand leftOperand = getAssignLeftOperand(assignInstruction);
 
                     if (leftOperand.getName().equals(varName)) {
-                        if (rightOperand == null) checkConstant = false;
-                        else if (used) checkConstant = false;
+                        if (rightOperand == null) checkConstant.set(false);
+                        else if (used.get()) checkConstant.set(false);
                         else constValue = rightOperand;
                     }
                 }
             }
 
-            if (checkConstant) constants.add(varName + "-" + constValue);
+            if (checkConstant.get()) {
+                String type = (elementType == ElementType.INT32) ? ".i32" : ".bool";
+                constants.add(varName + type + "-" + constValue + type);
+            }
         }
         return constants;
     }
 
+    private HashMap<String, Element> findLocalVars(Method method) {
+        ArrayList<Instruction> listOfInstr = method.getInstructions();
+        HashMap<String, Element> locals = new HashMap<>();
+
+        for (Instruction instruction : listOfInstr) {
+            try {
+                OllirVariableFinder.findInstruction((FinderAlert alert) -> {
+                    FinderAlert.FinderAlertType type = alert.getType();
+                    String name = OllirVariableFinder.getIdentifier(alert.getElement());
+                    if (type == FinderAlert.FinderAlertType.DEF && name != null) {
+                        locals.put(name, alert.getElement());
+                    }
+                }, instruction);
+            } catch (Exception ignored) {
+            }
+        }
+
+        return locals;
+    }
+
     private String removeConstants(String ollirCode, List<String> constants) {
-        return "";
+        List<String> instructions = new ArrayList<>(Arrays.asList(ollirCode.split("\n")));
+
+        for (int i = 0; i < instructions.size(); i++) {
+            for (String constant : constants) {
+                String remove = constant.split("-")[0];
+                String add = constant.split("-")[1];
+                if (instructions.get(i).contains(remove + " :=")) {
+                    instructions.remove(i--);
+                }
+                instructions.set(i, instructions.get(i).replace(remove, add));
+            }
+        }
+
+        return String.join("\n", instructions);
+    }
+
+    private boolean shouldEnd(Method method) {
+        ArrayList<Instruction> listOfInstr = method.getInstructions();
+        for (Instruction instruction : listOfInstr) {
+            if (instruction.getInstType() == InstructionType.BRANCH) {
+                CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
+                String branchName = condBranchInstruction.getLabel();
+                if (branchName.contains(Ollir.ifBody)) return true;
+            }
+        }
+        return false;
     }
 }
