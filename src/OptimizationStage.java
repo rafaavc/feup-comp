@@ -48,7 +48,7 @@ public class OptimizationStage implements JmmOptimization {
         System.out.println("## Got the ollir code:\n\n" + ollirCode);
 
         // More reports from this stage
-        return optimize(new OllirResult(semanticsResult, ollirCode, reports));
+        return new OllirResult(semanticsResult, ollirCode, reports);
     }
 
     @Override
