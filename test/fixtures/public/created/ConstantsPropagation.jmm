@@ -9,14 +9,26 @@ class ConstantsPropagation {
 
     public static void main(String[]args){
     	int n;
+    	int x;
     	int k;
+    	int j;
+    	int l;
+    	int m;
+    	int z;
 		SimpleWhile simpleWhile;
 
     	n = 1;
-    	k = 1;
-    	io.println(k);
-    	k = 2;
+    	x = 1;
+    	io.println(x);
+    	x = 2;
 		simpleWhile = new SimpleWhile();
     	io.println(n);
+
+		j = 3;
+		k = j;
+		l = k;
+		m = l;
+		z = m;
+		io.println(z);
     }
 }
