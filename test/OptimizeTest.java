@@ -197,7 +197,7 @@ public class OptimizeTest {
         noErrors(result.getReports());
 
         var output = result.run();
-        assertEquals("4\n12\n1\n5", output.trim());
+        assertEquals("41215", output.trim().replace("\r\n", "").replace("\n", ""));
     }
 
     @Test
@@ -269,7 +269,7 @@ public class OptimizeTest {
         noErrors(result.getReports());
 
         var output = result.run().split("\n");
-        assertEquals(output.length, 10);
+        assertEquals(10, output.length);
     }
 
     @Test
