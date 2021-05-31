@@ -1,5 +1,6 @@
 package optimization;
 
+import constants.Ollir;
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
@@ -73,6 +74,8 @@ public class ConstantPropagation {
         List<String> constants = new ArrayList<>();
         HashMap<String, Element> locals = findLocalVars(method);
 
+        if (shouldEnd(method)) return constants;
+
         for (String varName : locals.keySet()) {
             Element var = locals.get(varName);
 
@@ -80,10 +83,12 @@ public class ConstantPropagation {
             if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) continue;
             AtomicBoolean used = new AtomicBoolean(false);
             AtomicBoolean checkConstant = new AtomicBoolean(true);
+            int branchId = -1;
             String constValue = "";
 
             for (Instruction instruction : listOfInstr) {
-
+                instruction.show();
+                System.out.println("constValue = " + constValue);
                 try {
                     OllirVariableFinder.findInstruction((FinderAlert alert) -> {
                         String name = OllirVariableFinder.getIdentifier(alert.getElement());
@@ -153,5 +158,17 @@ public class ConstantPropagation {
         }
 
         return String.join("\n", instructions);
+    }
+
+    private boolean shouldEnd(Method method) {
+        ArrayList<Instruction> listOfInstr = method.getInstructions();
+        for (Instruction instruction : listOfInstr) {
+            if (instruction.getInstType() == InstructionType.BRANCH) {
+                CondBranchInstruction condBranchInstruction = (CondBranchInstruction) instruction;
+                String branchName = condBranchInstruction.getLabel();
+                if (branchName.contains(Ollir.ifBody)) return true;
+            }
+        }
+        return false;
     }
 }
