@@ -19,6 +19,11 @@ public class AssignmentVisitor extends Visitor {
 
     public Boolean visitAssignment(JmmNode node, List<Report> reports) {
         BasicSymbol leftSideSymbol = leftSideVerification(node);
+        if (leftSideSymbol == null) {
+            reports.add(getReport(node, "Left hand side of assignment does not exist or is not assignable!"));
+            return false;
+        }
+
         Type leftSideType = leftSideSymbol.getType();
         Type rightSideType = rightSideVerification(node, reports);
 

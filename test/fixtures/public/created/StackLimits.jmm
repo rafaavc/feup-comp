@@ -1,0 +1,14 @@
+import io;
+class StackLimits {
+	public int calculate() {
+		return 10;
+	}
+
+    public static void main(String[]args){
+    	int a;
+    	int b;
+		SimpleWhile simpleWhile;
+
+		a = new StackLimits().calculate() + 1;
+    }
+}
