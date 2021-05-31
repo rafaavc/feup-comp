@@ -313,7 +313,7 @@ public class OllirBuilder {
     }
 
     public String getAssignmentCustom(String leftSide, Type type, String rightSide) {
-        return "\t\t" + leftSide +
+        return "\t\t\t" + leftSide +
                 equalsSign(type) +
                 rightSide + "\n";
     }

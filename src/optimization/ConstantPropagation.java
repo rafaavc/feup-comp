@@ -83,12 +83,9 @@ public class ConstantPropagation {
             if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) continue;
             AtomicBoolean used = new AtomicBoolean(false);
             AtomicBoolean checkConstant = new AtomicBoolean(true);
-            int branchId = -1;
             String constValue = "";
 
             for (Instruction instruction : listOfInstr) {
-                instruction.show();
-                System.out.println("constValue = " + constValue);
                 try {
                     OllirVariableFinder.findInstruction((FinderAlert alert) -> {
                         String name = OllirVariableFinder.getIdentifier(alert.getElement());

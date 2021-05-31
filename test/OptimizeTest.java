@@ -155,7 +155,7 @@ public class OptimizeTest {
         OptimizationStage optimizationStage = new OptimizationStage();
         OllirResult ollirResult = optimizationStage.toOllir(semanticsResult);
         ollirResult = optimizationStage.optimizeO(semanticsResult, ollirResult);
-        //ollirResult = optimizationStage.optimize(ollirResult);
+        ollirResult = optimizationStage.optimize(ollirResult);
 
         noErrors(ollirResult.getReports());
         return backendOptimize(ollirResult);

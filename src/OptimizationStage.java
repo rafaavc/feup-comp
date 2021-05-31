@@ -140,9 +140,8 @@ public class OptimizationStage implements JmmOptimization {
     }
 
     public OllirResult optimizeO(JmmSemanticsResult semanticsResult, OllirResult ollirResult) {
-        System.out.println("# OPTIMIZING...");
         ollirResult = new ConstantPropagation().optimize(semanticsResult, ollirResult);
-        //ollirResult = new WhileOptimization().optimize(semanticsResult, ollirResult);
+        ollirResult = new WhileOptimization().optimize(semanticsResult, ollirResult);
 
         return ollirResult;
     }

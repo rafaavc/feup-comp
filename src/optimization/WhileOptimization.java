@@ -30,6 +30,7 @@ public class WhileOptimization {
             } else if (isInLoop && isLoopEnd(ollirCode, i, loopIdSafe, ollirLoopCode)) {
                 isInLoop = false;
                 newOllirCode.append(updateLoop(ollirLoopCode.toString(), loopIdSafe));
+                ollirLoopCode = new StringBuilder();
                 while (ollirCode.charAt(i) != '\n') i++;
             } else if (isInLoop) {
                 ollirLoopCode.append(ollirCode.charAt(i));
@@ -42,7 +43,10 @@ public class WhileOptimization {
     }
 
     private String updateLoop(String ollirLoopCode, Integer loopId) {
-        System.out.println("LOOP " + loopId);
+
+        System.out.println("# OLLIR LOOP CODE\n");
+        System.out.println(ollirLoopCode);
+
         StringBuilder code = new StringBuilder();
         String[] instructions = ollirLoopCode.split("\n");
         String ifInstruction = getIfInstruction(instructions);
