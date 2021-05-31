@@ -60,7 +60,14 @@ public class OptimizationStage implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
-        return ollirResult;
+        try {
+            int k = getMinimumPossible(ollirResult.getOllirClass().getMethods(), 0);
+            Logger.log("Optimizin to the minimum possible k (" + k + ")");
+            return optimize(ollirResult, k);
+        } catch(Exception e) {
+            ollirResult.getReports().add(new Report(ReportType.ERROR, Stage.OPTIMIZATION, -1, "Couldn't optimize! " + e.getMessage()));
+            return ollirResult;
+        }
     }
 
     public int getMinimumPossible(List<Method> methods, int k) throws Exception {

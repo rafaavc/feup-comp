@@ -19,6 +19,7 @@ import optimization.RegisterAllocator;
 
 import org.junit.Test;
 import pt.up.fe.comp.TestUtils;
+import pt.up.fe.comp.jmm.jasmin.JasminBackend;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.specs.util.SpecsIo;
@@ -26,6 +27,8 @@ import pt.up.fe.specs.util.SpecsIo;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static pt.up.fe.comp.TestUtils.backend;
+import static pt.up.fe.comp.TestUtils.noErrors;
 
 public class OptimizeTest {
 
@@ -103,9 +106,9 @@ public class OptimizeTest {
         OllirResult ollirResult = TestUtils.optimize(SpecsIo.getResource("fixtures/public/created/ROption.jmm"));
 
         OptimizationStage optimizationStage = new OptimizationStage();
-        JasminResult jasmin = TestUtils.backend(optimizationStage.optimize(ollirResult, 1));
+        JasminResult jasmin = backend(optimizationStage.optimize(ollirResult, 1));
 
-        TestUtils.noErrors(ollirResult.getReports());
+        noErrors(ollirResult.getReports());
 
         String output = jasmin.run();
         assertEquals("1\n2\n2\n5\n5\n", output);
@@ -130,10 +133,209 @@ public class OptimizeTest {
         optimizationStage.optimize(ollirResult, 3);
         assertEquals(0, TestUtils.getNumErrors(ollirResult.getReports()));
 
-        JasminResult jasmin = TestUtils.backend(optimizationStage.optimize(ollirResult, 1));
+        JasminResult jasmin = backend(optimizationStage.optimize(ollirResult, 1));
 
         var output = jasmin.run();
 
         assertEquals("Result: 28", output.trim());
+    }
+
+    public static JasminResult backendOptimize(OllirResult ollirResult) {
+        try {
+            BackendStage backend = new BackendStage();
+            return backend.toJasmin(ollirResult);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generate Jasmin code", e);
+        }
+    }
+
+    public static JasminResult backendOptimize(String code) {
+        var ollirResult = TestUtils.optimize(code, true);
+        noErrors(ollirResult.getReports());
+        return backendOptimize(ollirResult);
+    }
+
+    @Test
+    public void testHelloWorld() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/HelloWorld.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("Hello, World!", output.trim());
+    }
+
+    @Test
+    public void testSimple() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/Simple.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("30", output.trim());
+    }
+
+    @Test
+    public void testMethodCalls() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/MethodCalls.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("520", output.trim());
+    }
+
+    @Test
+    public void testComplexExpressions() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/ComplexExpressions.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("10971", output.trim());
+    }
+
+    @Test
+    public void testArrayAccess() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/ArrayAccess.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("4\n12\n1\n5", output.trim());
+    }
+
+    @Test
+    public void testFac() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/Fac.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("3628800", output.trim());
+    }
+
+    @Test
+    public void testSimpleIf() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/SimpleIf.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("1234", output.trim());
+    }
+
+    @Test
+    public void testNestedIf() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/NestedIf.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("2", output.trim());
+    }
+
+    @Test
+    public void testComplexExpressionIf() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/ComplexExpressionIf.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("1", output.trim());
+    }
+
+    @Test
+    public void testSimpleWhile() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/SimpleWhile.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("10", output.trim());
+    }
+
+    @Test
+    public void testMultipleWhile() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/MultipleWhile.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("20", output.trim());
+    }
+
+    @Test
+    public void testNestedWhile() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/NestedWhile.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals("100", output.trim());
+    }
+
+    @Test
+    public void testLazysort() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/Lazysort.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run().split("\n");
+        assertEquals(output.length, 10);
+    }
+
+    @Test
+    public void testLife() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/Life.jmm"));
+        noErrors(result.getReports());
+
+        // is entering an infinite loop?
+//        var output = result.run("1\n1\n1\n1\n");
+//        assertEquals("100", output.trim());
+    }
+
+    @Test
+    public void testModifiedLife() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/created/ModifiedLife.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run(SpecsIo.getResource("fixtures/public/created/ModifiedLife.input"));
+        assertEquals(SpecsIo.getResource("fixtures/public/created/ModifiedLife.txt"), output.trim());
+    }
+
+    @Test
+    public void testMonteCarloPi() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/MonteCarloPi.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run("100000\n").trim();
+
+        assertEquals(314, Integer.parseInt(output.substring(output.length() - 3)), 5);
+    }
+
+    @Test
+    public void testQuickSort() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/QuickSort.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals(SpecsIo.getResource("fixtures/public/QuickSort.txt"), output.trim());
+    }
+
+    @Test
+    public void testTuring() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/private/Turing.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run(SpecsIo.getResource("fixtures/private/Turing.input"));
+        assertEquals(SpecsIo.getResource("fixtures/private/Turing.txt"), output.trim());
+    }
+
+    @Test
+    public void testTicTacToe() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/TicTacToe.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run(SpecsIo.getResource("fixtures/public/TicTacToe.input"));
+        assertEquals(SpecsIo.getResource("fixtures/public/TicTacToe.txt")
+                        .replace("\n", "").replace(" ", ""),
+                output.trim().replace("\n", "").replace(" ", ""));
+    }
+
+    @Test
+    public void testWhileAndIf() {
+        var result = backendOptimize(SpecsIo.getResource("fixtures/public/WhileAndIF.jmm"));
+        noErrors(result.getReports());
+
+        var output = result.run();
+        assertEquals(SpecsIo.getResource("fixtures/public/WhileAndIF.txt"), output.trim());
     }
 }

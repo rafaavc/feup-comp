@@ -89,7 +89,7 @@ public class RegisterAllocator {
 
         for (String k : toRemove) {
             List<String> interferences = graph.get(k);
-            interferences.remove(v);
+            if (interferences != null) interferences.remove(v);
             graph.replace(k, interferences);
         }
 
