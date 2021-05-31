@@ -26,10 +26,7 @@ public class AssignmentVisitor extends Visitor {
             reports.add(getReport(node, "Left hand side of assignment does not exist or is not assignable!"));
             return false;
         }
-        if (rightSideType == null) {
-            leftSideSymbol.setInit(true);
-            return false;
-        }
+        if (rightSideType == null) return false;
 
         if (!leftSideType.equals(rightSideType) && !rightSideType.getName().equals(Types.expected)) {
             reports.add(getReport(node, "Right hand side type does not match left hand side"));

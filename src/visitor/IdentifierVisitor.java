@@ -26,6 +26,7 @@ public class IdentifierVisitor extends Visitor {
         }
 
         if (symbol == null) return true;
+
         if (!symbol.isInit() && !isParameter(node)) {
             reports.add(getReport(ReportType.WARNING, node, "Variable not initialized"));
             return false;

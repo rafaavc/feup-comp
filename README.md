@@ -62,8 +62,17 @@ This stages are:
 
 ## Pros
  
-
+- Allowing method overloading in semantic analysis.
+- Detecting use of uninitialized variables.
+- Use of most efficient instructions such as iinc, (...)
+- Implemented code optimizations:
+  - Constant propagation
+  - Use of while templates to elimnate unnecessary got instructions
+  - Removing initialized and unused variables.
+  - Minimization of the number of registers used. 
 
 **CONS: (Identify the most negative aspects of your tool)
 
 ## Cons
+
+- Due to time constraints we could not implement constant folding, that we proposed to do as an extra optimization.
