@@ -25,7 +25,7 @@ public class LimitCalculator {
         String[] instructions = jasminCode.split("\n");
 
         for (String instruction : instructions) {
-            if (instruction.matches("^\t([ai]load|[ai]const|ldc|bipush|new|dup).*")) {
+            if (instruction.matches("^\t([ai]load|[ai]const|ldc|bipush|sipush|new|dup).*")) {
                 currentCount++;
             } else {
                 if (currentCount > maxCount) maxCount = currentCount;

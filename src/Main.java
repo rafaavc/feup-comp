@@ -1,3 +1,5 @@
+import org.specs.comp.ollir.Instruction;
+import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
@@ -7,6 +9,7 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.specs.util.SpecsIo;
+import utils.Logger;
 
 import java.io.File;
 import java.io.StringReader;
@@ -54,13 +57,16 @@ public class Main implements JmmParser {
 	}
 
 	public static void main(String[] args) {
-        System.out.println("Executing with args: " + Arrays.toString(args));
-        if (args.length < 1) {
-			System.err.println("I need at least the path of the file you want to parse. If you want, you can also specify the maximum number of errors you want me to report in the second argument.");
+        int maxErrNo = 15;
+		ArgsParser argsParser;
+		try {
+			argsParser = new ArgsParser(args);
+		} catch(Exception e) {
+			argsParser = null;
+        	Logger.err(e.getMessage());
+        	System.exit(1);
 		}
-
-        int maxErrNo = args.length > 1 ? Integer.parseInt(args[1]) : 10;
-		String jmmCode = SpecsIo.read(args[0]);
+		String jmmCode = SpecsIo.read(argsParser.getFilename());
 
 		Main main = new Main();
 		JmmParserResult parserResult = main.parse(jmmCode);
@@ -68,25 +74,33 @@ public class Main implements JmmParser {
 		File output = new File("tree.json");
 		SpecsIo.write(output, parserResult.toJson());
 
-		List<Report> globalReports = new ArrayList<>(parserResult.getReports());
+		List<Report> globalReports = parserResult.getReports();
 
 		boolean success = false;
 		if (!containsErrorReport(parserResult.getReports())) {
 			AnalysisStage analysis = new AnalysisStage();
 			JmmSemanticsResult semanticsResult = analysis.semanticAnalysis(parserResult);
-			globalReports.addAll(semanticsResult.getReports());
+			globalReports = semanticsResult.getReports();
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
-				OllirResult ollirResult;
-				ollirResult = new OptimizationStage().toOllir(semanticsResult);
-				globalReports.addAll(ollirResult.getReports());
+				OptimizationStage optimizationStage = new OptimizationStage();
+				OllirResult ollirResult = optimizationStage.toOllir(semanticsResult);
+
+				// Optimization
+				if (argsParser.isOptimizeO())
+					ollirResult = optimizationStage.optimizeO(semanticsResult, ollirResult);
+
+				if (argsParser.isOptimizeR())
+					ollirResult = optimizationStage.optimize(ollirResult, argsParser.getOptimizeR());
+
+				globalReports = ollirResult.getReports();
 
 				if (!containsErrorReport(ollirResult.getReports())) {
 					File ollirOutput = new File("tmp.ollir");
 					SpecsIo.write(ollirOutput, ollirResult.getOllirCode());
 
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
-					globalReports.addAll(jasminResult.getReports());
+					globalReports = jasminResult.getReports();
 
 					if (!containsErrorReport(jasminResult.getReports())) {
 						File jasminOutput = new File("tmp.jasmin");

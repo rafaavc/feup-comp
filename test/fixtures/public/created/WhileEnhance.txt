@@ -1,0 +1,29 @@
+.method public static main(args.array.String).V {
+		n.i32 :=.i32 1.i32;
+		aux2.SimpleWhile :=.SimpleWhile new(SimpleWhile).SimpleWhile;
+		invokespecial(aux2.SimpleWhile,"<init>").V;
+		simpleWhile.SimpleWhile :=.SimpleWhile aux2.SimpleWhile;
+	loop1:
+		aux3.bool :=.bool invokevirtual(simpleWhile.SimpleWhile, "compare", n.i32, 10.i32).bool;
+	if (aux3.bool ==.bool 1.bool) goto body1;
+		goto loopEnd1;
+	body1:
+		n.i32 :=.i32 n.i32 +.i32 1.i32;
+		goto loop1;
+	loopEnd1:
+	invokestatic(io, "println", n.i32).V;
+}
+
+.method public static main(args.array.String).V {
+		n.i32 :=.i32 1.i32;
+		aux2.SimpleWhile :=.SimpleWhile new(SimpleWhile).SimpleWhile;
+		invokespecial(aux2.SimpleWhile,"<init>").V;
+		simpleWhile.SimpleWhile :=.SimpleWhile aux2.SimpleWhile;
+		goto loopEnd1;
+	body1:
+		n.i32 :=.i32 n.i32 +.i32 1.i32;
+	loopEnd1:
+		aux3.bool :=.bool invokevirtual(simpleWhile.SimpleWhile, "compare", n.i32, 10.i32).bool;
+	if (aux3.bool ==.bool 1.bool) goto body1;
+	invokestatic(io, "println", n.i32).V;
+}
