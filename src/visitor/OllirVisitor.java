@@ -238,7 +238,6 @@ public class OllirVisitor extends Visitor {
                         break;
                     }
                 }
-                Logger.err("Couldn't get the parameter correspondent to the Object property in OllirVisitor::handleObjectProperty");
                 yield null;
             }
             default -> null;
