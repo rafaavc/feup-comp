@@ -42,8 +42,7 @@ public class JasminResult {
 
     public JasminResult(OllirResult ollirResult, String jasminCode, List<Report> reports) {
         this(ollirResult.getOllirClass().getClassName(), jasminCode,
-                SpecsCollections.concat(ollirResult.getReports(), reports)
-        );
+                SpecsCollections.concat(ollirResult.getReports(), reports));
     }
 
     public String getClassName() {
@@ -78,6 +77,10 @@ public class JasminResult {
      */
     public File compile() {
         File outputDir = SpecsIo.getTempFolder("jasmin");
+
+        // Clean all class files in folder
+        SpecsIo.deleteFolderContents(outputDir);
+
         return compile(outputDir);
     }
 
