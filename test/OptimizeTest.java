@@ -150,7 +150,12 @@ public class OptimizeTest {
     }
 
     public static JasminResult backendOptimize(String code) {
-        var ollirResult = TestUtils.optimize(code, true);
+        var semanticsResult = TestUtils.analyse(code);
+        var ollirResult = TestUtils.optimize(semanticsResult, true);
+
+        OptimizationStage optimizationStage = new OptimizationStage();
+        ollirResult = optimizationStage.optimizeO(semanticsResult, ollirResult);
+
         noErrors(ollirResult.getReports());
         return backendOptimize(ollirResult);
     }
