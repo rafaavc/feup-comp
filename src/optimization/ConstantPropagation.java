@@ -11,7 +11,7 @@ public class ConstantPropagation {
     public OllirResult optimize(JmmSemanticsResult semanticsResult, OllirResult ollirResult) {
         String newCode = String.join(".method", findAndReplaceConstants(ollirResult));
 
-        System.out.println("# NEW CODE");
+        System.out.println("## Got the ollir code after constant propagation:\n");
         System.out.println(newCode);
 
         return new OllirResult(semanticsResult, newCode, semanticsResult.getReports());
@@ -33,6 +33,9 @@ public class ConstantPropagation {
 
                 methods[i] = processResult;
                 String newCode = String.join(".method", methods);
+
+                System.out.println("## NEW CODE\n");
+                System.out.println(newCode);
 
                 ollirResult = new OllirResult(newCode);
                 ollirClass = ollirResult.getOllirClass();
@@ -76,7 +79,7 @@ public class ConstantPropagation {
             ElementType elementType = var.getType().getTypeOfElement();
             if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) continue;
             AtomicBoolean used = new AtomicBoolean(false);
-            boolean checkConstant = true;
+            AtomicBoolean checkConstant = new AtomicBoolean(true);
             String constValue = "";
 
             for (Instruction instruction : listOfInstr) {
@@ -88,6 +91,7 @@ public class ConstantPropagation {
                         FinderAlert.FinderAlertType type = alert.getType();
                         if (type == FinderAlert.FinderAlertType.USE && name.equals(varName)) {
                             used.set(true);
+                            if (alert.isArrayAccess()) checkConstant.set(false);
                         }
                     }, instruction);
                 } catch (Exception ignored) {
@@ -99,14 +103,14 @@ public class ConstantPropagation {
                     Operand leftOperand = getAssignLeftOperand(assignInstruction);
 
                     if (leftOperand.getName().equals(varName)) {
-                        if (rightOperand == null) checkConstant = false;
-                        else if (used.get()) checkConstant = false;
+                        if (rightOperand == null) checkConstant.set(false);
+                        else if (used.get()) checkConstant.set(false);
                         else constValue = rightOperand;
                     }
                 }
             }
 
-            if (checkConstant) {
+            if (checkConstant.get()) {
                 String type = (elementType == ElementType.INT32) ? ".i32" : ".bool";
                 constants.add(varName + type + "-" + constValue + type);
             }
@@ -137,7 +141,7 @@ public class ConstantPropagation {
     private String removeConstants(String ollirCode, List<String> constants) {
         List<String> instructions = new ArrayList<>(Arrays.asList(ollirCode.split("\n")));
 
-        for (int i = 0; i < instructions.size() ; i++) {
+        for (int i = 0; i < instructions.size(); i++) {
             for (String constant : constants) {
                 String remove = constant.split("-")[0];
                 String add = constant.split("-")[1];
