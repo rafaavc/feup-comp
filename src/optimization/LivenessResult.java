@@ -49,20 +49,26 @@ public class LivenessResult {
             Set<String> outSet = out.get(i);
 
             // add new variables
-            for (String var : inSet) addVariable(i, var);
+//            for (String var : inSet) addVariable(i, var);
             for (String var : outSet) addVariable(i, var);
 
             // end variables that are no longer live
             for (String variable : variables.keySet()) {
                 LivenessRange range = variables.get(variable);
-                if (!range.hasEnd() && i > range.getStart()) {
-                    if (!inSet.contains(variable))  // doesn't have end yet and isn't on the in set
-                        range.setEnd(i - 1);
-                    else if (!outSet.contains(variable))  // doesn't have end yet and isn't on the out set
-                        range.setEnd(i - 1);
-                }
-                else if (range.hasEnd() && (outSet.contains(variable) || inSet.contains(variable)))  // has end but is in an in or out set
+
+                // if the variable doesn't have end, this instruction is after the instruction where the
+                // variable appeared and the variable doesn't appearn in the outset, the variable is dead
+                if (!range.hasEnd() && i > range.getStart() && !outSet.contains(variable))
+                    range.setEnd(i - 1);
+
+                // if the variable was given as dead and it appears in an out set then it lives again
+                else if (range.hasEnd() && outSet.contains(variable))
                     range.removeEnd();
+
+                // if the variable was given as dead and it appears in an in set without
+                // appearing in the out then the time of it death is changed
+                else if (range.hasEnd() && inSet.contains(variable))
+                    range.setEnd((i - 1));
             }
         }
     }
