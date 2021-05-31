@@ -15,11 +15,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Main implements JmmParser {
+
+	private final static Map<ReportType, Integer> importance = new HashMap<>();
+	static {
+		importance.put(ReportType.ERROR, 4);
+		importance.put(ReportType.WARNING, 3);
+		importance.put(ReportType.DEBUG, 2);
+		importance.put(ReportType.LOG, 1);
+	}
 
 	@Override
 	public JmmParserResult parse(String jmmCode) {
@@ -51,6 +57,9 @@ public class Main implements JmmParser {
 			return;
 		}
 		int count = 0;
+
+		reports.sort((Report r1, Report r2) -> importance.get(r2.getType()) - importance.get(r1.getType()));
+
 		for (Report report: reports) {
 			if (count >= limit) return;
 			System.out.println(report);
