@@ -9,32 +9,39 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConstantPropagation {
     public OllirResult optimize(JmmSemanticsResult semanticsResult, OllirResult ollirResult) {
-        findAndReplaceConstants(ollirResult);
-        return ollirResult;
+        String newCode = String.join(".method", findAndReplaceConstants(ollirResult));
+
+        System.out.println("# NEW CODE");
+        System.out.println(newCode);
+
+        return new OllirResult(semanticsResult, newCode, semanticsResult.getReports());
     }
 
-    private List<String> findAndReplaceConstants(OllirResult ollirResult) {
-        List<String> constants = new ArrayList<>();
+    private String[] findAndReplaceConstants(OllirResult ollirResult) {
         String ollirCode = ollirResult.getOllirCode();
         ClassUnit ollirClass = ollirResult.getOllirClass();
 
         String[] methods = ollirCode.split(".method");
 
-        // first result of split is not a method
-        List<String> newMethods = new ArrayList<>();
-        System.out.println("### OLLIR METHODS LENGTH: " + ollirClass.getMethods().size());
         for (int i = 1; i < methods.length; i++) {
-            String processResult = "";
-            String result;
-            do {
-                result = processResult;
+            String processResult;
+            String result = "";
+
+            while (true) {
                 processResult = processMethod(methods[i], ollirClass.getMethods().get(i));
-            } while (!processResult.equals(""));
-            if (!result.equals("")) newMethods.add(result);
-            newMethods.add(methods[i]);
+                if (processResult.equals("")) break;
+
+                methods[i] = processResult;
+                String newCode = String.join(".method", methods);
+
+                ollirResult = new OllirResult(newCode);
+                ollirClass = ollirResult.getOllirClass();
+                result = processResult;
+            }
+            if (!result.equals("")) methods[i] = result;
         }
 
-        return constants;
+        return methods;
     }
 
     private String processMethod(String methodCode, Method method) {
@@ -58,27 +65,21 @@ public class ConstantPropagation {
     }
 
     private List<String> findConstants(Method method) {
-        System.out.println("## METHOD NAME: " + method.getMethodName());
         HashMap<String, Descriptor> varTable = method.getVarTable();
         ArrayList<Instruction> listOfInstr = method.getInstructions();
         List<String> constants = new ArrayList<>();
         HashMap<String, Element> locals = findLocalVars(method);
 
-        System.out.println("## Before calling varTable: " + varTable.keySet().size());
         for (String varName : locals.keySet()) {
             Element var = locals.get(varName);
-            System.out.println("## VAR NAME: " + varName);
 
             ElementType elementType = var.getType().getTypeOfElement();
             if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) continue;
-            System.out.println("### Is bool or int");
             AtomicBoolean used = new AtomicBoolean(false);
             boolean checkConstant = true;
             String constValue = "";
 
             for (Instruction instruction : listOfInstr) {
-                System.out.print("#### Instruction: ");
-                instruction.show();
 
                 try {
                     OllirVariableFinder.findInstruction((FinderAlert alert) -> {
@@ -86,7 +87,6 @@ public class ConstantPropagation {
                         if (name == null) return;
                         FinderAlert.FinderAlertType type = alert.getType();
                         if (type == FinderAlert.FinderAlertType.USE && name.equals(varName)) {
-                            System.out.println("#### is being used");
                             used.set(true);
                         }
                     }, instruction);
@@ -99,24 +99,17 @@ public class ConstantPropagation {
                     Operand leftOperand = getAssignLeftOperand(assignInstruction);
 
                     if (leftOperand.getName().equals(varName)) {
-                        System.out.println("#### is being assigned");
-                        if (rightOperand == null) {
-                            System.out.println("#### not assigned to a constant");
-                            checkConstant = false;
-                        }
-                        else if (used.get()) {
-                            System.out.println("#### was used before assign");
-                            checkConstant = false;
-                        }
-                        else {
-                            System.out.println("#### got right value");
-                            constValue = rightOperand;
-                        }
+                        if (rightOperand == null) checkConstant = false;
+                        else if (used.get()) checkConstant = false;
+                        else constValue = rightOperand;
                     }
                 }
             }
 
-            if (checkConstant) constants.add(varName + "-" + constValue);
+            if (checkConstant) {
+                String type = (elementType == ElementType.INT32) ? ".i32" : ".bool";
+                constants.add(varName + type + "-" + constValue + type);
+            }
         }
         return constants;
     }
@@ -142,13 +135,19 @@ public class ConstantPropagation {
     }
 
     private String removeConstants(String ollirCode, List<String> constants) {
-        String[] instructions = ollirCode.split("\n");
+        List<String> instructions = new ArrayList<>(Arrays.asList(ollirCode.split("\n")));
 
-        for (String instruction : instructions) {
+        for (int i = 0; i < instructions.size() ; i++) {
             for (String constant : constants) {
+                String remove = constant.split("-")[0];
+                String add = constant.split("-")[1];
+                if (instructions.get(i).contains(remove + " :=")) {
+                    instructions.remove(i--);
+                }
+                instructions.set(i, instructions.get(i).replace(remove, add));
             }
         }
 
-        return "";
+        return String.join("\n", instructions);
     }
 }
