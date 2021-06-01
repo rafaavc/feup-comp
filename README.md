@@ -24,13 +24,14 @@ The compiler takes **.jmm** files as input, and performs syntactical and semanti
 ---
 
 ```
-./comp2021-3d Main <jmmfilepath> [-e=<n1>] [-r=<n2>] [-o]
+./comp2021-3d Main <jmmfilepath> [-e=<n1>] [-r=<n2>] [-o] [-d]
 ```
 
 Where:
   - -e shows n1 reports (n1 >= 0 and default = 15)
   - -r assigns the variables to n2 registers (n2 > 0)
   - -o activates constant propagation and whiles goto optimizations
+  - -d saves the output files to the `./compiled/<ClassName>/` folder instead of the directory where the compiler is executed
 
 or
 
@@ -78,7 +79,7 @@ These stages are:
     - Constant Propagation (-o)
     - While loops *goto* instructions are minimized (-o)
     - Initialized but unused variables have their declaration and assignment instructions removed
-5. Jasmin code generation
+5. Jasmin code generation (with selection of the most efficient instructions)
 
 ## Task Distribution
 
@@ -91,7 +92,7 @@ These stages are:
  
 - Allowing method overloading in semantic analysis.
 - Detecting use of uninitialized variables.
-- Use of most efficient instructions such as iinc, (...)
+- Use of most efficient instructions such as iinc, sipush, etc.
 - Implemented code optimizations:
   - Constant propagation
   - Use of while templates to eliminate unnecessary goto instructions
@@ -100,4 +101,4 @@ These stages are:
 
 ## Cons
 
-- Due to time constraints we could not implement constant folding, that we proposed to do as an extra optimization.
+- Due to time constraints we could not implement constant folding, that we had proposed to do as an extra optimization.
