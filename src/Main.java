@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.JmmParser;
 import pt.up.fe.comp.jmm.JmmParserResult;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
+import pt.up.fe.comp.jmm.jasmin.JasminUtils;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
@@ -82,6 +83,8 @@ public class Main implements JmmParser {
 		String[] pathParts = argsParser.getFilePath().split("[/\\\\]");
 		String fileName = pathParts[pathParts.length - 1].split("\\.")[0];
 
+		String folder = argsParser.toDir() ? "./compiled/" + fileName + "/" : "./";
+
 		if (argsParser.isRun()) {
 			String jasminCode = SpecsIo.read(argsParser.getFilePath());
 			JasminResult result = new JasminResult(fileName, jasminCode, new ArrayList<>());
@@ -103,7 +106,7 @@ public class Main implements JmmParser {
 		Main main = new Main();
 		JmmParserResult parserResult = main.parse(jmmCode);
 
-		File output = new File("compiled/" + fileName + "/" + fileName + "Tree.json");
+		File output = new File(folder + fileName + ".ast.json");
 		SpecsIo.write(output, parserResult.toJson());
 
 		List<Report> globalReports = parserResult.getReports();
@@ -113,6 +116,9 @@ public class Main implements JmmParser {
 			AnalysisStage analysis = new AnalysisStage();
 			JmmSemanticsResult semanticsResult = analysis.semanticAnalysis(parserResult);
 			globalReports = semanticsResult.getReports();
+
+			File symbolTableOutput = new File(folder + fileName + ".symbols.txt");
+			SpecsIo.write(symbolTableOutput, semanticsResult.getSymbolTable().print());
 
 			if (!containsErrorReport(semanticsResult.getReports())) {
 				OptimizationStage optimizationStage = new OptimizationStage();
@@ -128,14 +134,14 @@ public class Main implements JmmParser {
 				globalReports = ollirResult.getReports();
 
 				if (!containsErrorReport(ollirResult.getReports())) {
-					File ollirOutput = new File("compiled/" + fileName + "/" + fileName + ".ollir");
+					File ollirOutput = new File(folder + fileName + ".ollir");
 					SpecsIo.write(ollirOutput, ollirResult.getOllirCode());
 
 					JasminResult jasminResult = new BackendStage().toJasmin(ollirResult);
 					globalReports = jasminResult.getReports();
 
 					if (!containsErrorReport(jasminResult.getReports())) {
-						File jasminOutput = new File("compiled/" + fileName + "/" + fileName + ".j");
+						File jasminOutput = new File(folder + fileName + ".j");
 						SpecsIo.write(jasminOutput, jasminResult.getJasminCode());
 
 						success = true;
@@ -147,10 +153,17 @@ public class Main implements JmmParser {
 
 		System.out.flush();
 		System.setOut(old);
-		File logOutput = new File("compiled/" + fileName + "/" + fileName + ".log");
-		SpecsIo.write(logOutput, byteArrayOutputStream.toString());
+		if (argsParser.toDir()) {
+			File logOutput = new File(folder + fileName + ".log");
+			SpecsIo.write(logOutput, byteArrayOutputStream.toString());
+		}
 
 		logReports(globalReports, maxErrNo);
-		if (success) System.out.println("Jasmin code generated with success!");
+		if (success) {
+			System.out.println("Jasmin code generated with success!");
+			File jasminFile = new File(folder + fileName + ".j");
+			File classOutput = new File(folder);
+			JasminUtils.assemble(jasminFile, classOutput);
+		}
     }
 }

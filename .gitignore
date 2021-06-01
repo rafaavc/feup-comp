@@ -15,3 +15,8 @@ tmp.ollir
 tmp.jasmin
 .settings
 compiled
+*.j
+*.ollir
+*.symbols.txt
+*.ast.json
+*.class

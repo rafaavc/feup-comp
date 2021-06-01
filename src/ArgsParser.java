@@ -6,10 +6,11 @@ public class ArgsParser {
     private int optimizeR = -1;
     private int maxReports = 15;
     private final boolean isRun;
+    private boolean toDir = false;
     private final String stdin;
 
     public String getUsage() {
-        return "Usage:\n./comp2021-3d Main <jmmfilepath> [-e=<n1>] [-r=<n2>] [-o]\n\nWhere:\n\t-e shows n1 reports (n1 >= 0 and default = 15)\n\t-r assigns the variables to n2 registers (n2 > 0)\n\t-o activates constant propagation and whiles goto optimizations\n\nor\n\n./comp2021-3d Main run <jasminfilepath> [stdin]\n\nWhere:\n\tjasminfilepath is the path of the jasmin code file to run\n\tstdin is the input to be given to the program\n";
+        return "Usage:\n./comp2021-3d Main <jmmfilepath> [-e=<n1>] [-r=<n2>] [-o] [-d]\n\nWhere:\n\t-e shows n1 reports (n1 >= 0 and default = 15)\n\t-d saves the output files in the /compiled/<classname>/ folder\n\t-r assigns the variables to n2 registers (n2 > 0)\n\t-o activates constant propagation and whiles goto optimizations\n\nor\n\n./comp2021-3d Main run <jasminfilepath> [stdin]\n\nWhere:\n\tjasminfilepath is the path of the jasmin code file to run\n\tstdin is the input to be given to the program\n";
     }
 
     public ArgsParser(String[] args) throws Exception {
@@ -46,6 +47,7 @@ public class ArgsParser {
                     throw new Exception(getUsage());
                 }
             }
+            else if (args[i].contains("-d")) toDir = true;
         }
     }
 
@@ -63,6 +65,10 @@ public class ArgsParser {
 
     public boolean isRun() {
         return isRun;
+    }
+
+    public boolean toDir() {
+        return toDir;
     }
 
     public String getFilePath() {
