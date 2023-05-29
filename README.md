@@ -1,3 +1,9 @@
+# Java-- to JVM Bytecode Compiler
+
+Implementation of all stages of a compiler: parsing the Java-- code, generating the abstract syntax tree, performing semantic analysis, creating the symbol table, generating the intermediate representation (OLLIR), performing optimizations (registry allocation with liveness analysis and graph coloring, constant propagation, and more), and generating the final Jasmin code. The Jasmin code is then translated to Java bytecode by the Jasmin assembler.
+
+---
+
 # GROUP: comp2021-3d
 
 
